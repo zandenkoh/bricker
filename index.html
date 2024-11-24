@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chad's game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #000000, #3b3b3b);
+            color: white;
+        }
+
+        canvas {
+            display: block;
+            margin-left: auto;
+            margin-right: 0;
+            background: #111;
+            border: 3px solid #444;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .ui h1 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 300;
+        }
+
+        .level-count {
+            margin: 5px 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .gold-count {
+            margin: 5px 0;
+            font-size: 25px;
+            font-weight: 900;
+        }
+
+        .ui button {
+            padding: 5px 10px;
+            margin-top: 5px;
+            background: #0074d9;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .ui button:hover {
+            background: #0053a6;
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="backgroundMusic" autoplay>
+        <source src="https://zandenkoh.github.io/ShaZan-Music/onlymp3.to%20-%20Call%20Me%20Maybe-dlObDivWgx8-192k-1688437018%20-%20Thaddeus%20Seow%20Zhe%20Xun%20(Chs).mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+    <div class="ui">
+        <h1>Chad's game</h1>
+        
+        <p class="gold-count">Gold: <span id="gold">20</span></p>
+        <p class="level-count">Level: <span id="level">1</span></p>
+
+        <button onclick="buyBall('sniper')">Buy Sniper Ball (<span id="sniperCost">20</span> Gold)</button>
+        <button onclick="buyBall('big')">Buy Big Ball (<span id="bigCost">30</span> Gold)</button>
+        <button onclick="buyBall('explosion')">Buy Explosion Ball (<span id="explosionCost">40</span> Gold)</button>
+        <button onclick="buyBall('multiplying')">Buy Multiplying Ball (<span id="multiplyingCost">50</span> Gold)</button>
+
+    </div>
+    <canvas id="gameCanvas" width="1000" height="600"></canvas>
+
+    <script>
+        window.onload = function() {
+            const audio = document.getElementById('backgroundMusic');
+            audio.play(); // Ensure the audio plays as soon as the page is loaded
+        };
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state variables
+        let gold = 20;
+        let level = 1;
+        let balls = [];
+        let bricks = [];
+        let powerUps = [];
+        const brickWidth = 50;
+        const brickHeight = 20;
+
+        const ballPrices = {
+            sniper: 20,
+            big: 30,
+            explosion: 40,
+            multiplying: 50
+        };
+
+        // UI elements
+        const goldDisplay = document.getElementById('gold');
+        const levelDisplay = document.getElementById('level');
+
+        canvas.addEventListener('click', (e) => {
+            const mouseX = e.clientX - canvas.offsetLeft;
+            const mouseY = e.clientY - canvas.offsetTop;
+
+            // Check if a brick was clicked
+            bricks.forEach(brick => {
+                if (
+                    mouseX > brick.x && mouseX < brick.x + brick.width &&
+                    mouseY > brick.y && mouseY < brick.y + brick.height
+                ) {
+                    brick.hit(); // Remove the brick
+                }
+            });
+        });
+
+
+        // Ball class
+        class Ball {
+            constructor(x, y, radius, dx, dy, color, type) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.dx = dx;
+                this.dy = dy;
+                this.color = color;
+                this.type = type;
+                this.powerUpUsed = false; // Track if the ball has used a power-up
+                this.hasBouncedWall = false; // Track Sniper Balls' wall bounces
+            }
+
+            move() {
+                this.x += this.dx;
+                this.y += this.dy;
+
+                // Bounce off walls
+                if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+                    this.dx = -this.dx;
+                    if (this.type === 'sniper') this.redirectToClosestBrick();
+                }
+                if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+                    this.dy = -this.dy;
+                    if (this.type === 'sniper') this.redirectToClosestBrick();
+                }
+
+                // Check collisions with bricks
+                bricks.forEach(brick => {
+                    if (
+                        this.x > brick.x &&
+                        this.x < brick.x + brick.width &&
+                        this.y > brick.y &&
+                        this.y < brick.y + brick.height
+                    ) {
+                        this.handleBrickCollision(brick);
+                    }
+                });
+            }
+
+            redirectToClosestBrick() {
+                if (this.type === 'sniper') {
+                    const closestBrick = this.getClosestBrick();
+                    if (closestBrick) {
+                        const angle = Math.atan2(closestBrick.y + brickHeight / 2 - this.y, closestBrick.x + brickWidth / 2 - this.x);
+                        this.dx = Math.cos(angle) * 5;
+                        this.dy = Math.sin(angle) * 5;
+                    }
+                }
+            }
+
+            getClosestBrick() {
+                let closestBrick = null;
+                let closestDistance = Infinity;
+
+                bricks.forEach(brick => {
+                    const distance = Math.hypot(
+                        this.x - (brick.x + brick.width / 2),
+                        this.y - (brick.y + brick.height / 2)
+                    );
+
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestBrick = brick;
+                    }
+                });
+
+                return closestBrick;
+            }
+
+            handleBrickCollision(brick) {
+                brick.hit();
+                this.dy = -this.dy;
+
+                if (this.type === 'explosion') {
+                    bricks.forEach(b => {
+                        const distance = Math.hypot(b.x - brick.x, b.y - brick.y);
+                        if (distance < 60) b.hit();
+                    });
+                } else if (this.type === 'multiplying') {
+                    balls.push(new Ball(
+                        this.x,
+                        this.y,
+                        this.radius / 2,
+                        (Math.random() > 0.5 ? 1 : -1) * 4,
+                        (Math.random() > 0.5 ? 1 : -1) * 4,
+                        this.color,
+                        'child'
+                    ));
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        class Brick {
+            constructor(x, y, health) {
+                this.x = x;
+                this.y = y;
+                this.width = brickWidth;
+                this.height = brickHeight;
+                this.health = health;
+            }
+
+            hit() {
+                this.health--;
+                if (this.health <= 0) {
+                    bricks = bricks.filter(brick => brick !== this); // Remove the brick from the array
+                    gold += 5; // Give the player gold for breaking the brick
+                    spawnPowerUp(); // Chance to spawn a power-up
+                    updateUI(); // Update UI with new gold amount
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = `rgba(255, 0, 0, ${this.health / 3})`;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px Arial';
+                ctx.fillText(this.health, this.x + this.width / 2 - 6, this.y + this.height / 2 + 4);
+            }
+        }
+
+
+        class BossBrick extends Brick {
+            constructor(x, y) {
+                super(x, y, 10); // Boss has 10 health
+                this.width = 100;
+                this.height = 40;
+            }
+
+            draw() {
+                ctx.fillStyle = 'darkred';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = '#fff';
+                ctx.font = '16px Arial';
+                ctx.fillText(`Boss: ${this.health}`, this.x + this.width / 4, this.y + this.height / 2);
+            }
+        }
+
+
+        class PowerUp {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.width = 20;
+                this.height = 20;
+                this.type = type;
+                this.active = true;
+                this.spawnTime = Date.now(); // Track when the power-up was created
+            }
+
+            draw() {
+                if (!this.active) return; // Skip drawing if inactive
+                ctx.fillStyle = {
+                    gold: 'gold',
+                    speed: 'cyan',
+                    multiBall: 'magenta'
+                }[this.type];
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            collect() {
+                // Check if power-up has expired
+                if (Date.now() - this.spawnTime > 20000) {
+                    this.active = false;
+                    return;
+                }
+
+                // Collect power-up if ball hasn't already used one
+                balls.forEach(ball => {
+                    if (ball.powerUpUsed) return;
+
+                    if (
+                        ball.x + ball.radius > this.x &&
+                        ball.x - ball.radius < this.x + this.width &&
+                        ball.y + ball.radius > this.y &&
+                        ball.y - ball.radius < this.y + this.height
+                    ) {
+                        this.activatePowerUp(ball); // Activate power-up for the ball
+                    }
+                });
+            }
+
+            activatePowerUp(ball) {
+                ball.powerUpUsed = true; // Mark that the ball has used a power-up
+
+                if (this.type === 'gold') gold += 50;
+                if (this.type === 'speed') {
+                    ball.dx *= 1.5;
+                    ball.dy *= 1.5;
+                }
+                if (this.type === 'multiBall') {
+                    balls.push(new Ball(ball.x, ball.y, ball.radius, -ball.dx, -ball.dy, ball.color, ball.type));
+                }
+
+                this.active = false; // Deactivate power-up after being collected
+                updateUI();
+            }
+        }
+
+
+
+
+        function spawnPowerUp() {
+            if (Math.random() < 0.2) { // 20% chance after breaking a brick
+                const type = ['gold', 'speed', 'multiBall'][Math.floor(Math.random() * 3)];
+                const x = Math.random() * (canvas.width - 20);
+                const y = Math.random() * (canvas.height - 20);
+                powerUps.push(new PowerUp(x, y, type));
+            }
+        }
+
+
+
+        // Spawn a level of bricks
+        function spawnBricks() {
+            const rows = level;
+            const cols = 5;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const x = centerX - (cols * brickWidth) / 2 + col * brickWidth;
+                    const y = centerY - (rows * brickHeight) / 2 + row * brickHeight;
+                    const health = level;
+                    bricks.push(new Brick(x, y, health));
+                }
+            }
+
+            if (level % 5 === 0) {
+                bricks.push(new BossBrick(canvas.width / 2 - 50, canvas.height / 4));
+            }
+
+        }
+
+        // Update UI
+        function updateUI() {
+            goldDisplay.textContent = gold;
+            levelDisplay.textContent = level;
+
+            document.getElementById('sniperCost').textContent = ballPrices.sniper;
+            document.getElementById('bigCost').textContent = ballPrices.big;
+            document.getElementById('explosionCost').textContent = ballPrices.explosion;
+            document.getElementById('multiplyingCost').textContent = ballPrices.multiplying;
+        }
+
+        // Buy a ball
+        function buyBall(type) {
+            if (gold >= ballPrices[type]) {
+                gold -= ballPrices[type];
+                ballPrices[type] += 10;
+
+                const radius = type === 'big' ? 12 : 8;
+                const speed = type === 'sniper' ? 5 : 3 + Math.random();
+                const dx = speed * (Math.random() > 0.5 ? 1 : -1);
+                const dy = speed * (Math.random() > 0.5 ? 1 : -1);
+                const color = {
+                    sniper: 'blue',
+                    big: 'green',
+                    explosion: 'orange',
+                    multiplying: 'purple'
+                }[type];
+                balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
+                updateUI();
+            } else {
+                alert('Not enough gold!');
+            }
+        }
+
+        function drawTrail(ball) {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius * 1.2, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+
+        // Start next level
+        function nextLevel() {
+            if (bricks.length === 0) {
+                level++;
+                spawnBricks();
+                updateUI();
+            }
+        }
+
+        function gameLoop() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw and move balls
+            balls.forEach(ball => {
+                drawTrail(ball);
+                ball.move();
+                ball.draw();
+            });
+
+            // Check for power-up collisions
+            powerUps.forEach(powerUp => {
+                if (powerUp.active) {
+                    powerUp.draw();
+
+                    // Check collision with balls
+                    balls.forEach(ball => {
+                        if (
+                            ball.x + ball.radius > powerUp.x &&
+                            ball.x - ball.radius < powerUp.x + powerUp.width &&
+                            ball.y + ball.radius > powerUp.y &&
+                            ball.y - ball.radius < powerUp.y + powerUp.height
+                        ) {
+                            powerUp.collect(); // Collect power-up
+                        }
+                    });
+                }
+            });
+
+            // Draw bricks
+            bricks.forEach(brick => brick.draw());
+
+            // Check for next level
+            nextLevel();
+
+            // Request next frame
+            requestAnimationFrame(gameLoop);
+        }
+
+
+        // Start the game
+        spawnBricks();
+        gameLoop();
+    </script>
+</body>
+
+</html>
