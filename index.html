@@ -11,34 +11,55 @@
             padding: 0;
             font-family: Arial, sans-serif;
             overflow: hidden;
-            background: linear-gradient(to bottom, #000000, #3b3b3b);
+            background: #000;
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .together {
+            width: fit-content;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            padding-top: 0;
+            background: #e9dcaf;
         }
 
         canvas {
-            display: block;
-            margin-left: auto;
-            margin-right: 0;
-            background: #111;
+            display: flex;
+            align-self: center;
+            background: #f4eed6;
             border: 3px solid #444;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+        
+        .info-container {
+            color: #000;
+            width: 150px;
         }
 
         .ui {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 200px;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+            position: relative;
+            align-self: center;
+            width: 1000px;
+            background: #e9dcaf;
+            padding: 0;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0;
         }
 
         .ui h1 {
             margin: 0;
-            font-size: 15px;
+            font-size: 20px;
             font-weight: 300;
+            color: #000;
         }
 
         .level-count {
@@ -46,7 +67,7 @@
             font-size: 18px;
             font-weight: 500;
         }
-        
+
         .gold-count {
             margin: 5px 0;
             font-size: 25px;
@@ -66,27 +87,133 @@
         .ui button:hover {
             background: #0053a6;
         }
+
+        .ball-options {
+            display: flex;
+            justify-content: space-around;
+            margin: 0;
+            margin-bottom: 10px;
+            background: #e9dcaf;
+            padding: 0px;
+            gap: 5px
+        }
+
+        .ball-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 60px;
+            user-select: none;
+            cursor: pointer;
+        }
+        
+        .ball-option p {
+            color: #444;
+        }
+
+        .ball-option:hover .ball-preview {
+            opacity: 0.5;
+        }
+
+        .ball-preview {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f4eed6;
+            border: 1px solid #444;
+            border-radius: 50%;
+            margin-bottom: 5px;
+        }
+
+        .ball-options canvas {
+            border: 1px solid #444;
+        }
+
+        .ball-price {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid #444;
+            width: 100%;
+            color: #000;
+            padding: 2px 0;
+        }
     </style>
 </head>
 
 <body>
-    <audio id="backgroundMusic" autoplay>
-        <source src="https://zandenkoh.github.io/ShaZan-Music/onlymp3.to%20-%20Call%20Me%20Maybe-dlObDivWgx8-192k-1688437018%20-%20Thaddeus%20Seow%20Zhe%20Xun%20(Chs).mp3" type="audio/mp3">
-        Your browser does not support the audio element.
-    </audio>
-    <div class="ui">
-        <h1>Chad's game</h1>
-        
-        <p class="gold-count">Gold: <span id="gold">20</span></p>
-        <p class="level-count">Level: <span id="level">1</span></p>
+    <div class="together">
 
-        <button onclick="buyBall('sniper')">Buy Sniper Ball (<span id="sniperCost">20</span> Gold)</button>
-        <button onclick="buyBall('big')">Buy Big Ball (<span id="bigCost">30</span> Gold)</button>
-        <button onclick="buyBall('explosion')">Buy Explosion Ball (<span id="explosionCost">40</span> Gold)</button>
-        <button onclick="buyBall('multiplying')">Buy Multiplying Ball (<span id="multiplyingCost">50</span> Gold)</button>
+        <div class="ui">
+            <div class="info-container">
+                <p class="gold-count">Gold: <span id="gold">20</span></p>
+                <p class="level-count">Level: <span id="level">1</span></p>
+            </div>
 
+            <div class="ball-options">
+                <div class="ball-option" id="sniper-option" onclick="buyBall('sniper')">
+                    <p>Sniper</p>
+                    <div class="ball-preview">
+                        <canvas id="sniper-preview" width="60" height="60"></canvas>
+                    </div>
+                    <div class="ball-price">
+                        <span id="sniperPrice">20</span>
+                    </div>
+                </div>
+                <div class="ball-option" id="big-option" onclick="buyBall('big')">
+                    <p>Big</p>
+                    <div class="ball-preview">
+                        <canvas id="big-preview" width="60" height="60"></canvas>
+                    </div>
+                    <div class="ball-price">
+                        <span id="bigPrice">30</span>
+                    </div>
+                </div>
+                <div class="ball-option" id="explosion-option" onclick="buyBall('explosion')">
+                    <p>Bomb</p>
+                    <div class="ball-preview">
+                        <canvas id="explosion-preview" width="60" height="60"></canvas>
+                    </div>
+                    <div class="ball-price">
+                        <span id="explosionPrice">40</span>
+                    </div>
+                </div>
+                <div class="ball-option" id="multiplying-option" onclick="buyBall('multiplying')">
+                    <p>Clones</p>
+                    <div class="ball-preview">
+                        <canvas id="multiplying-preview" width="60" height="60"></canvas>
+                    </div>
+                    <div class="ball-price">
+                        <span id="multiplyingPrice">50</span>
+                    </div>
+                </div>
+                <div class="ball-option" id="auto-option" onclick="buyAutoBall()">
+                    <p>Auto</p>
+                    <div class="ball-preview">
+                        <canvas id="auto-preview" width="60" height="60"></canvas>
+                    </div>
+                    <div class="ball-price">
+                        <span id="multiplyingPrice">100</span>
+                    </div>
+                </div>
+            </div>
+
+            <h1>Chad's game</h1>
+
+
+
+
+            <!--<button onclick="buyBall('sniper')">Buy Sniper Ball (<span id="sniperCost">20</span> Gold)</button>
+            <button onclick="buyBall('big')">Buy Big Ball (<span id="bigCost">30</span> Gold)</button>
+            <button onclick="buyBall('explosion')">Buy Explosion Ball (<span id="explosionCost">40</span> Gold)</button>
+            <button onclick="buyBall('multiplying')">Buy Multiplying Ball (<span id="multiplyingCost">50</span> Gold)</button>
+            <button onclick="buyAutoBall()">Buy Auto Ball (100 Gold)</button>-->
+
+        </div>
+        <canvas id="gameCanvas" width="1000" height="470"></canvas>
     </div>
-    <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
     <script>
         window.onload = function() {
@@ -99,12 +226,26 @@
 
         // Game state variables
         let gold = 20;
+
+        let idleGoldPerSecond = 1; // Gold earned per second passively
+
+        function generatePassiveGold() {
+            gold += idleGoldPerSecond;
+            updateUI();
+        }
+
+        // Start generating passive gold every second
+        setInterval(generatePassiveGold, 1000);
+        
+        let autoBallPrice = 100;
+
         let level = 1;
         let balls = [];
         let bricks = [];
         let powerUps = [];
-        const brickWidth = 50;
-        const brickHeight = 20;
+        let autoBalls = [];
+        const brickWidth = 70;
+        const brickHeight = 30;
 
         const ballPrices = {
             sniper: 20,
@@ -121,6 +262,8 @@
             const mouseX = e.clientX - canvas.offsetLeft;
             const mouseY = e.clientY - canvas.offsetTop;
 
+            let isHovering = false;
+
             // Check if a brick was clicked
             bricks.forEach(brick => {
                 if (
@@ -130,6 +273,9 @@
                     brick.hit(); // Remove the brick
                 }
             });
+
+
+            canvas.style.cursor = isHovering ? 'pointer' : 'default';
         });
 
 
@@ -223,7 +369,11 @@
                         this.color,
                         'child'
                     ));
+                } else if (this.type === 'child') {
+                    // Remove the child ball after hitting a brick
+                    balls = balls.filter(ball => ball !== this);
                 }
+
             }
 
             draw() {
@@ -242,15 +392,25 @@
                 this.width = brickWidth;
                 this.height = brickHeight;
                 this.health = health;
+                this.hover = false;
+            }
+
+            isCursorHovering(mouseX, mouseY) {
+                return (
+                    mouseX > this.x &&
+                    mouseX < this.x + this.width &&
+                    mouseY > this.y &&
+                    mouseY < this.y + this.height
+                );
             }
 
             hit() {
                 this.health--;
                 if (this.health <= 0) {
-                    bricks = bricks.filter(brick => brick !== this); // Remove the brick from the array
-                    gold += 5; // Give the player gold for breaking the brick
-                    spawnPowerUp(); // Chance to spawn a power-up
-                    updateUI(); // Update UI with new gold amount
+                    bricks = bricks.filter(brick => brick !== this);
+                    gold += 5;
+                    spawnPowerUp();
+                    updateUI();
                 }
             }
 
@@ -258,9 +418,14 @@
                 ctx.fillStyle = `rgba(255, 0, 0, ${this.health / 3})`;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
                 ctx.fillStyle = '#fff';
-                ctx.font = '12px Arial';
+                ctx.font = '18px Arial';
                 ctx.fillText(this.health, this.x + this.width / 2 - 6, this.y + this.height / 2 + 4);
+
+                ctx.strokeStyle = '#333'; // Dark grey border
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x, this.y, this.width, this.height);
             }
+
         }
 
 
@@ -275,7 +440,7 @@
                 ctx.fillStyle = 'darkred';
                 ctx.fillRect(this.x, this.y, this.width, this.height);
                 ctx.fillStyle = '#fff';
-                ctx.font = '16px Arial';
+                ctx.font = '15px Arial';
                 ctx.fillText(`Boss: ${this.health}`, this.x + this.width / 4, this.y + this.height / 2);
             }
         }
@@ -341,6 +506,45 @@
             }
         }
 
+        class AutoBall {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 30; // Bottom of the canvas
+                this.radius = 8;
+                this.dy = -4; // Always moves upward
+                this.color = 'black';
+            }
+
+            move() {
+                this.y += this.dy;
+                if (this.y < 0) {
+                    this.y = canvas.height - 30; // Reset position
+                    this.x = Math.random() * canvas.width; // Randomise horizontal position
+                }
+
+                // Check collisions with bricks
+                bricks.forEach(brick => {
+                    if (
+                        this.x > brick.x &&
+                        this.x < brick.x + brick.width &&
+                        this.y > brick.y &&
+                        this.y < brick.y + brick.height
+                    ) {
+                        brick.hit();
+                        this.y = canvas.height - 30; // Reset position
+                        this.x = Math.random() * canvas.width;
+                    }
+                });
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
 
 
 
@@ -366,7 +570,7 @@
                 for (let col = 0; col < cols; col++) {
                     const x = centerX - (cols * brickWidth) / 2 + col * brickWidth;
                     const y = centerY - (rows * brickHeight) / 2 + row * brickHeight;
-                    const health = level;
+                    const health = level + Math.floor(level / 3); // Scaling health
                     bricks.push(new Brick(x, y, health));
                 }
             }
@@ -377,17 +581,38 @@
 
         }
 
+        function drawBallPreview(canvasId, color, radius) {
+            const previewCanvas = document.getElementById(canvasId);
+            const previewCtx = previewCanvas.getContext('2d');
+
+            // Clear the canvas before redrawing
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+            // Draw the ball
+            previewCtx.beginPath();
+            previewCtx.arc(previewCanvas.width / 2, previewCanvas.height / 2, radius, 0, Math.PI * 2);
+            previewCtx.fillStyle = color;
+            previewCtx.fill();
+            previewCtx.closePath();
+        }
+
         // Update UI
         function updateUI() {
             goldDisplay.textContent = gold;
             levelDisplay.textContent = level;
 
-            document.getElementById('sniperCost').textContent = ballPrices.sniper;
-            document.getElementById('bigCost').textContent = ballPrices.big;
-            document.getElementById('explosionCost').textContent = ballPrices.explosion;
-            document.getElementById('multiplyingCost').textContent = ballPrices.multiplying;
-        }
+            document.getElementById('sniperPrice').textContent = ballPrices.sniper;
+            document.getElementById('bigPrice').textContent = ballPrices.big;
+            document.getElementById('explosionPrice').textContent = ballPrices.explosion;
+            document.getElementById('multiplyingPrice').textContent = ballPrices.multiplying;
 
+            // Draw previews for each ball
+            drawBallPreview('sniper-preview', 'blue', 8); // Sniper ball
+            drawBallPreview('big-preview', 'green', 12); // Big ball
+            drawBallPreview('explosion-preview', 'orange', 8); // Explosion ball
+            drawBallPreview('multiplying-preview', 'purple', 8); // Multiplying ball
+            drawBallPreview('auto-preview', 'black', 8); // Multiplying ball
+        }
         // Buy a ball
         function buyBall(type) {
             if (gold >= ballPrices[type]) {
@@ -410,6 +635,44 @@
                 alert('Not enough gold!');
             }
         }
+
+        function buyAutoBall() {
+            if (gold >= 100) {
+                gold -= 100;
+                autoBalls.push(new AutoBall());
+                autoBallPrice = Math.floor(autoBallPrice * 1.5);
+                document.getElementById('multiplyingPrice').textContent = autoBallPrice;
+                updateUI();
+            } else {
+                alert('Not enough gold!');
+            }
+        }
+
+        function updateAutoBallPreview() {
+            const canvas = document.getElementById('auto-preview');
+            const context = canvas.getContext('2d');
+
+            // Clear the canvas for redrawing
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the auto-ball (example: a red ball)
+            context.fillStyle = 'black';
+            context.beginPath();
+            context.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2 - 5, 0, Math.PI * 2);
+            context.fill();
+        }
+
+        function upgradePassiveGold() {
+            if (gold >= 50) {
+                gold -= 50;
+                idleGoldPerSecond += 1; // Increase passive gold rate
+                updateUI();
+            } else {
+                alert('Not enough gold!');
+            }
+        }
+
+
 
         function drawTrail(ball) {
             ctx.beginPath();
@@ -458,6 +721,13 @@
                     });
                 }
             });
+
+            // Draw and move auto balls
+            autoBalls.forEach(autoBall => {
+                autoBall.move();
+                autoBall.draw();
+            });
+
 
             // Draw bricks
             bricks.forEach(brick => brick.draw());
