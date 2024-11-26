@@ -36,7 +36,7 @@
             background: #f4eed6;
             border: 3px solid #444;
         }
-        
+
         .info-container {
             color: #000;
             width: 150px;
@@ -106,7 +106,7 @@
             user-select: none;
             cursor: pointer;
         }
-        
+
         .ball-option p {
             color: #444;
         }
@@ -236,7 +236,7 @@
 
         // Start generating passive gold every second
         setInterval(generatePassiveGold, 1000);
-        
+
         let autoBallPrice = 100;
 
         let level = 1;
@@ -289,8 +289,8 @@
                 this.dy = dy;
                 this.color = color;
                 this.type = type;
-                this.powerUpUsed = false; // Track if the ball has used a power-up
-                this.hasBouncedWall = false; // Track Sniper Balls' wall bounces
+                this.powerUpUsed = false;
+                this.hasBouncedWall = false;
             }
 
             move() {
@@ -377,6 +377,7 @@
             }
 
             draw() {
+                drawTrail(this);
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
@@ -548,11 +549,37 @@
 
 
 
-        function spawnPowerUp() {
-            if (Math.random() < 0.2) { // 20% chance after breaking a brick
+        /*function spawnPowerUp() {
+            if (Math.random() < 0.05) {
+
+
                 const type = ['gold', 'speed', 'multiBall'][Math.floor(Math.random() * 3)];
                 const x = Math.random() * (canvas.width - 20);
                 const y = Math.random() * (canvas.height - 20);
+                powerUps.push(new PowerUp(x, y, type));
+            }
+        }*/
+
+        function spawnPowerUp() {
+            if (Math.random() < 0.05) { // Reduce chance to 10%
+                let x, y, isOverlapping;
+
+                // Ensure power-up does not overlap with bricks
+                do {
+                    x = Math.random() * (canvas.width - 20);
+                    y = Math.random() * (canvas.height - 20);
+
+                    isOverlapping = bricks.some(brick => {
+                        return (
+                            x < brick.x + brick.width &&
+                            x + 20 > brick.x &&
+                            y < brick.y + brick.height &&
+                            y + 20 > brick.y
+                        );
+                    });
+                } while (isOverlapping);
+
+                const type = ['gold', 'speed', 'multiBall'][Math.floor(Math.random() * 3)];
                 powerUps.push(new PowerUp(x, y, type));
             }
         }
@@ -560,26 +587,61 @@
 
 
         // Spawn a level of bricks
-        function spawnBricks() {
-            const rows = level;
-            const cols = 5;
+        /*function spawnBricks() {
+            const rows = Math.min(level, Math.floor(canvas.height / brickHeight) - 1); // Limit rows to fit canvas
+            const cols = Math.min(5, Math.floor(canvas.width / brickWidth)); // Limit columns to fit canvas
             const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
+            const centerY = canvas.height / 4; // Adjust to avoid overlap with balls
 
+            bricks = []; // Clear any existing bricks
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
                     const x = centerX - (cols * brickWidth) / 2 + col * brickWidth;
-                    const y = centerY - (rows * brickHeight) / 2 + row * brickHeight;
+                    const y = centerY + row * brickHeight;
                     const health = level + Math.floor(level / 3); // Scaling health
                     bricks.push(new Brick(x, y, health));
                 }
             }
 
             if (level % 5 === 0) {
-                bricks.push(new BossBrick(canvas.width / 2 - 50, canvas.height / 4));
+                bricks.push(new BossBrick(canvas.width / 2 - 50, centerY - brickHeight * 2));
+            }
+        }*/
+
+        function spawnBricks() {
+            const maxRows = 11; // Maximum height (rows)
+            const maxCols = 6; // Maximum width (columns)
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            if (bricks.length < maxRows * maxCols) {
+                // Add bricks only if the limit hasn't been reached
+                const rows = Math.min(level, maxRows);
+                const cols = Math.min(5, maxCols); // Keep initial width at 5, max out at 6
+
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const x = centerX - (cols * brickWidth) / 2 + col * brickWidth;
+                        const y = centerY - (rows * brickHeight) / 2 + row * brickHeight;
+
+                        const health = level + Math.floor(level / 3); // Scaling health
+                        bricks.push(new Brick(x, y, health));
+                    }
+                }
+            } else {
+                // Only increase the health of existing bricks if the limit is reached
+                bricks.forEach(brick => {
+                    brick.health += Math.floor(level / 3);
+                });
             }
 
+            // Add a BossBrick at every 5th level, within constraints
+            if (level % 5 === 0 && !bricks.some(b => b instanceof BossBrick)) {
+                bricks.push(new BossBrick(canvas.width / 2 - 50, canvas.height / 4));
+            }
         }
+
+
 
         function drawBallPreview(canvasId, color, radius) {
             const previewCanvas = document.getElementById(canvasId);
@@ -674,13 +736,42 @@
 
 
 
-        function drawTrail(ball) {
+        /*function drawTrail(ball) {
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, ball.radius * 1.2, 0, Math.PI * 2);
             ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
             ctx.fill();
             ctx.closePath();
+        }*/
+
+        function drawTrail(ball) {
+            const speed = Math.sqrt(ball.dx ** 2 + ball.dy ** 2);
+            const trailLength = Math.max(5, speed * 3); // Adjust trail length based on speed
+
+            // Store trail positions
+            if (!ball.trail) ball.trail = [];
+            ball.trail.push({
+                x: ball.x,
+                y: ball.y
+            });
+
+            // Limit the trail to the calculated length
+            if (ball.trail.length > trailLength) {
+                ball.trail.shift();
+            }
+
+            // Draw the trail fading from older to newer positions
+            ball.trail.forEach((position, index) => {
+                const alpha = index / ball.trail.length; // Gradual fade effect
+
+                ctx.beginPath();
+                ctx.arc(position.x, position.y, ball.radius * 1.2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${0.2 * alpha})`;
+                ctx.fill();
+                ctx.closePath();
+            });
         }
+
 
 
         // Start next level
