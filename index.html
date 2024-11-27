@@ -45,7 +45,7 @@
         .ui {
             position: relative;
             align-self: center;
-            width: 1000px;
+            width: 950px;
             background: #e9dcaf;
             padding: 0;
             display: flex;
@@ -109,6 +109,42 @@
 
         .ball-option p {
             color: #444;
+        }
+        
+        /*#weapons-btn {
+            height: fit-content;
+            padding: 15px;
+            border: 1px solid #444;
+            background: #f4eed6;
+            color: #000;
+            font-weight: 600;
+            align-self: center;
+            margin-left: 15px;
+        }
+        
+        #weapons-btn:hover {
+            opacity: 0.5;
+        }*/
+        
+        #weapons-btn {
+            width: fit-content;
+            
+            padding: 10px;
+            border: 1px solid #444;
+            background: #f4eed6;
+            color: #000;
+            font-weight: 600;
+            align-self: end;
+            margin-left: 0px;
+        }
+        
+        #weapons-btn p {
+            margin-top: 10px;
+            margin-bottom: 12px;
+        }
+        
+        #weapons-btn:hover {
+            opacity: 0.5;
         }
 
         .ball-option:hover .ball-preview {
@@ -198,7 +234,16 @@
                         <span id="multiplyingPrice">100</span>
                     </div>
                 </div>
+                <div class="ball-option" id="weapons-btn">
+                    <p>Mass Destruction</p>
+                    <div class="ball-price">
+                        <span>1000</span>
+                    </div>
+                </div>
+                
+                <!--<button id="weapons-btn">Mass Destruction</button>-->
             </div>
+            
 
             <h1>Chad's game</h1>
 
@@ -733,6 +778,195 @@
                 alert('Not enough gold!');
             }
         }
+
+
+
+        // Weapon cost
+        const weaponCost = 1000;
+
+        // Add event listener to the weapons button
+        document.getElementById('weapons-btn').addEventListener('click', () => {
+            if (gold >= weaponCost) {
+                gold -= weaponCost; // Deduct the cost
+                deployRandomWeapon(); // Deploy a random weapon
+                updateUI(); // Update UI with new gold count
+            } else {
+                alert('Not enough gold!');
+            }
+        });
+
+        // Randomly deploy a weapon
+        function deployRandomWeapon() {
+            const weapons = ['nuke', 'airstrike', 'gravity', 'laser', 'blackhole'];
+            const randomWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+            switch (randomWeapon) {
+                case 'nuke':
+                    deployNuke();
+                    break;
+                case 'airstrike':
+                    deployAirstrike();
+                    break;
+                case 'gravity':
+                    manipulateGravity();
+                    break;
+                case 'laser':
+                    deployLaser();
+                    break;
+                case 'blackhole':
+                    createBlackhole();
+                    break;
+            }
+        }
+
+        // Nuke - Clears all bricks for 10 seconds
+        function deployNuke() {
+            alert('Nuke deployed! All bricks will be destroyed for the next 10 seconds!');
+            const explosionRadius = 200; // Explosion radius for the nuke
+
+            // Draw Nuke Explosion
+            setTimeout(() => {
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, explosionRadius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // Semi-transparent red for the explosion effect
+                ctx.fill();
+                ctx.closePath();
+
+                // Destroy all bricks
+                bricks.forEach(brick => brick.hit());
+
+                spawnPowerUp(); // Optionally spawn power-ups after nuke
+            }, 0); // Nuke effect occurs immediately
+
+            // Restore after 10 seconds
+            setTimeout(() => {
+                // Additional effects like fading away could go here
+            }, 10000); // Nuke effect lasts for 10 seconds
+        }
+
+        // Airstrike - Randomly targets 3 bricks and destroys them
+        function deployAirstrike() {
+            alert('Airstrike deployed! 3 random bricks will be destroyed!');
+            const airstrikeEffectDuration = 500; // Duration of airstrike effect in milliseconds
+            const airstrikeArea = 300; // Airstrike area width
+
+            // Draw Airstrike area
+            ctx.fillStyle = 'rgba(0, 0, 255, 0.3)'; // Blue with transparency for airstrike
+            ctx.fillRect(canvas.width / 2 - airstrikeArea / 2, 0, airstrikeArea, 50); // Airstrike path
+
+            // Target 3 random bricks
+            for (let i = 0; i < 3; i++) {
+                const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                if (randomBrick) {
+                    randomBrick.hit(); // Destroy brick if hit by airstrike
+                }
+            }
+
+            // Stop Airstrike effect after a small delay
+            setTimeout(() => {
+                // Fade out effect or other visual feedback could go here
+            }, airstrikeEffectDuration);
+        }
+
+        // Gravity Manipulation - Increases gravity, making balls fall faster for 10 seconds
+        function manipulateGravity() {
+            alert('Gravity increased! Balls will fall faster for the next 10 seconds!');
+            const originalDy = balls.map(ball => ball.dy);
+
+            // Visual effect for gravity manipulation
+            const gravityEffectRadius = 150;
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, gravityEffectRadius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.3)'; // Cyan for gravity effect
+            ctx.fill();
+            ctx.closePath();
+
+            // Increase gravity on balls
+            balls.forEach(ball => {
+                ball.dy *= 1.5; // Increase gravity effect
+            });
+
+            // Reset gravity after 10 seconds
+            setTimeout(() => {
+                balls.forEach((ball, index) => {
+                    ball.dy = originalDy[index]; // Restore original gravity
+                });
+            }, 10000); // Gravity effect lasts for 10 seconds
+        }
+
+        // Laser - Fires a laser that destroys any brick it touches for 5 seconds
+        function deployLaser() {
+            alert('Laser deployed! Any brick it touches will be destroyed for the next 5 seconds!');
+            const laser = {
+                x: canvas.width / 2,
+                y: 0,
+                width: 5,
+                height: canvas.height,
+                color: 'red'
+            };
+
+            // Visual effect: Laser continuously drawn for 5 seconds
+            const laserInterval = setInterval(() => {
+                ctx.fillStyle = laser.color;
+                ctx.fillRect(laser.x, laser.y, laser.width, laser.height); // Laser beam drawn from top to bottom
+
+                // Check for collisions with bricks
+                bricks.forEach(brick => {
+                    if (laser.x + laser.width > brick.x && laser.x < brick.x + brick.width) {
+                        brick.hit(); // Destroy brick if hit by laser
+                    }
+                });
+            }, 50); // Fire laser every 50ms
+
+            // Stop laser after 5 seconds
+            setTimeout(() => {
+                clearInterval(laserInterval);
+            }, 5000); // Laser lasts for 5 seconds
+        }
+
+        // Blackhole - Creates a blackhole that pulls all balls and bricks towards it for 5 seconds
+        function createBlackhole() {
+            alert('Blackhole created! All balls and bricks are pulled towards it for the next 5 seconds!');
+            const blackhole = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                radius: 50
+            };
+
+            // Visual effect: Blackhole in the center with true black color
+            const blackholeInterval = setInterval(() => {
+                ctx.beginPath();
+                ctx.arc(blackhole.x, blackhole.y, blackhole.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // Black with no transparency
+                ctx.fill();
+                ctx.closePath();
+
+                // Pull all balls and bricks towards the blackhole
+                balls.forEach(ball => {
+                    const angle = Math.atan2(blackhole.y - ball.y, blackhole.x - ball.x);
+                    ball.x += Math.cos(angle) * 2; // Move balls towards blackhole
+                    ball.y += Math.sin(angle) * 2;
+                });
+
+                bricks.forEach((brick, index) => {
+                    const angle = Math.atan2(blackhole.y - brick.y, blackhole.x - brick.x);
+                    brick.x += Math.cos(angle) * 0.5; // Move bricks towards blackhole
+                    brick.y += Math.sin(angle) * 0.5;
+
+                    // If a brick gets too close to the black hole, destroy it
+                    const distance = Math.sqrt(Math.pow(blackhole.x - brick.x, 2) + Math.pow(blackhole.y - brick.y, 2));
+                    if (distance < blackhole.radius) {
+                        brick.hit(); // Destroy the brick if it reaches the black hole
+                    }
+                });
+            }, 30); // Update every 30ms
+
+            // Stop blackhole effect after 5 seconds
+            setTimeout(() => {
+                clearInterval(blackholeInterval);
+            }, 5000);
+        }
+
+
 
 
 
