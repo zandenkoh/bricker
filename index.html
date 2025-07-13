@@ -77,7 +77,7 @@
         .ui button {
             padding: 5px 10px;
             margin-top: 5px;
-            background: #0074d9;
+            background: #000;
             border: none;
             color: white;
             border-radius: 5px;
@@ -110,25 +110,9 @@
         .ball-option p {
             color: #444;
         }
-        
-        /*#weapons-btn {
-            height: fit-content;
-            padding: 15px;
-            border: 1px solid #444;
-            background: #f4eed6;
-            color: #000;
-            font-weight: 600;
-            align-self: center;
-            margin-left: 15px;
-        }
-        
-        #weapons-btn:hover {
-            opacity: 0.5;
-        }*/
-        
+
         #weapons-btn {
             width: fit-content;
-            
             padding: 10px;
             border: 1px solid #444;
             background: #f4eed6;
@@ -137,12 +121,12 @@
             align-self: end;
             margin-left: 0px;
         }
-        
+
         #weapons-btn p {
             margin-top: 10px;
             margin-bottom: 12px;
         }
-        
+
         #weapons-btn:hover {
             opacity: 0.5;
         }
@@ -176,16 +160,314 @@
             color: #000;
             padding: 2px 0;
         }
+
+        #save-button {
+            padding: 5px 10px;
+            margin-top: 5px;
+            background: #000;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #save-button:hover {
+            background: transparent;
+            color: #000;
+            outline: 1px solid #000;
+        }
+
+        #save-button:active {
+            transform: scale(0.95);
+        }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-popup {
+            background: #e9dcaf;
+            padding: 20px;
+            border: 3px solid #444;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            color: #000;
+        }
+
+        .login-popup h2 {
+            margin: 0 0 15px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .login-popup input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: #f4eed6;
+            color: #000;
+            box-sizing: border-box;
+        }
+
+        .login-popup button {
+            padding: 8px 15px;
+            margin: 10px 5px;
+            background: #000;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .login-popup button:hover {
+            background: #0053a6;
+        }
+
+        .login-popup p {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+        }
+
+        .inside-button-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #my-balls-btn,
+        #settings-btn {
+            width: 100px;
+            padding: 10px;
+            border: 1px solid #444;
+            background: #f4eed6;
+            color: #000;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 0px;
+            transition: transform 0s ease, box-shadow 0.2s ease, background 0s ease;
+        }
+
+        #my-balls-btn:hover,
+        #settings-btn:hover {
+            background: linear-gradient(145deg, #e9dcaf, #f4eed6);
+        }
+
+        #my-balls-btn p,
+        #settings-btn p {
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .my-balls-popup,
+        .settings-popup {
+            background: #e9dcaf;
+            padding: 20px;
+            border: 3px solid #444;
+            width: 450px;
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            color: #000;
+        }
+
+        .my-balls-popup::-webkit-scrollbar,
+        .settings-popup::-webkit-scrollbar {
+            width: 0;
+        }
+
+        .my-balls-popup h2,
+        .settings-popup h2 {
+            margin: 0 0 15px;
+            font-size: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #000;
+            text-align: center;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            background: transparent;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 0px solid #444;
+        }
+
+        .nav-tabs button {
+            background: #f4eed6;
+            border: 1px solid #444;
+            color: #000;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 15px;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-tabs button:hover {
+            background: #e9dcaf;
+            color: #000;
+        }
+
+        .nav-tabs button.active {
+            background: #000;
+            color: white;
+            border: 1px solid #444;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .ball-stats,
+        .upgrades-list,
+        .rebirth-info {
+            text-align: left;
+            background: #f4eed6;
+            padding: 12px;
+            border: 2px solid #444;
+        }
+
+        .ball-stats div,
+        .upgrades-list div {
+            margin: 8px 0;
+            padding: 10px;
+            background: #e9dcaf;
+            border: 0 solid #444;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ball-stats div canvas {
+            border: 1px solid #000;
+        }
+
+        .upgrade-btn,
+        .rebirth-btn {
+            padding: 8px 12px;
+            background: #000;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            width: 130px;
+        }
+
+        .upgrade-btn:hover,
+        .rebirth-btn:hover {
+            background: transparent;
+            color: #000;
+            outline: 1px solid #000;
+        }
+
+        .settings-info {
+            text-align: left;
+            padding: 12px;
+            background: #f4eed6;
+            border: 2px solid #444;
+        }
+
+        .settings-info p {
+            margin: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .settings-info input {
+            width: 100%;
+            padding: 6px;
+            margin: 6px 0;
+            border: 1px solid #444;
+            background: #e9dcaf;
+            color: #000;
+            font-size: 14px;
+        }
+
+        .edit-icon {
+            cursor: pointer;
+            margin-left: 6px;
+            font-size: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .edit-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            color: #000;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s ease;
+            border: none;
+        }
+
+        .close-btn svg {
+            color: #000;
+            fill: #000;
+            width: 20px;
+            height: 20px;
+        }
+
+        .close-btn:hover {
+            background: #e9dcaf;
+        }
     </style>
 </head>
 
 <body>
     <div class="together">
-
+        <!-- Replace the existing .ui div in the HTML body with this updated version -->
         <div class="ui">
             <div class="info-container">
                 <p class="gold-count">Gold: <span id="gold">20</span></p>
                 <p class="level-count">Level: <span id="level">1</span></p>
+                <button id="save-button">Save progress</button>
             </div>
 
             <div class="ball-options">
@@ -231,59 +513,100 @@
                         <canvas id="auto-preview" width="60" height="60"></canvas>
                     </div>
                     <div class="ball-price">
-                        <span id="multiplyingPrice">100</span>
+                        <span id="autoPrice">100</span>
                     </div>
                 </div>
-                <div class="ball-option" id="weapons-btn">
-                    <p>Mass Destruction</p>
-                    <div class="ball-price">
-                        <span>1000</span>
+                <div class="button-group">
+                    <div class="ball-option" id="weapons-btn">
+                        <p>Mass Destruction</p>
+                        <div class="ball-price">
+                            <span>1000</span>
+                        </div>
+                    </div>
+                    <div class="inside-button-group">
+                        <div class="ball-option" id="my-balls-btn">
+                            <p>My Balls</p>
+                        </div>
+                        <div class="ball-option" id="settings-btn">
+                            <p>Settings</p>
+                        </div>
                     </div>
                 </div>
-                
-                <!--<button id="weapons-btn">Mass Destruction</button>-->
             </div>
-            
 
             <h1>Bricker</h1>
-
-
-
-
-            <!--<button onclick="buyBall('sniper')">Buy Sniper Ball (<span id="sniperCost">20</span> Gold)</button>
-            <button onclick="buyBall('big')">Buy Big Ball (<span id="bigCost">30</span> Gold)</button>
-            <button onclick="buyBall('explosion')">Buy Explosion Ball (<span id="explosionCost">40</span> Gold)</button>
-            <button onclick="buyBall('multiplying')">Buy Multiplying Ball (<span id="multiplyingCost">50</span> Gold)</button>
-            <button onclick="buyAutoBall()">Buy Auto Ball (100 Gold)</button>-->
-
         </div>
         <canvas id="gameCanvas" width="1000" height="520"></canvas>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <script>
-        window.onload = function() {
-            const audio = document.getElementById('backgroundMusic');
-            audio.play(); // Ensure the audio plays as soon as the page is loaded
+        // Inject tooltip and toast styles
+        const style = document.createElement('style');
+        style.innerHTML = `
+    .tooltip {
+        position: absolute;
+        background: #f4eed6;
+        border: 1px solid #444;
+        color: #000;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-family: Arial, sans-serif;
+        z-index: 10;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        white-space: nowrap;
+    }
+    .ball-option:hover .tooltip {
+        opacity: 1;
+    }
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #e9dcaf;
+        border: 1px solid #444;
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.5s;
+    }
+    .toast.show {
+        opacity: 1;
+    }
+`;
+        document.head.appendChild(style);
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCusXta6VD-G0zanUUPPMhs4Qc9aThb33Q",
+            authDomain: "bricker-by-zlabs.firebaseapp.com",
+            projectId: "bricker-by-zlabs",
+            storageBucket: "bricker-by-zlabs.firebasestorage.app",
+            messagingSenderId: "949608388167",
+            appId: "1:949608388167:web:beff34c82661cf69980362"
         };
-        // Canvas setup
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
 
         // Game state variables
         let gold = 20;
-
-        let idleGoldPerSecond = 1; // Gold earned per second passively
-
-        function generatePassiveGold() {
-            gold += idleGoldPerSecond;
-            updateUI();
-        }
-
-        // Start generating passive gold every second
-        setInterval(generatePassiveGold, 1000);
-
+        let idleGoldPerSecond = 1;
         let autoBallPrice = 100;
-
         let level = 1;
         let balls = [];
         let bricks = [];
@@ -291,38 +614,321 @@
         let autoBalls = [];
         const brickWidth = 70;
         const brickHeight = 30;
-
+        const maxBalls = 50;
+        const maxPowerUps = 10;
+        const maxBricks = 66;
         const ballPrices = {
             sniper: 20,
             big: 30,
             explosion: 40,
             multiplying: 50
         };
+        let ballUpgrades = {
+            sniper: { level: 1, speed: 4.5, damage: 1 },
+            big: { level: 1, speed: 2.7, damage: 1 },
+            explosion: { level: 1, speed: 2.7, damage: 2 },
+            multiplying: { level: 1, speed: 2.7, damage: 1 },
+            child: { level: 1, speed: 3.6, damage: 1 }
+        };
+        let globalUpgrades = {
+            speedBoost: { active: false, duration: 0, cost: 200 },
+            goldBoost: { active: false, duration: 0, cost: 150 }
+        };
+        let stats = {
+            totalPlayTime: 0,
+            totalBallsPurchased: 0,
+            totalUpgrades: 0,
+            startTime: Date.now()
+        };
+        let username = '';
+        let lastUpdateTime = Date.now();
+
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
         // UI elements
         const goldDisplay = document.getElementById('gold');
         const levelDisplay = document.getElementById('level');
+        const saveButton = document.getElementById('save-button');
 
-        canvas.addEventListener('click', (e) => {
-            const mouseX = e.clientX - canvas.offsetLeft;
-            const mouseY = e.clientY - canvas.offsetTop;
+        // Authentication state
+        let isGuest = false;
 
-            let isHovering = false;
-
-            // Check if a brick was clicked
-            bricks.forEach(brick => {
-                if (
-                    mouseX > brick.x && mouseX < brick.x + brick.width &&
-                    mouseY > brick.y && mouseY < brick.y + brick.height
-                ) {
-                    brick.hit(); // Remove the brick
-                }
+        // Add tooltips to ball options
+        const ballTooltips = {
+            'sniper-option': 'Sniper Ball: Redirects to nearest brick on wall hit. Speed: 4.5, Damage: 1',
+            'big-option': 'Big Ball: Larger size for more hitting surface. Speed: 2.7, Damage: 1',
+            'explosion-option': 'Bomb Ball: Deals 2 damage to hit brick, 1 to nearby bricks. Speed: 2.7',
+            'multiplying-option': 'Clones Ball: Spawns a small clone on brick hit. Speed: 2.7, Damage: 1',
+            'auto-option': 'Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 3.6'
+        };
+        Object.keys(ballTooltips).forEach(id => {
+            const element = document.getElementById(id);
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = ballTooltips[id];
+            element.appendChild(tooltip);
+            element.addEventListener('mousemove', (e) => {
+                tooltip.style.left = `${e.clientX - canvas.offsetLeft - 40}px`;
+                tooltip.style.top = `${e.clientY - canvas.offsetTop + 170}px`;
             });
-
-
-            canvas.style.cursor = isHovering ? 'pointer' : 'default';
         });
 
+        // Toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 2000);
+        }
+
+        // Show login popup on page load if not authenticated
+        window.onload = function () {
+            auth.onAuthStateChanged(user => {
+                if (user && !isGuest) {
+                    loadGameState(user.uid);
+                } else {
+                    showLoginPopup();
+                }
+            });
+        };
+
+        // Login popup
+        function showLoginPopup() {
+            const overlay = document.createElement('div');
+            overlay.className = 'login-overlay';
+            overlay.innerHTML = `
+        <div class="login-popup">
+            <h2>Login to Save Progress</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <button onclick="playAsGuest()">Play as Guest</button>
+            <p>Don't have an account? <a href="#" onclick="signUp()">Sign up</a></p>
+        </div>
+    `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+
+        // Login function
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    document.querySelector('.login-overlay').remove();
+                    loadGameState(userCredential.user.uid);
+                })
+                .catch(error => {
+                    alert('Login failed: ' + error.message);
+                });
+        }
+
+        // Sign up function
+        function signUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    document.querySelector('.login-overlay').remove();
+                    loadGameState(userCredential.user.uid);
+                })
+                .catch(error => {
+                    alert('Sign up failed: ' + error.message);
+                });
+        }
+
+        // Play as guest
+        function playAsGuest() {
+            isGuest = true;
+            document.querySelector('.login-overlay').remove();
+            startGame();
+        }
+
+        // Save game state
+        function saveGameState() {
+            if (isGuest) {
+                showLoginPopupForSave();
+                return;
+            }
+            const user = auth.currentUser;
+            if (user) {
+                const ballCounts = {
+                    sniper: balls.filter(b => b.type === 'sniper').length,
+                    big: balls.filter(b => b.type === 'big').length,
+                    explosion: balls.filter(b => b.type === 'explosion').length,
+                    multiplying: balls.filter(b => b.type === 'multiplying').length,
+                    child: balls.filter(b => b.type === 'child').length
+                };
+                const gameState = {
+                    gold,
+                    level,
+                    ballCounts,
+                    autoBalls: autoBalls.length,
+                    ballPrices,
+                    autoBallPrice,
+                    idleGoldPerSecond,
+                    ballUpgrades,
+                    stats,
+                    username
+                };
+                database.ref('users/' + user.uid + '/gameState').set(gameState)
+                    .then(() => {
+                        showToast('Progress saved successfully!');
+                    })
+                    .catch(error => {
+                        alert('Save failed: ' + error.message);
+                    });
+            }
+        }
+
+        // Show login popup when guest tries to save
+        function showLoginPopupForSave() {
+            const overlay = document.createElement('div');
+            overlay.className = 'login-overlay';
+            overlay.innerHTML = `
+        <div class="login-popup">
+            <h2>Login to Save</h2>
+            <p>You are playing as a guest. Login or sign up to save your progress.</p>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <button onclick="signUp()">Sign Up</button>
+            <button onclick="this.parentElement.parentElement.remove()">Cancel</button>
+        </div>
+    `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+
+        // Load game state
+        function loadGameState(uid) {
+            database.ref('users/' + uid + '/gameState').once('value')
+                .then(snapshot => {
+                    const data = snapshot.val();
+                    if (data) {
+                        gold = data.gold || 20;
+                        level = data.level || 1;
+                        ballPrices.sniper = data.ballPrices?.sniper || 20;
+                        ballPrices.big = data.ballPrices?.big || 30;
+                        ballPrices.explosion = data.ballPrices?.explosion || 40;
+                        ballPrices.multiplying = data.ballPrices?.multiplying || 50;
+                        autoBallPrice = data.autoBallPrice || 100;
+                        idleGoldPerSecond = data.idleGoldPerSecond || 1;
+                        ballUpgrades = data.ballUpgrades || {
+                            sniper: { level: 1, speed: 4.5, damage: 1 },
+                            big: { level: 1, speed: 2.7, damage: 1 },
+                            explosion: { level: 1, speed: 2.7, damage: 2 },
+                            multiplying: { level: 1, speed: 2.7, damage: 1 },
+                            child: { level: 1, speed: 3.6, damage: 1 }
+                        };
+                        stats = data.stats || { totalPlayTime: 0, totalBallsPurchased: 0, totalUpgrades: 0, startTime: Date.now() };
+                        username = data.username || '';
+                        balls = [];
+                        if (data.ballCounts) {
+                            for (let i = 0; i < (data.ballCounts.sniper || 0); i++) {
+                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 8, ballUpgrades.sniper.speed * (Math.random() * 2 - 1), ballUpgrades.sniper.speed * (Math.random() * 2 - 1), 'blue', 'sniper'));
+                            }
+                            for (let i = 0; i < (data.ballCounts.big || 0); i++) {
+                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 12, ballUpgrades.big.speed * (Math.random() * 2 - 1), ballUpgrades.big.speed * (Math.random() * 2 - 1), 'green', 'big'));
+                            }
+                            for (let i = 0; i < (data.ballCounts.explosion || 0); i++) {
+                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 8, ballUpgrades.explosion.speed * (Math.random() * 2 - 1), ballUpgrades.explosion.speed * (Math.random() * 2 - 1), 'orange', 'explosion'));
+                            }
+                            for (let i = 0; i < (data.ballCounts.multiplying || 0); i++) {
+                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 8, ballUpgrades.multiplying.speed * (Math.random() * 2 - 1), ballUpgrades.multiplying.speed * (Math.random() * 2 - 1), 'purple', 'multiplying'));
+                            }
+                            for (let i = 0; i < (data.ballCounts.child || 0); i++) {
+                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 4, ballUpgrades.child.speed * (Math.random() * 2 - 1), ballUpgrades.child.speed * (Math.random() * 2 - 1), 'purple', 'child'));
+                            }
+                        }
+                        autoBalls = [];
+                        for (let i = 0; i < (data.autoBalls || 0); i++) {
+                            autoBalls.push(new AutoBall());
+                        }
+                        updateUI();
+                        spawnBricks();
+                        startGame();
+                    } else {
+                        startGame();
+                    }
+                })
+                .catch(error => {
+                    alert('Failed to load game: ' + error.message);
+                    startGame();
+                });
+        }
+
+        // Start the game
+        function startGame() {
+            spawnBricks();
+            gameLoop();
+            setInterval(saveGameState, 30000);
+            setInterval(updatePlayTime, 1000);
+            saveButton.addEventListener('click', saveGameState);
+            document.getElementById('my-balls-btn').addEventListener('click', showMyBallsPopup);
+            document.getElementById('settings-btn').addEventListener('click', showSettingsPopup);
+            document.getElementById('weapons-btn').addEventListener('click', () => {
+                if (gold >= weaponCost) {
+                    gold -= weaponCost;
+                    deployRandomWeapon();
+                    updateUI();
+                } else {
+                    alert('Not enough gold!');
+                }
+            });
+        }
+
+        // Update play time
+        function updatePlayTime() {
+            const currentTime = Date.now();
+            stats.totalPlayTime += (currentTime - lastUpdateTime) / 1000;
+            lastUpdateTime = currentTime;
+        }
+
+        // Generate passive gold
+        function generatePassiveGold() {
+            const multiplier = globalUpgrades.goldBoost.active ? 2 : 1;
+            gold += idleGoldPerSecond * multiplier;
+            updateUI();
+        }
+        setInterval(generatePassiveGold, 1200);
+
+        // Simple spatial grid for collision optimization
+        const gridSize = 100;
+        function getGridCell(x, y) {
+            return {
+                col: Math.floor(x / gridSize),
+                row: Math.floor(y / gridSize)
+            };
+        }
+
+        function getNearbyBricks(ball) {
+            const cell = getGridCell(ball.x, ball.y);
+            const nearby = [];
+            for (let row = cell.row - 1; row <= cell.row + 1; row++) {
+                for (let col = cell.col - 1; col <= cell.col + 1; col++) {
+                    bricks.forEach(brick => {
+                        const brickCell = getGridCell(brick.x + brick.width / 2, brick.y + brick.height / 2);
+                        if (brickCell.row === row && brickCell.col === col) {
+                            nearby.push(brick);
+                        }
+                    });
+                }
+            }
+            return nearby;
+        }
 
         // Ball class
         class Ball {
@@ -339,27 +945,46 @@
             }
 
             move() {
-                this.x += this.dx;
-                this.y += this.dy;
+                const speedMultiplier = globalUpgrades.speedBoost.active ? 2 : 1;
+                this.x += this.dx * speedMultiplier;
+                this.y += this.dy * speedMultiplier;
 
                 // Bounce off walls
-                if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+                if (this.x + this.radius > canvas.width) {
                     this.dx = -this.dx;
+                    this.x = canvas.width - this.radius - 2;
+                    if (this.type === 'sniper') this.redirectToClosestBrick();
+                } else if (this.x - this.radius < 0) {
+                    this.dx = -this.dx;
+                    this.x = this.radius + 2;
                     if (this.type === 'sniper') this.redirectToClosestBrick();
                 }
-                if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+
+                if (this.y + this.radius > canvas.height) {
                     this.dy = -this.dy;
+                    this.y = canvas.height - this.radius - 2;
+                    if (this.type === 'sniper') this.redirectToClosestBrick();
+                } else if (this.y - this.radius < 0) {
+                    this.dy = -this.dy;
+                    this.y = this.radius + 2;
                     if (this.type === 'sniper') this.redirectToClosestBrick();
                 }
 
                 // Check collisions with bricks
                 bricks.forEach(brick => {
                     if (
-                        this.x > brick.x &&
-                        this.x < brick.x + brick.width &&
-                        this.y > brick.y &&
-                        this.y < brick.y + brick.height
+                        this.x + this.radius > brick.x &&
+                        this.x - this.radius < brick.x + brick.width &&
+                        this.y + this.radius > brick.y &&
+                        this.y - this.radius < brick.y + brick.height
                     ) {
+                        const dx = this.x - (brick.x + brick.width / 2);
+                        const dy = this.y - (brick.y + brick.height / 2);
+                        if (Math.abs(dx) > Math.abs(dy)) {
+                            this.dx = -this.dx;
+                        } else {
+                            this.dy = -this.dy;
+                        }
                         this.handleBrickCollision(brick);
                     }
                 });
@@ -370,8 +995,8 @@
                     const closestBrick = this.getClosestBrick();
                     if (closestBrick) {
                         const angle = Math.atan2(closestBrick.y + brickHeight / 2 - this.y, closestBrick.x + brickWidth / 2 - this.x);
-                        this.dx = Math.cos(angle) * 5;
-                        this.dy = Math.sin(angle) * 5;
+                        this.dx = Math.cos(angle) * ballUpgrades.sniper.speed;
+                        this.dy = Math.sin(angle) * ballUpgrades.sniper.speed;
                     }
                 }
             }
@@ -396,29 +1021,38 @@
             }
 
             handleBrickCollision(brick) {
-                brick.hit();
-                this.dy = -this.dy;
-
+                let damage = ballUpgrades[this.type].damage;
                 if (this.type === 'explosion') {
-                    bricks.forEach(b => {
-                        const distance = Math.hypot(b.x - brick.x, b.y - brick.y);
-                        if (distance < 60) b.hit();
+                    brick.health -= damage;
+                    const nearbyBricks = getNearbyBricks(this);
+                    nearbyBricks.forEach(b => {
+                        if (b !== brick) {
+                            const distance = Math.hypot(b.x - brick.x, b.y - brick.y);
+                            if (distance < 60) b.health -= Math.floor(damage / 2);
+                        }
                     });
-                } else if (this.type === 'multiplying') {
+                } else {
+                    brick.health -= damage;
+                }
+                if (brick.health <= 0) {
+                    bricks = bricks.filter(b => b !== brick);
+                    gold += 5;
+                    if (powerUps.length < maxPowerUps) spawnPowerUp();
+                    updateUI();
+                }
+                if (this.type === 'multiplying' && balls.length < maxBalls) {
                     balls.push(new Ball(
                         this.x,
                         this.y,
                         this.radius / 2,
-                        (Math.random() > 0.5 ? 1 : -1) * 4,
-                        (Math.random() > 0.5 ? 1 : -1) * 4,
+                        ballUpgrades.child.speed * (Math.random() * 2 - 1),
+                        ballUpgrades.child.speed * (Math.random() * 2 - 1),
                         this.color,
                         'child'
                     ));
                 } else if (this.type === 'child') {
-                    // Remove the child ball after hitting a brick
                     balls = balls.filter(ball => ball !== this);
                 }
-
             }
 
             draw() {
@@ -437,7 +1071,7 @@
                 this.y = y;
                 this.width = brickWidth;
                 this.height = brickHeight;
-                this.health = health;
+                this.health = health + Math.floor(level / 2);
                 this.hover = false;
             }
 
@@ -450,34 +1084,21 @@
                 );
             }
 
-            hit() {
-                this.health--;
-                if (this.health <= 0) {
-                    bricks = bricks.filter(brick => brick !== this);
-                    gold += 5;
-                    spawnPowerUp();
-                    updateUI();
-                }
-            }
-
             draw() {
-                ctx.fillStyle = `rgba(255, 0, 0, ${this.health / 3})`;
+                ctx.fillStyle = `rgba(255, 0, 0, ${this.health / (3 + level / 2)})`;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
                 ctx.fillStyle = '#fff';
                 ctx.font = '18px Arial';
-                ctx.fillText(this.health, this.x + this.width / 2 - 6, this.y + this.height / 2 + 4);
-
-                ctx.strokeStyle = '#333'; // Dark grey border
+                ctx.fillText(Math.floor(this.health), this.x + this.width / 2 - 6, this.y + this.height / 2 + 4);
+                ctx.strokeStyle = '#333';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(this.x, this.y, this.width, this.height);
             }
-
         }
-
 
         class BossBrick extends Brick {
             constructor(x, y) {
-                super(x, y, 10); // Boss has 10 health
+                super(x, y, 10 + Math.floor(level / 2));
                 this.width = 100;
                 this.height = 40;
             }
@@ -487,10 +1108,9 @@
                 ctx.fillRect(this.x, this.y, this.width, this.height);
                 ctx.fillStyle = '#fff';
                 ctx.font = '15px Arial';
-                ctx.fillText(`Boss: ${this.health}`, this.x + this.width / 4, this.y + this.height / 2);
+                ctx.fillText(`Boss: ${Math.floor(this.health)}`, this.x + this.width / 4, this.y + this.height / 2);
             }
         }
-
 
         class PowerUp {
             constructor(x, y, type) {
@@ -500,11 +1120,11 @@
                 this.height = 20;
                 this.type = type;
                 this.active = true;
-                this.spawnTime = Date.now(); // Track when the power-up was created
+                this.spawnTime = Date.now();
             }
 
             draw() {
-                if (!this.active) return; // Skip drawing if inactive
+                if (!this.active) return;
                 ctx.fillStyle = {
                     gold: 'gold',
                     speed: 'cyan',
@@ -514,71 +1134,85 @@
             }
 
             collect() {
-                // Check if power-up has expired
                 if (Date.now() - this.spawnTime > 20000) {
                     this.active = false;
                     return;
                 }
-
-                // Collect power-up if ball hasn't already used one
                 balls.forEach(ball => {
                     if (ball.powerUpUsed) return;
-
                     if (
                         ball.x + ball.radius > this.x &&
                         ball.x - ball.radius < this.x + this.width &&
                         ball.y + ball.radius > this.y &&
                         ball.y - ball.radius < this.y + this.height
                     ) {
-                        this.activatePowerUp(ball); // Activate power-up for the ball
+                        this.activatePowerUp(ball);
                     }
                 });
             }
 
             activatePowerUp(ball) {
-                ball.powerUpUsed = true; // Mark that the ball has used a power-up
-
+                ball.powerUpUsed = true;
                 if (this.type === 'gold') gold += 50;
                 if (this.type === 'speed') {
                     ball.dx *= 1.5;
                     ball.dy *= 1.5;
                 }
-                if (this.type === 'multiBall') {
+                if (this.type === 'multiBall' && balls.length < maxBalls) {
                     balls.push(new Ball(ball.x, ball.y, ball.radius, -ball.dx, -ball.dy, ball.color, ball.type));
                 }
-
-                this.active = false; // Deactivate power-up after being collected
+                this.active = false;
                 updateUI();
             }
         }
 
         class AutoBall {
             constructor() {
-                this.x = canvas.width / 2;
-                this.y = canvas.height - 30; // Bottom of the canvas
+                const maxRows = 11;
+                const maxCols = 6;
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const gridWidth = maxCols * brickWidth;
+                const gridLeft = centerX - gridWidth / 2;
+                const gridRight = centerX + gridWidth / 2;
+                this.x = gridLeft + Math.random() * gridWidth;
+                this.y = canvas.height - 30;
                 this.radius = 8;
-                this.dy = -4; // Always moves upward
+                this.dy = -3.6;
                 this.color = 'black';
             }
 
             move() {
                 this.y += this.dy;
                 if (this.y < 0) {
-                    this.y = canvas.height - 30; // Reset position
-                    this.x = Math.random() * canvas.width; // Randomise horizontal position
+                    this.y = canvas.height - 30;
+                    const maxCols = 6;
+                    const centerX = canvas.width / 2;
+                    const gridWidth = maxCols * brickWidth;
+                    const gridLeft = centerX - gridWidth / 2;
+                    this.x = gridLeft + Math.random() * gridWidth;
                 }
-
-                // Check collisions with bricks
-                bricks.forEach(brick => {
+                const nearbyBricks = getNearbyBricks(this);
+                nearbyBricks.forEach(brick => {
                     if (
                         this.x > brick.x &&
                         this.x < brick.x + brick.width &&
                         this.y > brick.y &&
                         this.y < brick.y + brick.height
                     ) {
-                        brick.hit();
-                        this.y = canvas.height - 30; // Reset position
-                        this.x = Math.random() * canvas.width;
+                        brick.health -= 1;
+                        if (brick.health <= 0) {
+                            bricks = bricks.filter(b => b !== brick);
+                            gold += 5;
+                            if (powerUps.length < maxPowerUps) spawnPowerUp();
+                            updateUI();
+                        }
+                        this.y = canvas.height - 30;
+                        const maxCols = 6;
+                        const centerX = canvas.width / 2;
+                        const gridWidth = maxCols * brickWidth;
+                        const gridLeft = centerX - gridWidth / 2;
+                        this.x = gridLeft + Math.random() * gridWidth;
                     }
                 });
             }
@@ -592,28 +1226,12 @@
             }
         }
 
-
-
-        /*function spawnPowerUp() {
-            if (Math.random() < 0.05) {
-
-
-                const type = ['gold', 'speed', 'multiBall'][Math.floor(Math.random() * 3)];
-                const x = Math.random() * (canvas.width - 20);
-                const y = Math.random() * (canvas.height - 20);
-                powerUps.push(new PowerUp(x, y, type));
-            }
-        }*/
-
         function spawnPowerUp() {
-            if (Math.random() < 0.05) { // Reduce chance to 10%
+            if (Math.random() < 0.05 && powerUps.length < maxPowerUps) {
                 let x, y, isOverlapping;
-
-                // Ensure power-up does not overlap with bricks
                 do {
                     x = Math.random() * (canvas.width - 20);
                     y = Math.random() * (canvas.height - 20);
-
                     isOverlapping = bricks.some(brick => {
                         return (
                             x < brick.x + brick.width &&
@@ -623,79 +1241,42 @@
                         );
                     });
                 } while (isOverlapping);
-
                 const type = ['gold', 'speed', 'multiBall'][Math.floor(Math.random() * 3)];
                 powerUps.push(new PowerUp(x, y, type));
             }
         }
 
-
-
-        // Spawn a level of bricks
-        /*function spawnBricks() {
-            const rows = Math.min(level, Math.floor(canvas.height / brickHeight) - 1); // Limit rows to fit canvas
-            const cols = Math.min(5, Math.floor(canvas.width / brickWidth)); // Limit columns to fit canvas
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 4; // Adjust to avoid overlap with balls
-
-            bricks = []; // Clear any existing bricks
-            for (let row = 0; row < rows; row++) {
-                for (let col = 0; col < cols; col++) {
-                    const x = centerX - (cols * brickWidth) / 2 + col * brickWidth;
-                    const y = centerY + row * brickHeight;
-                    const health = level + Math.floor(level / 3); // Scaling health
-                    bricks.push(new Brick(x, y, health));
-                }
-            }
-
-            if (level % 5 === 0) {
-                bricks.push(new BossBrick(canvas.width / 2 - 50, centerY - brickHeight * 2));
-            }
-        }*/
-
         function spawnBricks() {
-            const maxRows = 11; // Maximum height (rows)
-            const maxCols = 6; // Maximum width (columns)
+            const maxRows = 11;
+            const maxCols = 6;
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-
-            if (bricks.length < maxRows * maxCols) {
-                // Add bricks only if the limit hasn't been reached
+            if (bricks.length < maxBricks) {
                 const rows = Math.min(level, maxRows);
-                const cols = Math.min(5, maxCols); // Keep initial width at 5, max out at 6
-
+                const cols = Math.min(5, maxCols);
                 for (let row = 0; row < rows; row++) {
                     for (let col = 0; col < cols; col++) {
-                        const x = centerX - (cols * brickWidth) / 2 + col * brickWidth;
-                        const y = centerY - (rows * brickHeight) / 2 + row * brickHeight;
-
-                        const health = level + Math.floor(level / 3); // Scaling health
-                        bricks.push(new Brick(x, y, health));
+                        const x = canvas.width / 2 - (cols * brickWidth) / 2 + col * brickWidth;
+                        const y = canvas.height / 2 - (rows * brickHeight) / 2 + row * brickHeight;
+                        if (!bricks.some(b => b.x === x && b.y === y)) {
+                            bricks.push(new Brick(x, y, level));
+                        }
                     }
                 }
             } else {
-                // Only increase the health of existing bricks if the limit is reached
                 bricks.forEach(brick => {
-                    brick.health += Math.floor(level / 3);
+                    brick.health += Math.floor(level / 2);
                 });
             }
-
-            // Add a BossBrick at every 5th level, within constraints
             if (level % 5 === 0 && !bricks.some(b => b instanceof BossBrick)) {
                 bricks.push(new BossBrick(canvas.width / 2 - 50, canvas.height / 4));
             }
         }
 
-
-
         function drawBallPreview(canvasId, color, radius) {
             const previewCanvas = document.getElementById(canvasId);
             const previewCtx = previewCanvas.getContext('2d');
-
-            // Clear the canvas before redrawing
             previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
-
-            // Draw the ball
             previewCtx.beginPath();
             previewCtx.arc(previewCanvas.width / 2, previewCanvas.height / 2, radius, 0, Math.PI * 2);
             previewCtx.fillStyle = color;
@@ -703,31 +1284,28 @@
             previewCtx.closePath();
         }
 
-        // Update UI
         function updateUI() {
             goldDisplay.textContent = gold;
             levelDisplay.textContent = level;
-
             document.getElementById('sniperPrice').textContent = ballPrices.sniper;
             document.getElementById('bigPrice').textContent = ballPrices.big;
             document.getElementById('explosionPrice').textContent = ballPrices.explosion;
             document.getElementById('multiplyingPrice').textContent = ballPrices.multiplying;
-
-            // Draw previews for each ball
-            drawBallPreview('sniper-preview', 'blue', 8); // Sniper ball
-            drawBallPreview('big-preview', 'green', 12); // Big ball
-            drawBallPreview('explosion-preview', 'orange', 8); // Explosion ball
-            drawBallPreview('multiplying-preview', 'purple', 8); // Multiplying ball
-            drawBallPreview('auto-preview', 'black', 8); // Multiplying ball
+            document.getElementById('autoPrice').textContent = autoBallPrice;
+            drawBallPreview('sniper-preview', 'blue', 8);
+            drawBallPreview('big-preview', 'green', 12);
+            drawBallPreview('explosion-preview', 'orange', 8);
+            drawBallPreview('multiplying-preview', 'purple', 8);
+            drawBallPreview('auto-preview', 'black', 8);
         }
-        // Buy a ball
+
         function buyBall(type) {
-            if (gold >= ballPrices[type]) {
+            if (gold >= ballPrices[type] && balls.length < maxBalls) {
                 gold -= ballPrices[type];
                 ballPrices[type] += 10;
-
+                stats.totalBallsPurchased++;
                 const radius = type === 'big' ? 12 : 8;
-                const speed = type === 'sniper' ? 5 : 3 + Math.random();
+                const speed = ballUpgrades[type].speed;
                 const dx = speed * (Math.random() > 0.5 ? 1 : -1);
                 const dy = speed * (Math.random() > 0.5 ? 1 : -1);
                 const color = {
@@ -739,63 +1317,263 @@
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
             } else {
-                alert('Not enough gold!');
+                alert(balls.length >= maxBalls ? 'Max balls reached!' : 'Not enough gold!');
             }
         }
 
         function buyAutoBall() {
-            if (gold >= 100) {
-                gold -= 100;
+            if (gold >= autoBallPrice && autoBalls.length < 10) {
+                gold -= autoBallPrice;
+                stats.totalBallsPurchased++;
                 autoBalls.push(new AutoBall());
                 autoBallPrice = Math.floor(autoBallPrice * 1.5);
-                document.getElementById('multiplyingPrice').textContent = autoBallPrice;
                 updateUI();
+            } else {
+                alert(autoBalls.length >= 10 ? 'Max auto-balls reached!' : 'Not enough gold!');
+            }
+        }
+
+        function upgradeBall(type) {
+            const cost = ballUpgrades[type].level * 50;
+            if (gold >= cost) {
+                gold -= cost;
+                ballUpgrades[type].level++;
+                ballUpgrades[type].speed += 0.5;
+                ballUpgrades[type].damage += type === 'explosion' ? 0.5 : 0.2;
+                stats.totalUpgrades++;
+                balls.forEach(ball => {
+                    if (ball.type === type) {
+                        ball.dx = (ball.dx / Math.abs(ball.dx)) * ballUpgrades[type].speed;
+                        ball.dy = (ball.dy / Math.abs(ball.dy)) * ballUpgrades[type].speed;
+                    }
+                });
+                updateUI();
+                showToast(`Upgraded ${type} ball to level ${ballUpgrades[type].level}!`);
             } else {
                 alert('Not enough gold!');
             }
         }
 
-        function updateAutoBallPreview() {
-            const canvas = document.getElementById('auto-preview');
-            const context = canvas.getContext('2d');
-
-            // Clear the canvas for redrawing
-            context.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw the auto-ball (example: a red ball)
-            context.fillStyle = 'black';
-            context.beginPath();
-            context.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2 - 5, 0, Math.PI * 2);
-            context.fill();
-        }
-
-        function upgradePassiveGold() {
-            if (gold >= 50) {
-                gold -= 50;
-                idleGoldPerSecond += 1; // Increase passive gold rate
+        function applyGlobalUpgrade(type) {
+            if (gold >= globalUpgrades[type].cost && !globalUpgrades[type].active) {
+                gold -= globalUpgrades[type].cost;
+                globalUpgrades[type].active = true;
+                globalUpgrades[type].duration = Date.now() + 60000;
+                stats.totalUpgrades++;
+                setTimeout(() => {
+                    globalUpgrades[type].active = false;
+                    showToast(`${type} boost expired!`);
+                }, 60000);
                 updateUI();
+                showToast(`${type} boost activated for 1 minute!`);
             } else {
-                alert('Not enough gold!');
+                alert(globalUpgrades[type].active ? 'Upgrade already active!' : 'Not enough gold!');
             }
         }
 
+        function rebirth() {
+            if (level >= 100) {
+                gold = 20;
+                level = 1;
+                balls = [];
+                autoBalls = [];
+                ballPrices.sniper = 20;
+                ballPrices.big = 30;
+                ballPrices.explosion = 40;
+                ballPrices.multiplying = 50;
+                autoBallPrice = 100;
+                idleGoldPerSecond = 1;
+                globalUpgrades.speedBoost.active = false;
+                globalUpgrades.goldBoost.active = false;
+                bricks = [];
+                powerUps = [];
+                spawnBricks();
+                updateUI();
+                showToast('Rebirth successful! Starting from level 1 with retained ball upgrades.');
+                saveGameState();
+            } else {
+                alert('You need to reach level 100 to rebirth!');
+            }
+        }
 
+        function showMyBallsPopup() {
+            const overlay = document.createElement('div');
+            overlay.className = 'login-overlay';
+            overlay.innerHTML = `
+        <div class="my-balls-popup">
+            <h2>My Balls</h2>
+            <button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /> </svg></button>
+            <div class="nav-tabs">
+                <button class="tab-btn active" data-tab="my-balls">My Balls</button>
+                <button class="tab-btn" data-tab="upgrades">Upgrades</button>
+                <button class="tab-btn" data-tab="rebirth">Rebirth</button>
+            </div>
+            <div class="tab-content active" id="my-balls">
 
-        // Weapon cost
+<div class="ball-stats">
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <canvas id="sniper-stats-preview" width="40" height="40"></canvas>
+            <span><b>Sniper</b>: ${balls.filter(b => b.type === 'sniper').length} balls, Level: ${ballUpgrades.sniper.level}, Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}</span>
+        </div>
+        <button class="upgrade-btn" onclick="upgradeBall('sniper')">Upgrade<br>(${ballUpgrades.sniper.level * 50} gold)</button>
+    </div>
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <canvas id="big-stats-preview" width="40" height="40"></canvas>
+            <span><b>Big</b>: ${balls.filter(b => b.type === 'big').length} balls, Level: ${ballUpgrades.big.level}, Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}</span>
+        </div>
+        <button class="upgrade-btn" onclick="upgradeBall('big')">Upgrade<br>(${ballUpgrades.big.level * 50} gold)</button>
+    </div>
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <canvas id="explosion-stats-preview" width="40" height="40"></canvas>
+            <span><b>Bomb</b>: ${balls.filter(b => b.type === 'explosion').length} balls, Level: ${ballUpgrades.explosion.level}, Speed: ${ballUpgrades.explosion.speed.toFixed(1)}, Damage: ${ballUpgrades.explosion.damage.toFixed(1)}</span>
+        </div>
+        <button class="upgrade-btn" onclick="upgradeBall('explosion')">Upgrade<br>(${ballUpgrades.explosion.level * 50} gold)</button>
+    </div>
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <canvas id="multiplying-stats-preview" width="40" height="40"></canvas>
+            <span><b>Clones</b>: ${balls.filter(b => b.type === 'multiplying').length} balls, Level: ${ballUpgrades.multiplying.level}, Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}</span>
+        </div>
+        <button class="upgrade-btn" onclick="upgradeBall('multiplying')">Upgrade<br>(${ballUpgrades.multiplying.level * 50} gold)</button>
+    </div>
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <canvas id="child-stats-preview" width="40" height="40"></canvas>
+            <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${ballUpgrades.child.damage.toFixed(1)}</span>
+        </div>
+        <button class="upgrade-btn" onclick="upgradeBall('child')">Upgrade<br>(${ballUpgrades.child.level * 50} gold)</button>
+    </div>
+    <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <canvas id="auto-stats-preview" width="40" height="40"></canvas>
+            <span><b>Auto</b>: ${autoBalls.length} balls, Speed: 3.6, Damage: 1</span>
+        </div>
+    </div>
+</div>
+            </div>
+            <div class="tab-content" id="upgrades">
+<div class="upgrades-list">
+    <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(145deg, #f4eed6, #e9dcaf); padding: 12px; border-radius: 8px; border: 0 solid #333;">
+        <div style="width: 40px; height: 40px; background: cyan; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🚀</div>
+        <span style="flex: 1;">Speed Boost: Increase all ball speed by 2x for 1 minute</span>
+        <button class="upgrade-btn" style="background: linear-gradient(90deg, #0074d9, #00c4ff); border-radius: 8px; padding: 10px 20px; font-weight: 700; transition: transform 0.2s ease, background 0.2s ease;" onclick="applyGlobalUpgrade('speedBoost')">${globalUpgrades.speedBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.speedBoost.cost} gold)</button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(145deg, #f4eed6, #e9dcaf); padding: 12px; border-radius: 8px; border: 0 solid #333;">
+        <div style="width: 40px; height: 40px; background: gold; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">💰</div>
+        <span style="flex: 1;">Gold Boost: Increase gold production by 2x for 1 minute</span>
+        <button class="upgrade-btn" style="background: linear-gradient(90deg, #ff9900, #ffcc00); border-radius: 8px; padding: 10px 20px; font-weight: 700; transition: transform 0.2s ease, background 0.2s ease;" onclick="applyGlobalUpgrade('goldBoost')">${globalUpgrades.goldBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.goldBoost.cost} gold)</button>
+    </div>
+</div>
+            </div>
+            <div class="tab-content" id="rebirth">
+                <div class="rebirth-info">
+                    <p>Rebirth at level 100 to start from level 1, losing all balls and gold but keeping ball upgrades.</p>
+                    <button class="rebirth-btn" onclick="rebirth()">Rebirth (Level ${level}/100)</button>
+                </div>
+            </div>
+        </div>
+    `;
+            document.body.appendChild(overlay);
+            drawBallPreview('sniper-stats-preview', 'blue', 8);
+            drawBallPreview('big-stats-preview', 'green', 12);
+            drawBallPreview('explosion-stats-preview', 'orange', 8);
+            drawBallPreview('multiplying-stats-preview', 'purple', 8);
+            drawBallPreview('child-stats-preview', 'purple', 4);
+            drawBallPreview('auto-stats-preview', 'black', 8);
+            const tabs = overlay.querySelectorAll('.tab-btn');
+            const contents = overlay.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    overlay.querySelector(`#${tab.dataset.tab}`).classList.add('active');
+                });
+            });
+            overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+
+        function showSettingsPopup() {
+            const user = auth.currentUser;
+            const email = user ? user.email : 'Guest';
+            const isEditing = false;
+            const overlay = document.createElement('div');
+            overlay.className = 'login-overlay';
+            overlay.innerHTML = `
+        <div class="settings-popup">
+            <h2>Settings</h2>
+            <button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /> </svg></button>
+            <div class="settings-info">
+                <p>Email: ${email}</p>
+                <p>Username: <span id="username-display">${username || 'Not set'}</span>
+                    <span class="edit-icon" onclick="editUsername()">✏️</span>
+                </p>
+                <div id="username-input" style="display: none;">
+                    <input type="text" id="username-field" value="${username || ''}" placeholder="Enter username">
+                    <button onclick="saveUsername()">Save</button>
+                </div>
+                <p>Total Play Time: ${(stats.totalPlayTime / 3600).toFixed(2)} hours</p>
+                <p>Total Balls Purchased: ${stats.totalBallsPurchased}</p>
+                <p>Total Upgrades Purchased: ${stats.totalUpgrades}</p>
+                ${user ? `
+                    <button onclick="auth.signOut().then(() => location.reload())">Log Out</button>
+                    <button onclick="deleteAccount()">Delete Account</button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+            document.body.appendChild(overlay);
+            overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+
+        function editUsername() {
+            document.getElementById('username-display').style.display = 'none';
+            document.getElementById('username-input').style.display = 'block';
+            document.querySelector('.edit-icon').style.display = 'none';
+        }
+
+        function saveUsername() {
+            username = document.getElementById('username-field').value;
+            document.getElementById('username-display').textContent = username || 'Not set';
+            document.getElementById('username-display').style.display = 'inline';
+            document.getElementById('username-input').style.display = 'none';
+            document.querySelector('.edit-icon').style.display = 'inline';
+            saveGameState();
+        }
+
+        function deleteAccount() {
+            const user = auth.currentUser;
+            if (user) {
+                if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                    database.ref('users/' + user.uid).remove()
+                        .then(() => {
+                            user.delete()
+                                .then(() => {
+                                    showToast('Account deleted successfully.');
+                                    location.reload();
+                                })
+                                .catch(error => {
+                                    alert('Failed to delete account: ' + error.message);
+                                });
+                        })
+                        .catch(error => {
+                            alert('Failed to delete game data: ' + error.message);
+                        });
+                }
+            }
+        }
+
         const weaponCost = 1000;
 
-        // Add event listener to the weapons button
-        document.getElementById('weapons-btn').addEventListener('click', () => {
-            if (gold >= weaponCost) {
-                gold -= weaponCost; // Deduct the cost
-                deployRandomWeapon(); // Deploy a random weapon
-                updateUI(); // Update UI with new gold count
-            } else {
-                alert('Not enough gold!');
-            }
-        });
-
-        // Randomly deploy a weapon
         function deployRandomWeapon() {
             const weapons = ['nuke', 'airstrike', 'gravity', 'laser', 'blackhole'];
             const randomWeapon = weapons[Math.floor(Math.random() * weapons.length)];
@@ -818,82 +1596,64 @@
             }
         }
 
-        // Nuke - Clears all bricks for 10 seconds
         function deployNuke() {
             alert('Nuke deployed! All bricks will be destroyed for the next 10 seconds!');
-            const explosionRadius = 200; // Explosion radius for the nuke
-
-            // Draw Nuke Explosion
+            const explosionRadius = 200;
             setTimeout(() => {
                 ctx.beginPath();
                 ctx.arc(canvas.width / 2, canvas.height / 2, explosionRadius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // Semi-transparent red for the explosion effect
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
                 ctx.fill();
                 ctx.closePath();
-
-                // Destroy all bricks
-                bricks.forEach(brick => brick.hit());
-
-                spawnPowerUp(); // Optionally spawn power-ups after nuke
-            }, 0); // Nuke effect occurs immediately
-
-            // Restore after 10 seconds
-            setTimeout(() => {
-                // Additional effects like fading away could go here
-            }, 10000); // Nuke effect lasts for 10 seconds
+                bricks.forEach(brick => {
+                    brick.health = 0;
+                    bricks = bricks.filter(b => b !== brick);
+                    gold += 5;
+                    if (powerUps.length < maxPowerUps) spawnPowerUp();
+                });
+                updateUI();
+            }, 0);
+            setTimeout(() => { }, 10000);
         }
 
-        // Airstrike - Randomly targets 3 bricks and destroys them
         function deployAirstrike() {
             alert('Airstrike deployed! 3 random bricks will be destroyed!');
-            const airstrikeEffectDuration = 500; // Duration of airstrike effect in milliseconds
-            const airstrikeArea = 300; // Airstrike area width
-
-            // Draw Airstrike area
-            ctx.fillStyle = 'rgba(0, 0, 255, 0.3)'; // Blue with transparency for airstrike
-            ctx.fillRect(canvas.width / 2 - airstrikeArea / 2, 0, airstrikeArea, 50); // Airstrike path
-
-            // Target 3 random bricks
+            const airstrikeEffectDuration = 500;
+            const airstrikeArea = 300;
+            ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
+            ctx.fillRect(canvas.width / 2 - airstrikeArea / 2, 0, airstrikeArea, 50);
             for (let i = 0; i < 3; i++) {
                 const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
                 if (randomBrick) {
-                    randomBrick.hit(); // Destroy brick if hit by airstrike
+                    randomBrick.health = 0;
+                    bricks = bricks.filter(b => b !== randomBrick);
+                    gold += 5;
+                    if (powerUps.length < maxPowerUps) spawnPowerUp();
+                    updateUI();
                 }
             }
-
-            // Stop Airstrike effect after a small delay
-            setTimeout(() => {
-                // Fade out effect or other visual feedback could go here
-            }, airstrikeEffectDuration);
+            setTimeout(() => { }, airstrikeEffectDuration);
         }
 
-        // Gravity Manipulation - Increases gravity, making balls fall faster for 10 seconds
         function manipulateGravity() {
             alert('Gravity increased! Balls will fall faster for the next 10 seconds!');
             const originalDy = balls.map(ball => ball.dy);
-
-            // Visual effect for gravity manipulation
             const gravityEffectRadius = 150;
             ctx.beginPath();
             ctx.arc(canvas.width / 2, canvas.height / 2, gravityEffectRadius, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0, 255, 255, 0.3)'; // Cyan for gravity effect
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
             ctx.fill();
             ctx.closePath();
-
-            // Increase gravity on balls
             balls.forEach(ball => {
-                ball.dy *= 1.5; // Increase gravity effect
+                ball.dy *= 1.5;
             });
-
-            // Reset gravity after 10 seconds
             setTimeout(() => {
                 balls.forEach((ball, index) => {
-                    ball.dy = originalDy[index]; // Restore original gravity
+                    ball.dy = originalDy[index];
                 });
-            }, 10000); // Gravity effect lasts for 10 seconds
+            }, 10000);
         }
 
-        // Laser - Fires a laser that destroys any brick it touches for 5 seconds
         function deployLaser() {
             alert('Laser deployed! Any brick it touches will be destroyed for the next 5 seconds!');
             const laser = {
@@ -903,27 +1663,25 @@
                 height: canvas.height,
                 color: 'red'
             };
-
-            // Visual effect: Laser continuously drawn for 5 seconds
             const laserInterval = setInterval(() => {
                 ctx.fillStyle = laser.color;
-                ctx.fillRect(laser.x, laser.y, laser.width, laser.height); // Laser beam drawn from top to bottom
-
-                // Check for collisions with bricks
-                bricks.forEach(brick => {
+                ctx.fillRect(laser.x, laser.y, laser.width, laser.height);
+                const nearbyBricks = getNearbyBricks({ x: laser.x + laser.width / 2, y: laser.height / 2 });
+                nearbyBricks.forEach(brick => {
                     if (laser.x + laser.width > brick.x && laser.x < brick.x + brick.width) {
-                        brick.hit(); // Destroy brick if hit by laser
+                        brick.health = 0;
+                        bricks = bricks.filter(b => b !== brick);
+                        gold += 5;
+                        if (powerUps.length < maxPowerUps) spawnPowerUp();
+                        updateUI();
                     }
                 });
-            }, 50); // Fire laser every 50ms
-
-            // Stop laser after 5 seconds
+            }, 50);
             setTimeout(() => {
                 clearInterval(laserInterval);
-            }, 5000); // Laser lasts for 5 seconds
+            }, 5000);
         }
 
-        // Blackhole - Creates a blackhole that pulls all balls and bricks towards it for 5 seconds
         function createBlackhole() {
             alert('Blackhole created! All balls and bricks are pulled towards it for the next 5 seconds!');
             const blackhole = {
@@ -931,73 +1689,46 @@
                 y: canvas.height / 2,
                 radius: 50
             };
-
-            // Visual effect: Blackhole in the center with true black color
             const blackholeInterval = setInterval(() => {
                 ctx.beginPath();
                 ctx.arc(blackhole.x, blackhole.y, blackhole.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // Black with no transparency
+                ctx.fillStyle = 'rgba(0, 0, 0, 1)';
                 ctx.fill();
                 ctx.closePath();
-
-                // Pull all balls and bricks towards the blackhole
                 balls.forEach(ball => {
                     const angle = Math.atan2(blackhole.y - ball.y, blackhole.x - ball.x);
-                    ball.x += Math.cos(angle) * 2; // Move balls towards blackhole
+                    ball.x += Math.cos(angle) * 2;
                     ball.y += Math.sin(angle) * 2;
                 });
-
                 bricks.forEach((brick, index) => {
                     const angle = Math.atan2(blackhole.y - brick.y, blackhole.x - brick.x);
-                    brick.x += Math.cos(angle) * 0.5; // Move bricks towards blackhole
+                    brick.x += Math.cos(angle) * 0.5;
                     brick.y += Math.sin(angle) * 0.5;
-
-                    // If a brick gets too close to the black hole, destroy it
                     const distance = Math.sqrt(Math.pow(blackhole.x - brick.x, 2) + Math.pow(blackhole.y - brick.y, 2));
                     if (distance < blackhole.radius) {
-                        brick.hit(); // Destroy the brick if it reaches the black hole
+                        brick.health = 0;
+                        bricks = bricks.filter(b => b !== brick);
+                        gold += 5;
+                        if (powerUps.length < maxPowerUps) spawnPowerUp();
+                        updateUI();
                     }
                 });
-            }, 30); // Update every 30ms
-
-            // Stop blackhole effect after 5 seconds
+            }, 30);
             setTimeout(() => {
                 clearInterval(blackholeInterval);
             }, 5000);
         }
 
-
-
-
-
-        /*function drawTrail(ball) {
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius * 1.2, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
-            ctx.fill();
-            ctx.closePath();
-        }*/
-
         function drawTrail(ball) {
             const speed = Math.sqrt(ball.dx ** 2 + ball.dy ** 2);
-            const trailLength = Math.max(5, speed * 3); // Adjust trail length based on speed
-
-            // Store trail positions
+            const trailLength = Math.min(5, Math.max(3, speed * 2));
             if (!ball.trail) ball.trail = [];
-            ball.trail.push({
-                x: ball.x,
-                y: ball.y
-            });
-
-            // Limit the trail to the calculated length
+            ball.trail.push({ x: ball.x, y: ball.y });
             if (ball.trail.length > trailLength) {
                 ball.trail.shift();
             }
-
-            // Draw the trail fading from older to newer positions
             ball.trail.forEach((position, index) => {
-                const alpha = index / ball.trail.length; // Gradual fade effect
-
+                const alpha = index / ball.trail.length;
                 ctx.beginPath();
                 ctx.arc(position.x, position.y, ball.radius * 1.2, 0, Math.PI * 2);
                 ctx.fillStyle = `rgba(255, 255, 255, ${0.2 * alpha})`;
@@ -1006,9 +1737,6 @@
             });
         }
 
-
-
-        // Start next level
         function nextLevel() {
             if (bricks.length === 0) {
                 level++;
@@ -1018,22 +1746,16 @@
         }
 
         function gameLoop() {
-            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw and move balls
             balls.forEach(ball => {
                 drawTrail(ball);
                 ball.move();
                 ball.draw();
             });
-
-            // Check for power-up collisions
+            powerUps = powerUps.filter(p => p.active);
             powerUps.forEach(powerUp => {
                 if (powerUp.active) {
                     powerUp.draw();
-
-                    // Check collision with balls
                     balls.forEach(ball => {
                         if (
                             ball.x + ball.radius > powerUp.x &&
@@ -1041,33 +1763,41 @@
                             ball.y + ball.radius > powerUp.y &&
                             ball.y - ball.radius < powerUp.y + powerUp.height
                         ) {
-                            powerUp.collect(); // Collect power-up
+                            powerUp.collect();
                         }
                     });
                 }
             });
-
-            // Draw and move auto balls
             autoBalls.forEach(autoBall => {
                 autoBall.move();
                 autoBall.draw();
             });
-
-
-            // Draw bricks
             bricks.forEach(brick => brick.draw());
-
-            // Check for next level
             nextLevel();
-
-            // Request next frame
             requestAnimationFrame(gameLoop);
         }
 
-
-        // Start the game
-        spawnBricks();
-        gameLoop();
+        canvas.addEventListener('click', (e) => {
+            const mouseX = e.clientX - canvas.offsetLeft;
+            const mouseY = e.clientY - canvas.offsetTop;
+            let isHovering = false;
+            bricks.forEach(brick => {
+                if (
+                    mouseX > brick.x && mouseX < brick.x + brick.width &&
+                    mouseY > brick.y && mouseY < brick.y + brick.height
+                ) {
+                    brick.health -= 1;
+                    if (brick.health <= 0) {
+                        bricks = bricks.filter(b => b !== brick);
+                        gold += 5;
+                        if (powerUps.length < maxPowerUps) spawnPowerUp();
+                        updateUI();
+                    }
+                    isHovering = true;
+                }
+            });
+            canvas.style.cursor = isHovering ? 'pointer' : 'default';
+        });
     </script>
 </body>
 
