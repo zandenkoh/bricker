@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bricker</title>
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/104/104031.png"> 
     <style>
         body {
             margin: 0;
@@ -585,6 +586,10 @@
     .toast.show {
         opacity: 1;
     }
+    .upgrade-btn.disabled, .rebirth-btn.disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
 `;
         document.head.appendChild(style);
 
@@ -605,23 +610,25 @@
 
         // Game state variables
         let gold = 20;
-        let idleGoldPerSecond = 1;
-        let autoBallPrice = 100;
+        let idleGoldPerSecond = 0.5;
+        let autoBallPrice = 200;
         let level = 1;
         let balls = [];
         let bricks = [];
         let powerUps = [];
         let autoBalls = [];
+        let effects = [];
+        let rebirthCount = 0;
         const brickWidth = 70;
         const brickHeight = 30;
         const maxBalls = 1000;
         const maxPowerUps = 10;
         const maxBricks = 66;
         const ballPrices = {
-            sniper: 20,
-            big: 30,
-            explosion: 40,
-            multiplying: 50
+            sniper: 50,
+            big: 75,
+            explosion: 100,
+            multiplying: 125
         };
         let ballUpgrades = {
             sniper: { level: 1, speed: 4.5, damage: 1 },
@@ -631,8 +638,8 @@
             child: { level: 1, speed: 3.6, damage: 1 }
         };
         let globalUpgrades = {
-            speedBoost: { active: false, duration: 0, cost: 200 },
-            goldBoost: { active: false, duration: 0, cost: 150 }
+            speedBoost: { active: false, activationTime: null, cost: 200 },
+            goldBoost: { active: false, activationTime: null, cost: 150 }
         };
         let stats = {
             totalPlayTime: 0,
@@ -642,6 +649,10 @@
         };
         let username = '';
         let lastUpdateTime = Date.now();
+
+        function getUpgradeCost(type) {
+            return Math.floor(100 * Math.pow(1.3, ballUpgrades[type].level - 1));
+        }
 
         // Canvas setup
         const canvas = document.getElementById('gameCanvas');
@@ -728,9 +739,7 @@
                     document.querySelector('.login-overlay').remove();
                     loadGameState(userCredential.user.uid);
                 })
-                .catch(error => {
-                    alert('Login failed: ' + error.message);
-                });
+                .catch(error => showToast('Login failed: ' + error.message));
         }
 
         // Sign up function
@@ -742,9 +751,7 @@
                     document.querySelector('.login-overlay').remove();
                     loadGameState(userCredential.user.uid);
                 })
-                .catch(error => {
-                    alert('Sign up failed: ' + error.message);
-                });
+                .catch(error => showToast('Sign up failed: ' + error.message));
         }
 
         // Play as guest
@@ -779,16 +786,54 @@
                     idleGoldPerSecond,
                     ballUpgrades,
                     stats,
-                    username
+                    username,
+                    rebirthCount,
+                    globalUpgrades: {
+                        speedBoost: {
+                            active: globalUpgrades.speedBoost.active,
+                            activationTime: globalUpgrades.speedBoost.active ? Date.now() : null
+                        },
+                        goldBoost: {
+                            active: globalUpgrades.goldBoost.active,
+                            activationTime: globalUpgrades.goldBoost.active ? Date.now() : null
+                        }
+                    }
                 };
+                database.ref('leaderboard/' + user.uid).set({
+                    rebirthCount: rebirthCount,
+                    gold: gold,
+                    username: username || 'Anonymous'
+                });
                 database.ref('users/' + user.uid + '/gameState').set(gameState)
-                    .then(() => {
-                        showToast('Progress saved successfully!');
-                    })
-                    .catch(error => {
-                        alert('Save failed: ' + error.message);
-                    });
+                    .then(() => showToast('Progress saved successfully!'))
+                    .catch(error => showToast('Save failed: ' + error.message));
             }
+        }
+
+        function fetchLeaderboard() {
+            const leaderboardList = document.querySelector('#leaderboard .leaderboard-list');
+            leaderboardList.innerHTML = '<p>Loading...</p>';
+            database.ref('leaderboard').orderByChild('rebirthCount').limitToLast(10).once('value')
+                .then(snapshot => {
+                    const leaders = [];
+                    snapshot.forEach(child => {
+                        leaders.push({
+                            uid: child.key,
+                            ...child.val()
+                        });
+                    });
+                    leaders.reverse(); // Display highest rebirthCount first
+                    leaderboardList.innerHTML = '';
+                    leaders.forEach((leader, index) => {
+                        const entry = document.createElement('div');
+                        entry.textContent = `${index + 1}. ${leader.username} - Rebirths: ${leader.rebirthCount}, Gold: ${leader.gold}`;
+                        leaderboardList.appendChild(entry);
+                    });
+                })
+                .catch(error => {
+                    console.error('Failed to fetch leaderboard:', error);
+                    leaderboardList.innerHTML = '<p>Failed to load leaderboard.</p>';
+                });
         }
 
         // Show login popup when guest tries to save
@@ -820,12 +865,13 @@
                     if (data) {
                         gold = data.gold || 20;
                         level = data.level || 1;
-                        ballPrices.sniper = data.ballPrices?.sniper || 20;
-                        ballPrices.big = data.ballPrices?.big || 30;
-                        ballPrices.explosion = data.ballPrices?.explosion || 40;
-                        ballPrices.multiplying = data.ballPrices?.multiplying || 50;
-                        autoBallPrice = data.autoBallPrice || 100;
-                        idleGoldPerSecond = data.idleGoldPerSecond || 1;
+                        ballPrices.sniper = data.ballPrices?.sniper || 50;
+                        ballPrices.big = data.ballPrices?.big || 75;
+                        ballPrices.explosion = data.ballPrices?.explosion || 100;
+                        ballPrices.multiplying = data.ballPrices?.multiplying || 125;
+                        autoBallPrice = data.autoBallPrice || 200;
+                        idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
+                        rebirthCount = data.rebirthCount || 0;
                         ballUpgrades = data.ballUpgrades || {
                             sniper: { level: 1, speed: 4.5, damage: 1 },
                             big: { level: 1, speed: 2.7, damage: 1 },
@@ -833,7 +879,12 @@
                             multiplying: { level: 1, speed: 2.7, damage: 1 },
                             child: { level: 1, speed: 3.6, damage: 1 }
                         };
-                        stats = data.stats || { totalPlayTime: 0, totalBallsPurchased: 0, totalUpgrades: 0, startTime: Date.now() };
+                        stats = data.stats || {
+                            totalPlayTime: 0,
+                            totalBallsPurchased: 0,
+                            totalUpgrades: 0,
+                            startTime: Date.now()
+                        };
                         username = data.username || '';
                         balls = [];
                         if (data.ballCounts) {
@@ -857,6 +908,33 @@
                         for (let i = 0; i < (data.autoBalls || 0); i++) {
                             autoBalls.push(new AutoBall());
                         }
+                        if (data.globalUpgrades) {
+                            const now = Date.now();
+                            if (data.globalUpgrades.speedBoost.active) {
+                                const elapsed = now - data.globalUpgrades.speedBoost.activationTime;
+                                if (elapsed < 60000) {
+                                    globalUpgrades.speedBoost.active = true;
+                                    setTimeout(() => {
+                                        globalUpgrades.speedBoost.active = false;
+                                        showToast('Speed boost expired!');
+                                    }, 60000 - elapsed);
+                                } else {
+                                    globalUpgrades.speedBoost.active = false;
+                                }
+                            }
+                            if (data.globalUpgrades.goldBoost.active) {
+                                const elapsed = now - data.globalUpgrades.goldBoost.activationTime;
+                                if (elapsed < 60000) {
+                                    globalUpgrades.goldBoost.active = true;
+                                    setTimeout(() => {
+                                        globalUpgrades.goldBoost.active = false;
+                                        showToast('Gold boost expired!');
+                                    }, 60000 - elapsed);
+                                } else {
+                                    globalUpgrades.goldBoost.active = false;
+                                }
+                            }
+                        }
                         updateUI();
                         spawnBricks();
                         startGame();
@@ -865,7 +943,7 @@
                     }
                 })
                 .catch(error => {
-                    alert('Failed to load game: ' + error.message);
+                    showToast('Failed to load game: ' + error.message);
                     startGame();
                 });
         }
@@ -885,7 +963,7 @@
                     deployRandomWeapon();
                     updateUI();
                 } else {
-                    alert('Not enough gold!');
+                    showToast('Not enough gold!');
                 }
             });
         }
@@ -903,10 +981,11 @@
             gold += idleGoldPerSecond * multiplier;
             updateUI();
         }
-        setInterval(generatePassiveGold, 1200);
+        setInterval(generatePassiveGold, 1000);
 
         // Simple spatial grid for collision optimization
         const gridSize = 100;
+
         function getGridCell(x, y) {
             return {
                 col: Math.floor(x / gridSize),
@@ -949,7 +1028,6 @@
                 this.x += this.dx * speedMultiplier;
                 this.y += this.dy * speedMultiplier;
 
-                // Bounce off walls
                 if (this.x + this.radius > canvas.width) {
                     this.dx = -this.dx;
                     this.x = canvas.width - this.radius - 2;
@@ -970,7 +1048,6 @@
                     if (this.type === 'sniper') this.redirectToClosestBrick();
                 }
 
-                // Check collisions with bricks
                 bricks.forEach(brick => {
                     if (
                         this.x + this.radius > brick.x &&
@@ -1004,19 +1081,16 @@
             getClosestBrick() {
                 let closestBrick = null;
                 let closestDistance = Infinity;
-
                 bricks.forEach(brick => {
                     const distance = Math.hypot(
                         this.x - (brick.x + brick.width / 2),
                         this.y - (brick.y + brick.height / 2)
                     );
-
                     if (distance < closestDistance) {
                         closestDistance = distance;
                         closestBrick = brick;
                     }
                 });
-
                 return closestBrick;
             }
 
@@ -1065,6 +1139,7 @@
             }
         }
 
+        // Brick class
         class Brick {
             constructor(x, y, health) {
                 this.x = x;
@@ -1096,6 +1171,7 @@
             }
         }
 
+        // BossBrick class
         class BossBrick extends Brick {
             constructor(x, y) {
                 super(x, y, 10 + Math.floor(level / 2));
@@ -1112,6 +1188,7 @@
             }
         }
 
+        // PowerUp class
         class PowerUp {
             constructor(x, y, type) {
                 this.x = x;
@@ -1125,12 +1202,15 @@
 
             draw() {
                 if (!this.active) return;
+                const pulse = 1 + 0.1 * Math.sin(Date.now() / 200);
+                const width = this.width * pulse;
+                const height = this.height * pulse;
                 ctx.fillStyle = {
                     gold: 'gold',
                     speed: 'cyan',
                     multiBall: 'magenta'
                 }[this.type];
-                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.fillRect(this.x - (width - this.width) / 2, this.y - (height - this.height) / 2, width, height);
             }
 
             collect() {
@@ -1166,15 +1246,13 @@
             }
         }
 
+        // AutoBall class
         class AutoBall {
             constructor() {
-                const maxRows = 11;
                 const maxCols = 6;
                 const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
                 const gridWidth = maxCols * brickWidth;
                 const gridLeft = centerX - gridWidth / 2;
-                const gridRight = centerX + gridWidth / 2;
                 this.x = gridLeft + Math.random() * gridWidth;
                 this.y = canvas.height - 30;
                 this.radius = 8;
@@ -1226,6 +1304,7 @@
             }
         }
 
+        // Spawn power-up
         function spawnPowerUp() {
             if (Math.random() < 0.05 && powerUps.length < maxPowerUps) {
                 let x, y, isOverlapping;
@@ -1246,11 +1325,10 @@
             }
         }
 
+        // Spawn bricks
         function spawnBricks() {
             const maxRows = 11;
             const maxCols = 6;
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
             if (bricks.length < maxBricks) {
                 const rows = Math.min(level, maxRows);
                 const cols = Math.min(5, maxCols);
@@ -1273,6 +1351,7 @@
             }
         }
 
+        // Draw ball preview
         function drawBallPreview(canvasId, color, radius) {
             const previewCanvas = document.getElementById(canvasId);
             const previewCtx = previewCanvas.getContext('2d');
@@ -1284,8 +1363,9 @@
             previewCtx.closePath();
         }
 
+        // Update UI
         function updateUI() {
-            goldDisplay.textContent = gold;
+            goldDisplay.textContent = Math.floor(gold);
             levelDisplay.textContent = level;
             document.getElementById('sniperPrice').textContent = ballPrices.sniper;
             document.getElementById('bigPrice').textContent = ballPrices.big;
@@ -1299,10 +1379,11 @@
             drawBallPreview('auto-preview', 'black', 8);
         }
 
+        // Buy ball
         function buyBall(type) {
             if (gold >= ballPrices[type] && balls.length < maxBalls) {
                 gold -= ballPrices[type];
-                ballPrices[type] += 10;
+                ballPrices[type] = Math.floor(ballPrices[type] * 1.2);
                 stats.totalBallsPurchased++;
                 const radius = type === 'big' ? 12 : 8;
                 const speed = ballUpgrades[type].speed;
@@ -1317,24 +1398,26 @@
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
             } else {
-                alert(balls.length >= maxBalls ? 'Max balls reached!' : 'Not enough gold!');
+                showToast(balls.length >= maxBalls ? 'Max balls reached!' : 'Not enough gold!');
             }
         }
 
+        // Buy auto ball
         function buyAutoBall() {
             if (gold >= autoBallPrice && autoBalls.length < 10) {
                 gold -= autoBallPrice;
                 stats.totalBallsPurchased++;
                 autoBalls.push(new AutoBall());
-                autoBallPrice = Math.floor(autoBallPrice * 1.5);
+                autoBallPrice = Math.floor(autoBallPrice * 1.3);
                 updateUI();
             } else {
-                alert(autoBalls.length >= 10 ? 'Max auto-balls reached!' : 'Not enough gold!');
+                showToast(autoBalls.length >= 10 ? 'Max auto-balls reached!' : 'Not enough gold!');
             }
         }
 
+        // Upgrade ball
         function upgradeBall(type) {
-            const cost = ballUpgrades[type].level * 50;
+            const cost = getUpgradeCost(type);
             if (gold >= cost) {
                 gold -= cost;
                 ballUpgrades[type].level++;
@@ -1350,15 +1433,16 @@
                 updateUI();
                 showToast(`Upgraded ${type} ball to level ${ballUpgrades[type].level}!`);
             } else {
-                alert('Not enough gold!');
+                showToast('Not enough gold!');
             }
         }
 
+        // Apply global upgrade
         function applyGlobalUpgrade(type) {
             if (gold >= globalUpgrades[type].cost && !globalUpgrades[type].active) {
                 gold -= globalUpgrades[type].cost;
                 globalUpgrades[type].active = true;
-                globalUpgrades[type].duration = Date.now() + 60000;
+                globalUpgrades[type].activationTime = Date.now();
                 stats.totalUpgrades++;
                 setTimeout(() => {
                     globalUpgrades[type].active = false;
@@ -1367,38 +1451,46 @@
                 updateUI();
                 showToast(`${type} boost activated for 1 minute!`);
             } else {
-                alert(globalUpgrades[type].active ? 'Upgrade already active!' : 'Not enough gold!');
+                showToast(globalUpgrades[type].active ? 'Upgrade already active!' : 'Not enough gold!');
             }
         }
 
+        // Rebirth
         function rebirth() {
-            if (level >= 100) {
+            if (level >= 100 && confirm('Are you sure you want to rebirth? You will lose all balls and gold but keep ball upgrades.')) {
                 gold = 20;
                 level = 1;
                 balls = [];
                 autoBalls = [];
-                ballPrices.sniper = 20;
-                ballPrices.big = 30;
-                ballPrices.explosion = 40;
-                ballPrices.multiplying = 50;
-                autoBallPrice = 100;
-                idleGoldPerSecond = 1;
+                ballPrices.sniper = 50;
+                ballPrices.big = 75;
+                ballPrices.explosion = 100;
+                ballPrices.multiplying = 125;
+                autoBallPrice = 200;
+                idleGoldPerSecond *= 1.2;
                 globalUpgrades.speedBoost.active = false;
                 globalUpgrades.goldBoost.active = false;
                 bricks = [];
                 powerUps = [];
                 spawnBricks();
                 updateUI();
+                rebirthCount += 1;
                 showToast('Rebirth successful! Starting from level 1 with retained ball upgrades.');
                 saveGameState();
             } else {
-                alert('You need to reach level 100 to rebirth!');
+                showToast(level < 100 ? 'You need to reach level 100 to rebirth!' : 'Rebirth cancelled.');
             }
         }
 
+        // Show My Balls popup
         function showMyBallsPopup() {
             const overlay = document.createElement('div');
             overlay.className = 'login-overlay';
+            const sniperCost = getUpgradeCost('sniper');
+            const bigCost = getUpgradeCost('big');
+            const explosionCost = getUpgradeCost('explosion');
+            const multiplyingCost = getUpgradeCost('multiplying');
+            const childCost = getUpgradeCost('child');
             overlay.innerHTML = `
         <div class="my-balls-popup">
             <h2>My Balls</h2>
@@ -1407,71 +1499,78 @@
                 <button class="tab-btn active" data-tab="my-balls">My Balls</button>
                 <button class="tab-btn" data-tab="upgrades">Upgrades</button>
                 <button class="tab-btn" data-tab="rebirth">Rebirth</button>
+                <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
             </div>
             <div class="tab-content active" id="my-balls">
-
-<div class="ball-stats">
-    <div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <canvas id="sniper-stats-preview" width="40" height="40"></canvas>
-            <span><b>Sniper</b>: ${balls.filter(b => b.type === 'sniper').length} balls, Level: ${ballUpgrades.sniper.level}, Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}</span>
-        </div>
-        <button class="upgrade-btn" onclick="upgradeBall('sniper')">Upgrade<br>(${ballUpgrades.sniper.level * 50} gold)</button>
-    </div>
-    <div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <canvas id="big-stats-preview" width="40" height="40"></canvas>
-            <span><b>Big</b>: ${balls.filter(b => b.type === 'big').length} balls, Level: ${ballUpgrades.big.level}, Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}</span>
-        </div>
-        <button class="upgrade-btn" onclick="upgradeBall('big')">Upgrade<br>(${ballUpgrades.big.level * 50} gold)</button>
-    </div>
-    <div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <canvas id="explosion-stats-preview" width="40" height="40"></canvas>
-            <span><b>Bomb</b>: ${balls.filter(b => b.type === 'explosion').length} balls, Level: ${ballUpgrades.explosion.level}, Speed: ${ballUpgrades.explosion.speed.toFixed(1)}, Damage: ${ballUpgrades.explosion.damage.toFixed(1)}</span>
-        </div>
-        <button class="upgrade-btn" onclick="upgradeBall('explosion')">Upgrade<br>(${ballUpgrades.explosion.level * 50} gold)</button>
-    </div>
-    <div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <canvas id="multiplying-stats-preview" width="40" height="40"></canvas>
-            <span><b>Clones</b>: ${balls.filter(b => b.type === 'multiplying').length} balls, Level: ${ballUpgrades.multiplying.level}, Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}</span>
-        </div>
-        <button class="upgrade-btn" onclick="upgradeBall('multiplying')">Upgrade<br>(${ballUpgrades.multiplying.level * 50} gold)</button>
-    </div>
-    <div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <canvas id="child-stats-preview" width="40" height="40"></canvas>
-            <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${ballUpgrades.child.damage.toFixed(1)}</span>
-        </div>
-        <button class="upgrade-btn" onclick="upgradeBall('child')">Upgrade<br>(${ballUpgrades.child.level * 50} gold)</button>
-    </div>
-    <div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <canvas id="auto-stats-preview" width="40" height="40"></canvas>
-            <span><b>Auto</b>: ${autoBalls.length} balls, Speed: 3.6, Damage: 1</span>
-        </div>
-    </div>
-</div>
+                <div class="ball-stats">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="sniper-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Sniper</b>: ${balls.filter(b => b.type === 'sniper').length} balls, Level: ${ballUpgrades.sniper.level}, Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < sniperCost ? 'disabled' : ''} onclick="upgradeBall('sniper')">Upgrade<br>(${sniperCost} gold)</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="big-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Big</b>: ${balls.filter(b => b.type === 'big').length} balls, Level: ${ballUpgrades.big.level}, Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < bigCost ? 'disabled' : ''} onclick="upgradeBall('big')">Upgrade<br>(${bigCost} gold)</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="explosion-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Bomb</b>: ${balls.filter(b => b.type === 'explosion').length} balls, Level: ${ballUpgrades.explosion.level}, Speed: ${ballUpgrades.explosion.speed.toFixed(1)}, Damage: ${ballUpgrades.explosion.damage.toFixed(1)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < explosionCost ? 'disabled' : ''} onclick="upgradeBall('explosion')">Upgrade<br>(${explosionCost} gold)</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="multiplying-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Clones</b>: ${balls.filter(b => b.type === 'multiplying').length} balls, Level: ${ballUpgrades.multiplying.level}, Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < multiplyingCost ? 'disabled' : ''} onclick="upgradeBall('multiplying')">Upgrade<br>(${multiplyingCost} gold)</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="child-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${ballUpgrades.child.damage.toFixed(1)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < childCost ? 'disabled' : ''} onclick="upgradeBall('child')">Upgrade<br>(${childCost} gold)</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="auto-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Auto</b>: ${autoBalls.length} balls, Speed: 3.6, Damage: 1</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="tab-content" id="upgrades">
-<div class="upgrades-list">
-    <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(145deg, #f4eed6, #e9dcaf); padding: 12px; border-radius: 8px; border: 0 solid #333;">
-        <div style="width: 40px; height: 40px; background: cyan; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🚀</div>
-        <span style="flex: 1;">Speed Boost: Increase all ball speed by 2x for 1 minute</span>
-        <button class="upgrade-btn" style="background: linear-gradient(90deg, #0074d9, #00c4ff); border-radius: 8px; padding: 10px 20px; font-weight: 700; transition: transform 0.2s ease, background 0.2s ease;" onclick="applyGlobalUpgrade('speedBoost')">${globalUpgrades.speedBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.speedBoost.cost} gold)</button>
-    </div>
-    <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(145deg, #f4eed6, #e9dcaf); padding: 12px; border-radius: 8px; border: 0 solid #333;">
-        <div style="width: 40px; height: 40px; background: gold; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">💰</div>
-        <span style="flex: 1;">Gold Boost: Increase gold production by 2x for 1 minute</span>
-        <button class="upgrade-btn" style="background: linear-gradient(90deg, #ff9900, #ffcc00); border-radius: 8px; padding: 10px 20px; font-weight: 700; transition: transform 0.2s ease, background 0.2s ease;" onclick="applyGlobalUpgrade('goldBoost')">${globalUpgrades.goldBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.goldBoost.cost} gold)</button>
-    </div>
-</div>
+                <div class="upgrades-list">
+                    <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(145deg, #f4eed6, #e9dcaf); padding: 12px; border-radius: 8px; border: 0 solid #333;">
+                        <div style="width: 40px; height: 40px; background: cyan; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🚀</div>
+                        <span style="flex: 1;">Speed Boost: Increase all ball speed by 2x for 1 minute</span>
+                        <button class="upgrade-btn" ${globalUpgrades.speedBoost.active || gold < globalUpgrades.speedBoost.cost ? 'disabled' : ''} onclick="applyGlobalUpgrade('speedBoost')">${globalUpgrades.speedBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.speedBoost.cost} gold)</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(145deg, #f4eed6, #e9dcaf); padding: 12px; border-radius: 8px; border: 0 solid #333;">
+                        <div style="width: 40px; height: 40px; background: gold; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">💰</div>
+                        <span style="flex: 1;">Gold Boost: Increase gold production by 2x for 1 minute</span>
+                        <button class="upgrade-btn" ${globalUpgrades.goldBoost.active || gold < globalUpgrades.goldBoost.cost ? 'disabled' : ''} onclick="applyGlobalUpgrade('goldBoost')">${globalUpgrades.goldBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.goldBoost.cost} gold)</button>
+                    </div>
+                </div>
             </div>
             <div class="tab-content" id="rebirth">
                 <div class="rebirth-info">
                     <p>Rebirth at level 100 to start from level 1, losing all balls and gold but keeping ball upgrades.</p>
-                    <button class="rebirth-btn" onclick="rebirth()">Rebirth (Level ${level}/100)</button>
+                    <p>Current Idle Gold Per Second: ${idleGoldPerSecond.toFixed(2)}</p>
+                    <p>Each rebirth increases idle gold per second by 1.2 times.</p>
+                    <button class="rebirth-btn" ${level < 100 ? 'disabled' : ''} onclick="rebirth()">Rebirth (Level ${level}/100)</button>
+                </div>
+            </div>
+            <div class="tab-content" id="leaderboard">
+                <div class="leaderboard-list">
+                    <p>Loading leaderboard...</p>
                 </div>
             </div>
         </div>
@@ -1491,6 +1590,9 @@
                     contents.forEach(c => c.classList.remove('active'));
                     tab.classList.add('active');
                     overlay.querySelector(`#${tab.dataset.tab}`).classList.add('active');
+                    if (tab.dataset.tab === 'leaderboard') {
+                        fetchLeaderboard();
+                    }
                 });
             });
             overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
@@ -1499,10 +1601,10 @@
             });
         }
 
+        // Show settings popup
         function showSettingsPopup() {
             const user = auth.currentUser;
             const email = user ? user.email : 'Guest';
-            const isEditing = false;
             const overlay = document.createElement('div');
             overlay.className = 'login-overlay';
             overlay.innerHTML = `
@@ -1535,12 +1637,14 @@
             });
         }
 
+        // Edit username
         function editUsername() {
             document.getElementById('username-display').style.display = 'none';
             document.getElementById('username-input').style.display = 'block';
             document.querySelector('.edit-icon').style.display = 'none';
         }
 
+        // Save username
         function saveUsername() {
             username = document.getElementById('username-field').value;
             document.getElementById('username-display').textContent = username || 'Not set';
@@ -1550,30 +1654,26 @@
             saveGameState();
         }
 
+        // Delete account
         function deleteAccount() {
             const user = auth.currentUser;
-            if (user) {
-                if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                    database.ref('users/' + user.uid).remove()
-                        .then(() => {
-                            user.delete()
-                                .then(() => {
-                                    showToast('Account deleted successfully.');
-                                    location.reload();
-                                })
-                                .catch(error => {
-                                    alert('Failed to delete account: ' + error.message);
-                                });
-                        })
-                        .catch(error => {
-                            alert('Failed to delete game data: ' + error.message);
-                        });
-                }
+            if (user && confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                database.ref('users/' + user.uid).remove()
+                    .then(() => {
+                        user.delete()
+                            .then(() => {
+                                showToast('Account deleted successfully.');
+                                location.reload();
+                            })
+                            .catch(error => showToast('Failed to delete account: ' + error.message));
+                    })
+                    .catch(error => showToast('Failed to delete game data: ' + error.message));
             }
         }
 
         const weaponCost = 1000;
 
+        // Deploy random weapon
         function deployRandomWeapon() {
             const weapons = ['nuke', 'airstrike', 'gravity', 'laser', 'blackhole'];
             const randomWeapon = weapons[Math.floor(Math.random() * weapons.length)];
@@ -1596,12 +1696,12 @@
             }
         }
 
+        // Deploy nuke
         function deployNuke() {
-            alert('Nuke deployed! All bricks will be destroyed for the next 10 seconds!');
-            const explosionRadius = 200;
+            showToast('Nuke deployed! All bricks destroyed!');
             setTimeout(() => {
                 ctx.beginPath();
-                ctx.arc(canvas.width / 2, canvas.height / 2, explosionRadius, 0, Math.PI * 2);
+                ctx.arc(canvas.width / 2, canvas.height / 2, 200, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
                 ctx.fill();
                 ctx.closePath();
@@ -1613,15 +1713,13 @@
                 });
                 updateUI();
             }, 0);
-            setTimeout(() => { }, 10000);
         }
 
+        // Deploy airstrike
         function deployAirstrike() {
-            alert('Airstrike deployed! 3 random bricks will be destroyed!');
-            const airstrikeEffectDuration = 500;
-            const airstrikeArea = 300;
+            showToast('Airstrike deployed! 3 random bricks destroyed!');
             ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
-            ctx.fillRect(canvas.width / 2 - airstrikeArea / 2, 0, airstrikeArea, 50);
+            ctx.fillRect(canvas.width / 2 - 150, 0, 300, 50);
             for (let i = 0; i < 3; i++) {
                 const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
                 if (randomBrick) {
@@ -1632,15 +1730,14 @@
                     updateUI();
                 }
             }
-            setTimeout(() => { }, airstrikeEffectDuration);
         }
 
+        // Manipulate gravity
         function manipulateGravity() {
-            alert('Gravity increased! Balls will fall faster for the next 10 seconds!');
+            showToast('Gravity increased! Balls fall faster for 10 seconds!');
             const originalDy = balls.map(ball => ball.dy);
-            const gravityEffectRadius = 150;
             ctx.beginPath();
-            ctx.arc(canvas.width / 2, canvas.height / 2, gravityEffectRadius, 0, Math.PI * 2);
+            ctx.arc(canvas.width / 2, canvas.height / 2, 150, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
             ctx.fill();
             ctx.closePath();
@@ -1654,15 +1751,10 @@
             }, 10000);
         }
 
+        // Deploy laser
         function deployLaser() {
-            alert('Laser deployed! Any brick it touches will be destroyed for the next 5 seconds!');
-            const laser = {
-                x: canvas.width / 2,
-                y: 0,
-                width: 5,
-                height: canvas.height,
-                color: 'red'
-            };
+            showToast('Laser deployed! Destroys bricks for 5 seconds!');
+            const laser = { x: canvas.width / 2, y: 0, width: 5, height: canvas.height, color: 'red' };
             const laserInterval = setInterval(() => {
                 ctx.fillStyle = laser.color;
                 ctx.fillRect(laser.x, laser.y, laser.width, laser.height);
@@ -1677,18 +1769,13 @@
                     }
                 });
             }, 50);
-            setTimeout(() => {
-                clearInterval(laserInterval);
-            }, 5000);
+            setTimeout(() => clearInterval(laserInterval), 5000);
         }
 
+        // Create blackhole
         function createBlackhole() {
-            alert('Blackhole created! All balls and bricks are pulled towards it for the next 5 seconds!');
-            const blackhole = {
-                x: canvas.width / 2,
-                y: canvas.height / 2,
-                radius: 50
-            };
+            showToast('Blackhole created! Pulls balls and bricks for 5 seconds!');
+            const blackhole = { x: canvas.width / 2, y: canvas.height / 2, radius: 50 };
             const blackholeInterval = setInterval(() => {
                 ctx.beginPath();
                 ctx.arc(blackhole.x, blackhole.y, blackhole.radius, 0, Math.PI * 2);
@@ -1714,19 +1801,16 @@
                     }
                 });
             }, 30);
-            setTimeout(() => {
-                clearInterval(blackholeInterval);
-            }, 5000);
+            setTimeout(() => clearInterval(blackholeInterval), 5000);
         }
 
+        // Draw trail
         function drawTrail(ball) {
             const speed = Math.sqrt(ball.dx ** 2 + ball.dy ** 2);
             const trailLength = Math.min(5, Math.max(3, speed * 2));
             if (!ball.trail) ball.trail = [];
             ball.trail.push({ x: ball.x, y: ball.y });
-            if (ball.trail.length > trailLength) {
-                ball.trail.shift();
-            }
+            if (ball.trail.length > trailLength) ball.trail.shift();
             ball.trail.forEach((position, index) => {
                 const alpha = index / ball.trail.length;
                 ctx.beginPath();
@@ -1737,6 +1821,7 @@
             });
         }
 
+        // Next level
         function nextLevel() {
             if (bricks.length === 0) {
                 level++;
@@ -1745,47 +1830,58 @@
             }
         }
 
+        // Game loop
         function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            balls.forEach(ball => {
-                drawTrail(ball);
-                ball.move();
-                ball.draw();
-            });
-            powerUps = powerUps.filter(p => p.active);
-            powerUps.forEach(powerUp => {
-                if (powerUp.active) {
-                    powerUp.draw();
+            let lastTime = performance.now();
+            function loop(timestamp) {
+                const deltaTime = (timestamp - lastTime) / 1000;
+                lastTime = timestamp;
+
+                if (document.hidden) {
+                    generatePassiveGold();
+                    updatePlayTime();
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     balls.forEach(ball => {
-                        if (
-                            ball.x + ball.radius > powerUp.x &&
-                            ball.x - ball.radius < powerUp.x + powerUp.width &&
-                            ball.y + ball.radius > powerUp.y &&
-                            ball.y - ball.radius < powerUp.y + powerUp.height
-                        ) {
+                        drawTrail(ball);
+                        ball.move();
+                        ball.draw();
+                    });
+                    effects.forEach(effect => {
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, 5, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 0, ${effect.timer / 10})`;
+                        ctx.fill();
+                        ctx.closePath();
+                        effect.timer--;
+                    });
+                    effects = effects.filter(effect => effect.timer > 0);
+                    powerUps = powerUps.filter(p => p.active);
+                    powerUps.forEach(powerUp => {
+                        if (powerUp.active) {
+                            powerUp.draw();
                             powerUp.collect();
                         }
                     });
+                    autoBalls.forEach(autoBall => {
+                        autoBall.move();
+                        autoBall.draw();
+                    });
+                    bricks.forEach(brick => brick.draw());
+                    nextLevel();
                 }
-            });
-            autoBalls.forEach(autoBall => {
-                autoBall.move();
-                autoBall.draw();
-            });
-            bricks.forEach(brick => brick.draw());
-            nextLevel();
-            requestAnimationFrame(gameLoop);
+                requestAnimationFrame(loop);
+            }
+            requestAnimationFrame(loop);
         }
 
+        // Canvas click event
         canvas.addEventListener('click', (e) => {
             const mouseX = e.clientX - canvas.offsetLeft;
             const mouseY = e.clientY - canvas.offsetTop;
             let isHovering = false;
             bricks.forEach(brick => {
-                if (
-                    mouseX > brick.x && mouseX < brick.x + brick.width &&
-                    mouseY > brick.y && mouseY < brick.y + brick.height
-                ) {
+                if (brick.isCursorHovering(mouseX, mouseY)) {
                     brick.health -= 1;
                     if (brick.health <= 0) {
                         bricks = bricks.filter(b => b !== brick);
