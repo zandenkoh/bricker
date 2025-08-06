@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bricker</title>
-    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/104/104031.png"> 
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/104/104031.png">
     <style>
         body {
             margin: 0;
@@ -631,15 +631,43 @@
             multiplying: 125
         };
         let ballUpgrades = {
-            sniper: { level: 1, speed: 4.5, damage: 1 },
-            big: { level: 1, speed: 2.7, damage: 1 },
-            explosion: { level: 1, speed: 2.7, damage: 2 },
-            multiplying: { level: 1, speed: 2.7, damage: 1 },
-            child: { level: 1, speed: 3.6, damage: 1 }
+            sniper: {
+                level: 1,
+                speed: 4.5,
+                damage: 1
+            },
+            big: {
+                level: 1,
+                speed: 2.7,
+                damage: 1
+            },
+            explosion: {
+                level: 1,
+                speed: 2.7,
+                damage: 2
+            },
+            multiplying: {
+                level: 1,
+                speed: 2.7,
+                damage: 1
+            },
+            child: {
+                level: 1,
+                speed: 3.6,
+                damage: 1
+            }
         };
         let globalUpgrades = {
-            speedBoost: { active: false, activationTime: null, cost: 200 },
-            goldBoost: { active: false, activationTime: null, cost: 150 }
+            speedBoost: {
+                active: false,
+                activationTime: null,
+                cost: 200
+            },
+            goldBoost: {
+                active: false,
+                activationTime: null,
+                cost: 150
+            }
         };
         let stats = {
             totalPlayTime: 0,
@@ -700,7 +728,7 @@
         }
 
         // Show login popup on page load if not authenticated
-        window.onload = function () {
+        window.onload = function() {
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
                     loadGameState(user.uid);
@@ -810,23 +838,126 @@
             }
         }
 
+        // Inject styles for leaderboard cards and user details popup
+        const leaderboardStyle = document.createElement('style');
+        leaderboardStyle.innerHTML = `
+    .leaderboard-list {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+    }
+    .leaderboard-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(145deg, #f4eed6, #e9dcaf);
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .leaderboard-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .leaderboard-card .rank {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        width: 30px;
+        text-align: center;
+    }
+    .leaderboard-card .info {
+        flex: 1;
+        font-size: 14px;
+        color: #000;
+    }
+    .user-details-popup {
+        background: #f4eed6;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 15px;
+        max-width: 300px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1001;
+        font-family: Arial, sans-serif;
+    }
+    .user-details-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+    .user-details-popup .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+    }
+    .user-details-popup h3 {
+        margin: 0 0 10px;
+        color: #333;
+    }
+    .user-details-popup p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #000;
+    }
+`;
+        document.head.appendChild(leaderboardStyle);
+
         function fetchLeaderboard() {
+            console.log('Fetching leaderboard from users/...');
             const leaderboardList = document.querySelector('#leaderboard .leaderboard-list');
+            if (!leaderboardList) {
+                console.error('Leaderboard list element not found');
+                return;
+            }
             leaderboardList.innerHTML = '<p>Loading...</p>';
-            database.ref('leaderboard').orderByChild('rebirthCount').limitToLast(10).once('value')
+            database.ref('users').once('value')
                 .then(snapshot => {
+                    console.log('Users snapshot:', snapshot.val());
                     const leaders = [];
                     snapshot.forEach(child => {
-                        leaders.push({
-                            uid: child.key,
-                            ...child.val()
-                        });
+                        const gameState = child.val().gameState;
+                        if (gameState) {
+                            leaders.push({
+                                uid: child.key,
+                                username: gameState.username || 'Anonymous',
+                                rebirthCount: gameState.rebirthCount || 0,
+                                gold: gameState.gold || 0,
+                                ballCounts: gameState.ballCounts || {},
+                                totalUpgrades: gameState.stats?.totalUpgrades || 0,
+                                idleGoldPerSecond: gameState.idleGoldPerSecond || 0.5
+                            });
+                        }
                     });
-                    leaders.reverse(); // Display highest rebirthCount first
+                    leaders.sort((a, b) => b.rebirthCount - a.rebirthCount || b.gold - a.gold);
                     leaderboardList.innerHTML = '';
+                    if (leaders.length === 0) {
+                        console.log('No user data available');
+                        leaderboardList.innerHTML = '<p>No leaderboard data available.</p>';
+                        return;
+                    }
                     leaders.forEach((leader, index) => {
                         const entry = document.createElement('div');
-                        entry.textContent = `${index + 1}. ${leader.username} - Rebirths: ${leader.rebirthCount}, Gold: ${leader.gold}`;
+                        entry.className = 'leaderboard-card';
+                        entry.innerHTML = `
+                    <span class="rank">${index + 1}</span>
+                    <span class="info" style="font-weight: 600;">${leader.username} - Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
+                `;
+                        entry.addEventListener('click', () => showUserDetails(leader));
                         leaderboardList.appendChild(entry);
                     });
                 })
@@ -834,6 +965,33 @@
                     console.error('Failed to fetch leaderboard:', error);
                     leaderboardList.innerHTML = '<p>Failed to load leaderboard.</p>';
                 });
+        }
+
+        function showUserDetails(leader) {
+            const overlay = document.createElement('div');
+            overlay.className = 'user-details-overlay';
+            overlay.innerHTML = `
+        <div class="user-details-popup">
+            <button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /> </svg></button>
+            <h3>${leader.username}</h3>
+            <p>Rebirths: ${leader.rebirthCount}</p>
+            <p>Gold: ${Math.floor(leader.gold)}</p>
+            <p>Total Balls: ${
+                (leader.ballCounts.sniper || 0) +
+                (leader.ballCounts.big || 0) +
+                (leader.ballCounts.explosion || 0) +
+                (leader.ballCounts.multiplying || 0) +
+                (leader.ballCounts.child || 0)
+            }</p>
+            <p>Total Upgrades: ${leader.totalUpgrades}</p>
+            <p>Idle Gold Per Second: ${leader.idleGoldPerSecond.toFixed(2)}</p>
+        </div>
+    `;
+            document.body.appendChild(overlay);
+            overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
         }
 
         // Show login popup when guest tries to save
@@ -873,11 +1031,31 @@
                         idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
                         rebirthCount = data.rebirthCount || 0;
                         ballUpgrades = data.ballUpgrades || {
-                            sniper: { level: 1, speed: 4.5, damage: 1 },
-                            big: { level: 1, speed: 2.7, damage: 1 },
-                            explosion: { level: 1, speed: 2.7, damage: 2 },
-                            multiplying: { level: 1, speed: 2.7, damage: 1 },
-                            child: { level: 1, speed: 3.6, damage: 1 }
+                            sniper: {
+                                level: 1,
+                                speed: 4.5,
+                                damage: 1
+                            },
+                            big: {
+                                level: 1,
+                                speed: 2.7,
+                                damage: 1
+                            },
+                            explosion: {
+                                level: 1,
+                                speed: 2.7,
+                                damage: 2
+                            },
+                            multiplying: {
+                                level: 1,
+                                speed: 2.7,
+                                damage: 1
+                            },
+                            child: {
+                                level: 1,
+                                speed: 3.6,
+                                damage: 1
+                            }
                         };
                         stats = data.stats || {
                             totalPlayTime: 0,
@@ -1209,7 +1387,7 @@
                     gold: 'gold',
                     speed: 'cyan',
                     multiBall: 'magenta'
-                }[this.type];
+                } [this.type];
                 ctx.fillRect(this.x - (width - this.width) / 2, this.y - (height - this.height) / 2, width, height);
             }
 
@@ -1394,7 +1572,7 @@
                     big: 'green',
                     explosion: 'orange',
                     multiplying: 'purple'
-                }[type];
+                } [type];
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
             } else {
@@ -1754,11 +1932,20 @@
         // Deploy laser
         function deployLaser() {
             showToast('Laser deployed! Destroys bricks for 5 seconds!');
-            const laser = { x: canvas.width / 2, y: 0, width: 5, height: canvas.height, color: 'red' };
+            const laser = {
+                x: canvas.width / 2,
+                y: 0,
+                width: 5,
+                height: canvas.height,
+                color: 'red'
+            };
             const laserInterval = setInterval(() => {
                 ctx.fillStyle = laser.color;
                 ctx.fillRect(laser.x, laser.y, laser.width, laser.height);
-                const nearbyBricks = getNearbyBricks({ x: laser.x + laser.width / 2, y: laser.height / 2 });
+                const nearbyBricks = getNearbyBricks({
+                    x: laser.x + laser.width / 2,
+                    y: laser.height / 2
+                });
                 nearbyBricks.forEach(brick => {
                     if (laser.x + laser.width > brick.x && laser.x < brick.x + brick.width) {
                         brick.health = 0;
@@ -1775,7 +1962,11 @@
         // Create blackhole
         function createBlackhole() {
             showToast('Blackhole created! Pulls balls and bricks for 5 seconds!');
-            const blackhole = { x: canvas.width / 2, y: canvas.height / 2, radius: 50 };
+            const blackhole = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                radius: 50
+            };
             const blackholeInterval = setInterval(() => {
                 ctx.beginPath();
                 ctx.arc(blackhole.x, blackhole.y, blackhole.radius, 0, Math.PI * 2);
@@ -1809,7 +2000,10 @@
             const speed = Math.sqrt(ball.dx ** 2 + ball.dy ** 2);
             const trailLength = Math.min(5, Math.max(3, speed * 2));
             if (!ball.trail) ball.trail = [];
-            ball.trail.push({ x: ball.x, y: ball.y });
+            ball.trail.push({
+                x: ball.x,
+                y: ball.y
+            });
             if (ball.trail.length > trailLength) ball.trail.shift();
             ball.trail.forEach((position, index) => {
                 const alpha = index / ball.trail.length;
@@ -1833,6 +2027,7 @@
         // Game loop
         function gameLoop() {
             let lastTime = performance.now();
+
             function loop(timestamp) {
                 const deltaTime = (timestamp - lastTime) / 1000;
                 lastTime = timestamp;
