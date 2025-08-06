@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bricker</title>
     <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/104/104031.png">
+    <link href="https://unpkg.com/intro.js@7.0.1/introjs.min.css" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -386,7 +387,7 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
-            width: 130px;
+            width: fit-content;
         }
 
         .upgrade-btn:hover,
@@ -457,6 +458,41 @@
 
         .close-btn:hover {
             background: #e9dcaf;
+        }
+
+        .custom-tooltip {
+            background: #e9dcaf;
+            border: 2px solid #444;
+            color: #000;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 300px;
+        }
+
+        .custom-highlight {
+            border: 2px solid #0053a6;
+            border-radius: 5px;
+            background: rgba(0, 83, 166, 0.2);
+        }
+
+        .introjs-button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .introjs-button:hover {
+            background: #0053a6;
+        }
+
+        .introjs-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -544,6 +580,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://unpkg.com/intro.js@7.0.1/intro.min.js"></script>
 
     <script>
         // Inject tooltip and toast styles
@@ -607,6 +644,89 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const database = firebase.database();
+
+        function startTutorialIfNeeded(userId) {
+            const tutorialCompleted = localStorage.getItem(`tutorialCompleted_${userId}`);
+            if (!tutorialCompleted && document.querySelector('#gameCanvas')) {
+                setTimeout(() => startTutorial(), 500); // Delay to ensure DOM is ready
+            }
+        }
+
+        // Define Intro.js tutorial
+        function startTutorial() {
+            introJs().setOptions({
+                steps: [{
+                        intro: "Welcome to Bricker! Let's explore the game.",
+                        position: "center"
+                    },
+                    {
+                        element: document.querySelector('#gameCanvas'),
+                        intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
+                        position: "top"
+                    },
+                    {
+                        element: document.querySelector('.info-container'),
+                        intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
+                        position: "right"
+                    },
+                    {
+                        element: document.querySelector('#save-button'),
+                        intro: "Click here to save your progress to your account.",
+                        position: "right"
+                    },
+                    {
+                        element: document.querySelector('.ball-options'),
+                        intro: "Buy different balls here, like Sniper or Bomb, each with unique abilities.",
+                        position: "bottom"
+                    },
+                    {
+                        element: document.querySelector('#my-balls-btn'),
+                        intro: "View your balls, upgrade them, or check the leaderboard.",
+                        position: "left"
+                    },
+                    {
+                        element: document.querySelector('#settings-btn'),
+                        intro: "Update your username or log out in the settings.",
+                        position: "left"
+                    },
+                    {
+                        element: document.querySelector('#weapons-btn'),
+                        intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
+                        position: "left"
+                    },
+                    {
+                        intro: "You're all set! Start destroying bricks and earning gold!",
+                        position: "center"
+                    }
+                ],
+                showProgress: true,
+                showBullets: false,
+                exitOnOverlayClick: false,
+                disableInteraction: true,
+                tooltipClass: 'custom-tooltip',
+                highlightClass: 'custom-highlight',
+                nextLabel: 'Next',
+                prevLabel: 'Back',
+                doneLabel: 'Done'
+            }).oncomplete(() => {
+                const user = auth.currentUser;
+                if (user) {
+                    localStorage.setItem(`tutorialCompleted_${user.uid}`, 'true');
+                }
+            }).onexit(() => {
+                const user = auth.currentUser;
+                if (user) {
+                    localStorage.setItem(`tutorialCompleted_${user.uid}`, 'true');
+                }
+            }).onbeforechange(() => {
+                // Ensure elements are in view
+                const element = introJs()._currentStep > 0 ? introJs()._introItems[introJs()._currentStep].element : null;
+                if (element) element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }).start();
+        }
 
         // Game state variables
         let gold = 20;
@@ -747,14 +867,60 @@
             <h2>Login to Save Progress</h2>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <button onclick="login()">Login</button>
-            <button onclick="playAsGuest()">Play as Guest</button>
-            <p>Don't have an account? <a href="#" onclick="signUp()">Sign up</a></p>
+            <div class="button-group">
+                <button id="login-btn">Login</button>
+                <button id="guest-btn">Play as Guest</button>
+            </div>
+            <p>Don't have an account? <a href="#" id="signup-link">Sign up</a></p>
         </div>
     `;
             document.body.appendChild(overlay);
+            saveToLocalStorage(); // Save progress to local storage
+            const loginBtn = overlay.querySelector('#login-btn');
+            const guestBtn = overlay.querySelector('#guest-btn');
+            const signupLink = overlay.querySelector('#signup-link');
+
+            loginBtn.addEventListener('click', () => {
+                loginBtn.disabled = true;
+                login();
+            });
+            guestBtn.addEventListener('click', () => {
+                guestBtn.disabled = true;
+                playAsGuest();
+            });
+            signupLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSignUpPopup(overlay);
+            });
             overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) overlay.remove();
+                if (e.target === overlay) {
+                    overlay.remove();
+                    playAsGuest();
+                }
+            });
+        }
+
+        function showSignUpPopup(overlay) {
+            overlay.innerHTML = `
+        <div class="login-popup">
+            <h2>Sign Up</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <input type="password" id="confirm-password" placeholder="Confirm Password">
+            <div class="button-group">
+                <button id="signup-btn">Sign Up</button>
+                <button id="back-btn">Back to Login</button>
+            </div>
+        </div>
+    `;
+            const signupBtn = overlay.querySelector('#signup-btn');
+            const backBtn = overlay.querySelector('#back-btn');
+            signupBtn.addEventListener('click', () => {
+                signupBtn.disabled = true;
+                signUp();
+            });
+            backBtn.addEventListener('click', () => {
+                showLoginPopup();
             });
         }
 
@@ -762,25 +928,56 @@
         function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const loginBtn = document.querySelector('#login-btn');
+            loginBtn.disabled = true;
             auth.signInWithEmailAndPassword(email, password)
                 .then(userCredential => {
+                    isGuest = false;
                     document.querySelector('.login-overlay').remove();
-                    loadGameState(userCredential.user.uid);
+                    saveGameStateFromLocalStorage(userCredential.user.uid);
+                    startTutorialIfNeeded(userCredential.user.uid);
                 })
-                .catch(error => showToast('Login failed: ' + error.message));
+                .catch(error => {
+                    showToast('Login failed: ' + error.message);
+                    loginBtn.disabled = false;
+                });
         }
 
-        // Sign up function
+        // Update signUp function
         function signUp() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password')?.value;
+            const signupBtn = document.querySelector('#signup-btn');
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match!');
+                signupBtn.disabled = false;
+                return;
+            }
+            signupBtn.disabled = true;
             auth.createUserWithEmailAndPassword(email, password)
                 .then(userCredential => {
+                    isGuest = false;
                     document.querySelector('.login-overlay').remove();
-                    loadGameState(userCredential.user.uid);
+                    saveGameStateFromLocalStorage(userCredential.user.uid);
+                    startTutorialIfNeeded(userCredential.user.uid);
                 })
-                .catch(error => showToast('Sign up failed: ' + error.message));
+                .catch(error => {
+                    showToast('Sign up failed: ' + error.message);
+                    signupBtn.disabled = false;
+                });
         }
+
+        window.onload = function() {
+            auth.onAuthStateChanged(user => {
+                if (user && !isGuest) {
+                    loadGameState(user.uid);
+                    startTutorialIfNeeded(user.uid);
+                } else {
+                    showLoginPopup();
+                }
+            });
+        };
 
         // Play as guest
         function playAsGuest() {
@@ -795,6 +992,8 @@
                 showLoginPopupForSave();
                 return;
             }
+            const saveBtn = document.getElementById('save-button');
+            saveBtn.disabled = true;
             const user = auth.currentUser;
             if (user) {
                 const ballCounts = {
@@ -833,87 +1032,148 @@
                     username: username || 'Anonymous'
                 });
                 database.ref('users/' + user.uid + '/gameState').set(gameState)
-                    .then(() => showToast('Progress saved successfully!'))
+                    .then(() => {
+                        showToast('Progress saved successfully!');
+                        saveBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        showToast('Save failed: ' + error.message);
+                        saveBtn.disabled = false;
+                    });
+            }
+        }
+
+        function saveGameStateFromLocalStorage(uid) {
+            const gameState = JSON.parse(localStorage.getItem('brickerGameState'));
+            if (gameState) {
+                database.ref('users/' + uid + '/gameState').set(gameState)
+                    .then(() => {
+                        localStorage.removeItem('brickerGameState');
+                        showToast('Progress saved successfully!');
+                        location.reload();
+                    })
                     .catch(error => showToast('Save failed: ' + error.message));
+            } else {
+                loadGameState(uid);
             }
         }
 
         // Inject styles for leaderboard cards and user details popup
         const leaderboardStyle = document.createElement('style');
         leaderboardStyle.innerHTML = `
-    .leaderboard-list {
-        max-height: 300px;
-        overflow-y: auto;
-        padding: 10px;
-    }
-    .leaderboard-card {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: linear-gradient(145deg, #f4eed6, #e9dcaf);
-        border: 1px solid #444;
-        border-radius: 8px;
-        padding: 10px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .leaderboard-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    .leaderboard-card .rank {
-        font-size: 16px;
-        font-weight: bold;
-        color: #333;
-        width: 30px;
-        text-align: center;
-    }
-    .leaderboard-card .info {
-        flex: 1;
-        font-size: 14px;
-        color: #000;
-    }
-    .user-details-popup {
-        background: #f4eed6;
-        border: 1px solid #444;
-        border-radius: 8px;
-        padding: 15px;
-        max-width: 300px;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1001;
-        font-family: Arial, sans-serif;
-    }
-    .user-details-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-    }
-    .user-details-popup .close-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 5px;
-    }
-    .user-details-popup h3 {
-        margin: 0 0 10px;
-        color: #333;
-    }
-    .user-details-popup p {
-        margin: 5px 0;
-        font-size: 14px;
-        color: #000;
-    }
+.leaderboard-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.leaderboard-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(145deg, #f4eed6, #e9dcaf);
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.leaderboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.leaderboard-card.current-user {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+.leaderboard-card.current-user .info {
+    color: #fff;
+}
+
+.leaderboard-card .rank {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 50%;
+    background: #ccc;
+}
+
+.leaderboard-card.rank-1 .rank {
+    background: #ffd700;
+}
+
+.leaderboard-card.rank-2 .rank {
+    background: #c0c0c0;
+}
+
+.leaderboard-card.rank-3 .rank {
+    background: #cd7f32;
+}
+
+.leaderboard-card.current-user .rank {
+    background: #fff;
+    color: #000;
+}
+
+.leaderboard-card .info {
+    flex: 1;
+    font-size: 14px;
+    color: #000;
+}
+
+.user-details-popup {
+    background: #f4eed6;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 15px;
+    max-width: 300px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    font-family: Arial, sans-serif;
+}
+
+.user-details-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.user-details-popup .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.user-details-popup h3 {
+    margin: 0 0 10px;
+    color: #333;
+}
+
+.user-details-popup p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #000;
+}
 `;
         document.head.appendChild(leaderboardStyle);
 
@@ -950,9 +1210,10 @@
                         leaderboardList.innerHTML = '<p>No leaderboard data available.</p>';
                         return;
                     }
+                    const currentUser = auth.currentUser;
                     leaders.forEach((leader, index) => {
                         const entry = document.createElement('div');
-                        entry.className = 'leaderboard-card';
+                        entry.className = `leaderboard-card rank-${index + 1}${currentUser && leader.uid === currentUser.uid ? ' current-user' : ''}`;
                         entry.innerHTML = `
                     <span class="rank">${index + 1}</span>
                     <span class="info" style="font-weight: 600;">${leader.username} - Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
@@ -1004,15 +1265,68 @@
             <p>You are playing as a guest. Login or sign up to save your progress.</p>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <button onclick="login()">Login</button>
-            <button onclick="signUp()">Sign Up</button>
-            <button onclick="this.parentElement.parentElement.remove()">Cancel</button>
+            <div class="button-group">
+                <button id="login-btn">Login</button>
+                <button id="signup-btn">Sign Up</button>
+                <button id="cancel-btn">Cancel</button>
+            </div>
         </div>
     `;
             document.body.appendChild(overlay);
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) overlay.remove();
+            saveToLocalStorage(); // Save progress to local storage
+            const loginBtn = overlay.querySelector('#login-btn');
+            const signupBtn = overlay.querySelector('#signup-btn');
+            const cancelBtn = overlay.querySelector('#cancel-btn');
+            loginBtn.addEventListener('click', () => {
+                loginBtn.disabled = true;
+                login();
             });
+            signupBtn.addEventListener('click', () => {
+                signupBtn.disabled = true;
+                showSignUpPopup(overlay);
+            });
+            cancelBtn.addEventListener('click', () => {
+                cancelBtn.disabled = true;
+                overlay.remove();
+            });
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+        }
+
+        function saveToLocalStorage() {
+            const gameState = {
+                gold,
+                level,
+                ballCounts: {
+                    sniper: balls.filter(b => b.type === 'sniper').length,
+                    big: balls.filter(b => b.type === 'big').length,
+                    explosion: balls.filter(b => b.type === 'explosion').length,
+                    multiplying: balls.filter(b => b.type === 'multiplying').length,
+                    child: balls.filter(b => b.type === 'child').length
+                },
+                autoBalls: autoBalls.length,
+                ballPrices,
+                autoBallPrice,
+                idleGoldPerSecond,
+                ballUpgrades,
+                stats,
+                username,
+                rebirthCount,
+                globalUpgrades: {
+                    speedBoost: {
+                        active: globalUpgrades.speedBoost.active,
+                        activationTime: globalUpgrades.speedBoost.active ? Date.now() : null
+                    },
+                    goldBoost: {
+                        active: globalUpgrades.goldBoost.active,
+                        activationTime: globalUpgrades.goldBoost.active ? Date.now() : null
+                    }
+                }
+            };
+            localStorage.setItem('brickerGameState', JSON.stringify(gameState));
         }
 
         // Load game state
