@@ -1342,58 +1342,24 @@ display: flex;
                     });
                     newLeaders.sort((a, b) => b.rebirthCount - a.rebirthCount || b.gold - a.gold);
 
-                    // Update only changed entries
+                    // Clear existing entries
+                    leaderboardList.innerHTML = '';
+
+                    // Update entries with correct ranks
                     const currentUser = auth.currentUser;
                     newLeaders.forEach((leader, index) => {
-                        const existingLeader = currentLeaders.find(l => l.uid === leader.uid);
-                        const entry = document.querySelector(`.leaderboard-card[data-uid="${leader.uid}"]`) || document.createElement('div');
-                        const isNewOrUpdated = !existingLeader ||
-                            existingLeader.rebirthCount !== leader.rebirthCount ||
-                            Math.floor(existingLeader.gold) !== Math.floor(leader.gold) ||
-                            existingLeader.username !== leader.username;
-
-                        if (isNewOrUpdated) {
-                            entry.setAttribute('data-uid', leader.uid);
-                            entry.className = `leaderboard-card rank-${index + 1}${currentUser && leader.uid === currentUser.uid ? ' current-user' : ''}`;
-                            entry.innerHTML = `
-                        <span class="rank">${index + 1}</span>
-                        <div class="user-and-info">
+                        const entry = document.createElement('div');
+                        entry.setAttribute('data-uid', leader.uid);
+                        entry.className = `leaderboard-card rank-${index + 1}${currentUser && leader.uid === currentUser.uid ? ' current-user' : ''}`;
+                        entry.innerHTML = `
+                    <span class="rank">${index + 1}</span>
+                    <div class="user-and-info">
                         <span class="username">${leader.username}</span>
                         <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
-                        </div>
-                    `;
-                            // Remove existing event listeners to prevent duplicates
-                            const newEntry = entry.cloneNode(true);
-                            entry.parentNode?.replaceChild(newEntry, entry);
-                            newEntry.addEventListener('click', () => showUserDetails(leader));
-
-                            if (!existingLeader) {
-                                // New entry
-                                if (index < leaderboardList.children.length) {
-                                    leaderboardList.insertBefore(newEntry, leaderboardList.children[index]);
-                                } else {
-                                    leaderboardList.appendChild(newEntry);
-                                }
-                            } else {
-                                // Update existing entry
-                                const oldIndex = Array.from(leaderboardList.children).indexOf(entry);
-                                if (oldIndex !== index) {
-                                    leaderboardList.removeChild(newEntry);
-                                    if (index < leaderboardList.children.length) {
-                                        leaderboardList.insertBefore(newEntry, leaderboardList.children[index]);
-                                    } else {
-                                        leaderboardList.appendChild(newEntry);
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                    // Remove outdated entries
-                    Array.from(leaderboardList.children).forEach(entry => {
-                        if (!newLeaders.some(l => l.uid === entry.getAttribute('data-uid'))) {
-                            entry.remove();
-                        }
+                    </div>
+                `;
+                        entry.addEventListener('click', () => showUserDetails(leader));
+                        leaderboardList.appendChild(entry);
                     });
 
                     currentLeaders = newLeaders;
