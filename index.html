@@ -21,15 +21,65 @@
             user-select: none;
         }
 
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            height: 685px;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            align-items: stretch;
+            display: flex;
+        }
+
         .together {
             width: fit-content;
             height: 100%;
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
             padding-top: 0;
             background: #e9dcaf;
+            box-sizing: border-box;
+
+        }
+
+        .leaderboard-card .user-and-info {
+            display: flex;
+            flex-direction: column;
+            /* Stack username and info vertically */
+            gap: 5px;
+            /* Space between username and info */
+            flex: 1;
+        }
+
+        .leaderboard-container {
+            width: 300px;
+            height: 100%;
+            background: #e9dcaf;
+            color: #000;
+            overflow-y: auto;
+            border-left: 1px solid #444;
+            overflow-x: hidden;
+            margin-bottom: 0;
+            box-sizing: border-box;
+        }
+
+        .leaderboard-container h2 {
+            margin: 0;
+            padding: 20px;
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .leaderboard-list {
+            padding: 10px;
+            height: 100%;
         }
 
         canvas {
@@ -508,82 +558,89 @@
 </head>
 
 <body>
-    <div class="together">
-        <!-- Replace the existing .ui div in the HTML body with this updated version -->
-        <div class="ui">
-            <div class="info-container">
-                <p class="gold-count">Gold: <span id="gold">20</span></p>
-                <p class="level-count">Level: <span id="level">1</span></p>
-                <button id="save-button">Save progress</button>
-            </div>
+    <div class="main-container">
+        <div class="together">
+            <!-- Replace the existing .ui div in the HTML body with this updated version -->
+            <div class="ui">
+                <div class="info-container">
+                    <p class="gold-count">Gold: <span id="gold">20</span></p>
+                    <p class="level-count">Level: <span id="level">1</span></p>
+                    <button id="save-button">Save progress</button>
+                </div>
 
-            <div class="ball-options">
-                <div class="ball-option" id="sniper-option" onclick="buyBall('sniper')">
-                    <p>Sniper</p>
-                    <div class="ball-preview">
-                        <canvas id="sniper-preview" width="60" height="60"></canvas>
-                    </div>
-                    <div class="ball-price">
-                        <span id="sniperPrice">20</span>
-                    </div>
-                </div>
-                <div class="ball-option" id="big-option" onclick="buyBall('big')">
-                    <p>Big</p>
-                    <div class="ball-preview">
-                        <canvas id="big-preview" width="60" height="60"></canvas>
-                    </div>
-                    <div class="ball-price">
-                        <span id="bigPrice">30</span>
-                    </div>
-                </div>
-                <div class="ball-option" id="explosion-option" onclick="buyBall('explosion')">
-                    <p>Bomb</p>
-                    <div class="ball-preview">
-                        <canvas id="explosion-preview" width="60" height="60"></canvas>
-                    </div>
-                    <div class="ball-price">
-                        <span id="explosionPrice">40</span>
-                    </div>
-                </div>
-                <div class="ball-option" id="multiplying-option" onclick="buyBall('multiplying')">
-                    <p>Clones</p>
-                    <div class="ball-preview">
-                        <canvas id="multiplying-preview" width="60" height="60"></canvas>
-                    </div>
-                    <div class="ball-price">
-                        <span id="multiplyingPrice">50</span>
-                    </div>
-                </div>
-                <div class="ball-option" id="auto-option" onclick="buyAutoBall()">
-                    <p>Auto</p>
-                    <div class="ball-preview">
-                        <canvas id="auto-preview" width="60" height="60"></canvas>
-                    </div>
-                    <div class="ball-price">
-                        <span id="autoPrice">100</span>
-                    </div>
-                </div>
-                <div class="button-group">
-                    <div class="ball-option" id="weapons-btn">
-                        <p>Mass Destruction</p>
+                <div class="ball-options">
+                    <div class="ball-option" id="sniper-option" onclick="buyBall('sniper')">
+                        <p>Sniper</p>
+                        <div class="ball-preview">
+                            <canvas id="sniper-preview" width="60" height="60"></canvas>
+                        </div>
                         <div class="ball-price">
-                            <span>1000</span>
+                            <span id="sniperPrice">20</span>
                         </div>
                     </div>
-                    <div class="inside-button-group">
-                        <div class="ball-option" id="my-balls-btn">
-                            <p>Upgrades</p>
+                    <div class="ball-option" id="big-option" onclick="buyBall('big')">
+                        <p>Big</p>
+                        <div class="ball-preview">
+                            <canvas id="big-preview" width="60" height="60"></canvas>
                         </div>
-                        <div class="ball-option" id="settings-btn">
-                            <p>Settings</p>
+                        <div class="ball-price">
+                            <span id="bigPrice">30</span>
+                        </div>
+                    </div>
+                    <div class="ball-option" id="explosion-option" onclick="buyBall('explosion')">
+                        <p>Bomb</p>
+                        <div class="ball-preview">
+                            <canvas id="explosion-preview" width="60" height="60"></canvas>
+                        </div>
+                        <div class="ball-price">
+                            <span id="explosionPrice">40</span>
+                        </div>
+                    </div>
+                    <div class="ball-option" id="multiplying-option" onclick="buyBall('multiplying')">
+                        <p>Clones</p>
+                        <div class="ball-preview">
+                            <canvas id="multiplying-preview" width="60" height="60"></canvas>
+                        </div>
+                        <div class="ball-price">
+                            <span id="multiplyingPrice">50</span>
+                        </div>
+                    </div>
+                    <div class="ball-option" id="auto-option" onclick="buyAutoBall()">
+                        <p>Auto</p>
+                        <div class="ball-preview">
+                            <canvas id="auto-preview" width="60" height="60"></canvas>
+                        </div>
+                        <div class="ball-price">
+                            <span id="autoPrice">100</span>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <div class="ball-option" id="weapons-btn">
+                            <p>Mass Destruction</p>
+                            <div class="ball-price">
+                                <span>1000</span>
+                            </div>
+                        </div>
+                        <div class="inside-button-group">
+                            <div class="ball-option" id="my-balls-btn">
+                                <p>Upgrades</p>
+                            </div>
+                            <div class="ball-option" id="settings-btn">
+                                <p>Settings</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <h1>Bricker</h1>
+                <h1>Bricker</h1>
+            </div>
+            <canvas id="gameCanvas" width="1000" height="520"></canvas>
         </div>
-        <canvas id="gameCanvas" width="1000" height="520"></canvas>
+        <div class="leaderboard-container">
+            <h2>Leaderboard</h2>
+            <div class="leaderboard-list"></div>
+        </div>
+
     </div>
 
     <!-- Firebase SDK -->
@@ -691,7 +748,7 @@
                     },
                     {
                         element: document.querySelector('#my-balls-btn'),
-                        intro: "View your balls, upgrade them, or check the leaderboard.",
+                        intro: "View your balls and upgrade them.",
                         position: "left"
                     },
                     {
@@ -702,6 +759,11 @@
                     {
                         element: document.querySelector('#weapons-btn'),
                         intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
+                        position: "left"
+                    },
+                    {
+                        element: document.querySelector('.leaderboard-container'),
+                        intro: "Check the leaderboard to see top players' rankings and stats.",
                         position: "left"
                     },
                     {
@@ -729,7 +791,6 @@
                     localStorage.setItem(`tutorialCompleted_${user.uid}`, 'true');
                 }
             }).onbeforechange(() => {
-                // Ensure elements are in view
                 const element = introJs()._currentStep > 0 ? introJs()._introItems[introJs()._currentStep].element : null;
                 if (element) element.scrollIntoView({
                     behavior: 'smooth',
@@ -737,7 +798,6 @@
                 });
             }).start();
         }
-
         // Game state variables
         let gold = 20;
         let idleGoldPerSecond = 0.5;
@@ -1046,6 +1106,7 @@
                     .then(() => {
                         showToast('Progress saved successfully!');
                         saveBtn.disabled = false;
+                        updateLeaderboard();
                     })
                     .catch(error => {
                         showToast('Save failed: ' + error.message);
@@ -1073,73 +1134,83 @@
         const leaderboardStyle = document.createElement('style');
         leaderboardStyle.innerHTML = `
 .leaderboard-list {
-    max-height: 300px;
-    overflow-y: auto;
+    overflow-y: visible;
     padding: 10px;
+    height: 100%;
 }
 
-.leaderboard-card {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    .leaderboard-card {
+display: flex;
+    flex-direction: row; /* Horizontal layout for rank and user-info */
+    align-items: center; /* Center vertically */
+    gap: 10px; /* Space between rank and user-info */
     background: linear-gradient(145deg, #f4eed6, #e9dcaf);
     border: 1px solid #444;
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 10px;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.leaderboard-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.leaderboard-card.current-user {
-    background: #000;
-    color: #fff;
-    border: 1px solid #fff;
-}
-
-.leaderboard-card.current-user .info {
-    color: #fff;
-}
-
-.leaderboard-card .rank {
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
-    text-align: center;
-    border-radius: 50%;
-    background: #ccc;
-}
-
-.leaderboard-card.rank-1 .rank {
-    background: #ffd700;
-}
-
-.leaderboard-card.rank-2 .rank {
-    background: #c0c0c0;
-}
-
-.leaderboard-card.rank-3 .rank {
-    background: #cd7f32;
-}
-
-.leaderboard-card.current-user .rank {
-    background: #fff;
-    color: #000;
-}
-
-.leaderboard-card .info {
+    }
+    
+    .leaderboard-card .user-and-info {
+display: flex;
+    flex-direction: column; /* Stack username and info vertically */
+    gap: 5px; /* Space between username and info */
     flex: 1;
-    font-size: 14px;
-    color: #000;
-}
+    }
+
+    .leaderboard-card.current-user {
+        background: #000;
+        color: #fff;
+        border: 1px solid #fff;
+    }
+
+    .leaderboard-card.current-user .info,
+    .leaderboard-card.current-user .username {
+        color: #fff;
+    }
+
+    .leaderboard-card .rank {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        border-radius: 50%;
+        background: #ccc;
+        margin-bottom: 5px;
+        flex-shrink: 0;
+    }
+
+    .leaderboard-card.rank-1 .rank {
+        background: #ffd700;
+    }
+
+    .leaderboard-card.rank-2 .rank {
+        background: #c0c0c0;
+    }
+
+    .leaderboard-card.rank-3 .rank {
+        background: #cd7f32;
+    }
+
+    .leaderboard-card.current-user .rank {
+        background: #fff;
+        color: #000;
+    }
+
+    .leaderboard-card .username {
+        font-size: 16px;
+        font-weight: 600;
+        color: #000;
+    }
+
+    .leaderboard-card .info {
+        font-size: 14px;
+        color: #000;
+    }
 
 .user-details-popup {
     background: #f4eed6;
@@ -1190,7 +1261,7 @@
 
         function fetchLeaderboard() {
             console.log('Fetching leaderboard from users/...');
-            const leaderboardList = document.querySelector('#leaderboard .leaderboard-list');
+            const leaderboardList = document.querySelector('.leaderboard-container .leaderboard-list');
             if (!leaderboardList) {
                 console.error('Leaderboard list element not found');
                 return;
@@ -1227,11 +1298,110 @@
                         entry.className = `leaderboard-card rank-${index + 1}${currentUser && leader.uid === currentUser.uid ? ' current-user' : ''}`;
                         entry.innerHTML = `
                     <span class="rank">${index + 1}</span>
-                    <span class="info" style="font-weight: 600;">${leader.username} - Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
+                    <div class="user-and-info" style="display: flex; flex-direction: column;">
+                        <span class="username">${leader.username}</span>
+                        <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
+                    </div>
+                    
                 `;
                         entry.addEventListener('click', () => showUserDetails(leader));
                         leaderboardList.appendChild(entry);
                     });
+                })
+                .catch(error => {
+                    console.error('Failed to fetch leaderboard:', error);
+                    leaderboardList.innerHTML = '<p>Failed to load leaderboard.</p>';
+                });
+        }
+
+        let currentLeaders = [];
+
+        function updateLeaderboard() {
+            console.log('Updating leaderboard from users/...');
+            const leaderboardList = document.querySelector('.leaderboard-container .leaderboard-list');
+            if (!leaderboardList) {
+                console.error('Leaderboard list element not found');
+                return;
+            }
+            database.ref('users').once('value')
+                .then(snapshot => {
+                    const newLeaders = [];
+                    snapshot.forEach(child => {
+                        const gameState = child.val().gameState;
+                        if (gameState) {
+                            newLeaders.push({
+                                uid: child.key,
+                                username: gameState.username || 'Anonymous',
+                                rebirthCount: gameState.rebirthCount || 0,
+                                gold: gameState.gold || 0,
+                                ballCounts: gameState.ballCounts || {},
+                                totalUpgrades: gameState.stats?.totalUpgrades || 0,
+                                idleGoldPerSecond: gameState.idleGoldPerSecond || 0.5
+                            });
+                        }
+                    });
+                    newLeaders.sort((a, b) => b.rebirthCount - a.rebirthCount || b.gold - a.gold);
+
+                    // Update only changed entries
+                    const currentUser = auth.currentUser;
+                    newLeaders.forEach((leader, index) => {
+                        const existingLeader = currentLeaders.find(l => l.uid === leader.uid);
+                        const entry = document.querySelector(`.leaderboard-card[data-uid="${leader.uid}"]`) || document.createElement('div');
+                        const isNewOrUpdated = !existingLeader ||
+                            existingLeader.rebirthCount !== leader.rebirthCount ||
+                            Math.floor(existingLeader.gold) !== Math.floor(leader.gold) ||
+                            existingLeader.username !== leader.username;
+
+                        if (isNewOrUpdated) {
+                            entry.setAttribute('data-uid', leader.uid);
+                            entry.className = `leaderboard-card rank-${index + 1}${currentUser && leader.uid === currentUser.uid ? ' current-user' : ''}`;
+                            entry.innerHTML = `
+                        <span class="rank">${index + 1}</span>
+                        <div class="user-and-info">
+                        <span class="username">${leader.username}</span>
+                        <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
+                        </div>
+                    `;
+                            // Remove existing event listeners to prevent duplicates
+                            const newEntry = entry.cloneNode(true);
+                            entry.parentNode?.replaceChild(newEntry, entry);
+                            newEntry.addEventListener('click', () => showUserDetails(leader));
+
+                            if (!existingLeader) {
+                                // New entry
+                                if (index < leaderboardList.children.length) {
+                                    leaderboardList.insertBefore(newEntry, leaderboardList.children[index]);
+                                } else {
+                                    leaderboardList.appendChild(newEntry);
+                                }
+                            } else {
+                                // Update existing entry
+                                const oldIndex = Array.from(leaderboardList.children).indexOf(entry);
+                                if (oldIndex !== index) {
+                                    leaderboardList.removeChild(newEntry);
+                                    if (index < leaderboardList.children.length) {
+                                        leaderboardList.insertBefore(newEntry, leaderboardList.children[index]);
+                                    } else {
+                                        leaderboardList.appendChild(newEntry);
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Remove outdated entries
+                    Array.from(leaderboardList.children).forEach(entry => {
+                        if (!newLeaders.some(l => l.uid === entry.getAttribute('data-uid'))) {
+                            entry.remove();
+                        }
+                    });
+
+                    currentLeaders = newLeaders;
+
+                    if (newLeaders.length === 0) {
+                        console.log('No user data available');
+                        leaderboardList.innerHTML = '<p>No leaderboard data available.</p>';
+                    }
                 })
                 .catch(error => {
                     console.error('Failed to fetch leaderboard:', error);
@@ -1457,6 +1627,7 @@
             gameLoop();
             setInterval(saveGameState, 30000);
             setInterval(updatePlayTime, 1000);
+            setInterval(updateLeaderboard, 5000); // Poll for leaderboard updates every 5 seconds
             saveButton.addEventListener('click', saveGameState);
             document.getElementById('my-balls-btn').addEventListener('click', showMyBallsPopup);
             document.getElementById('settings-btn').addEventListener('click', showSettingsPopup);
@@ -1465,10 +1636,12 @@
                     gold -= weaponCost;
                     deployRandomWeapon();
                     updateUI();
+                    saveGameState();
                 } else {
                     showToast('Not enough gold!');
                 }
             });
+            updateLeaderboard();
         }
 
         // Update play time
@@ -2002,7 +2175,6 @@
                 <button class="tab-btn active" data-tab="my-balls">My Balls</button>
                 <button class="tab-btn" data-tab="upgrades">Boosts</button>
                 <button class="tab-btn" data-tab="rebirth">Rebirth</button>
-                <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
             </div>
             <div class="tab-content active" id="my-balls">
                 <div class="ball-stats">
@@ -2071,11 +2243,6 @@
                     <button class="rebirth-btn" ${level < 100 ? 'disabled' : ''} onclick="rebirth()">Rebirth (Level ${level}/100)</button>
                 </div>
             </div>
-            <div class="tab-content" id="leaderboard">
-                <div class="leaderboard-list">
-                    <p>Loading leaderboard...</p>
-                </div>
-            </div>
         </div>
     `;
             document.body.appendChild(overlay);
@@ -2093,9 +2260,6 @@
                     contents.forEach(c => c.classList.remove('active'));
                     tab.classList.add('active');
                     overlay.querySelector(`#${tab.dataset.tab}`).classList.add('active');
-                    if (tab.dataset.tab === 'leaderboard') {
-                        fetchLeaderboard();
-                    }
                 });
             });
             overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
@@ -2103,7 +2267,6 @@
                 if (e.target === overlay) overlay.remove();
             });
         }
-
         // Show settings popup
         function showSettingsPopup() {
             const user = auth.currentUser;
@@ -2147,7 +2310,6 @@
             document.querySelector('.edit-icon').style.display = 'none';
         }
 
-        // Save username
         function saveUsername() {
             username = document.getElementById('username-field').value;
             document.getElementById('username-display').textContent = username || 'Not set';
@@ -2157,7 +2319,6 @@
             saveGameState();
         }
 
-        // Delete account
         function deleteAccount() {
             const user = auth.currentUser;
             if (user && confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
@@ -2166,6 +2327,7 @@
                         user.delete()
                             .then(() => {
                                 showToast('Account deleted successfully.');
+                                updateLeaderboard();
                                 location.reload();
                             })
                             .catch(error => showToast('Failed to delete account: ' + error.message));
