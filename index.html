@@ -388,6 +388,7 @@
             font-weight: 600;
             width: 140px;
         }
+
         .rebirth-btn {
             padding: 8px 12px;
             background: #000;
@@ -860,7 +861,9 @@
         window.onload = function() {
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
+                    // Load game state but don't save until user interaction
                     loadGameState(user.uid);
+                    startTutorialIfNeeded(user.uid);
                 } else {
                     showLoginPopup();
                 }
@@ -943,7 +946,7 @@
                 .then(userCredential => {
                     isGuest = false;
                     document.querySelector('.login-overlay').remove();
-                    saveGameStateFromLocalStorage(userCredential.user.uid);
+                    loadGameState(userCredential.user.uid); // Only load data, do not save local storage
                     startTutorialIfNeeded(userCredential.user.uid);
                 })
                 .catch(error => {
@@ -968,7 +971,7 @@
                 .then(userCredential => {
                     isGuest = false;
                     document.querySelector('.login-overlay').remove();
-                    saveGameStateFromLocalStorage(userCredential.user.uid);
+                    saveGameStateFromLocalStorage(userCredential.user.uid); // Save local storage data for new users
                     startTutorialIfNeeded(userCredential.user.uid);
                 })
                 .catch(error => {
@@ -981,7 +984,6 @@
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
                     loadGameState(user.uid);
-                    startTutorialIfNeeded(user.uid);
                 } else {
                     showLoginPopup();
                 }
