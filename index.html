@@ -554,6 +554,183 @@
             background: #ccc;
             cursor: not-allowed;
         }
+
+        .shops-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+            background: #f4eed6;
+            border: 2px solid #444;
+        }
+
+        .shop-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #e9dcaf;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .shop-option:hover {
+            background: linear-gradient(145deg, #e9dcaf, #f4eed6);
+        }
+
+        .shop-option img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .recent-wins {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f4eed6;
+            border: 2px solid #444;
+        }
+
+        .recent-wins p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #000;
+        }
+
+        .carousel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .carousel-container {
+            background: #e9dcaf;
+            padding: 20px;
+            border: 3px solid #444;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 1000px;
+            height: 80%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carousel {
+            display: flex;
+            gap: 20px;
+            position: absolute;
+            animation: carousel-slide 20s linear infinite;
+        }
+
+        .carousel-card {
+            width: 150px;
+            height: 200px;
+            background: #f4eed6;
+            border: 3px solid;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+            flex-shrink: 0;
+        }
+
+        .carousel-card.common {
+            border-color: #cd7f32;
+        }
+
+        .carousel-card.uncommon {
+            border-color: #c0c0c0;
+        }
+
+        .carousel-card.rare {
+            border-color: #ffd700;
+        }
+
+        .carousel-card.jackpot {
+            border-color: #ff4500;
+        }
+
+        .carousel-card.selected {
+            animation: pulse 1s infinite;
+            border-color: #ffd700;
+        }
+
+        .carousel-card:not(.selected) {
+            opacity: 0.5;
+        }
+
+        @keyframes carousel-slide {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .carousel-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .carousel-controls button {
+            padding: 8px 12px;
+            background: #000;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+        .carousel-controls button:hover {
+            background: #0053a6;
+        }
+
+        .carousel-controls button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .spins-left {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+        }
     </style>
 </head>
 
@@ -799,6 +976,7 @@
             }).start();
         }
         // Game state variables
+
         let gold = 20;
         let idleGoldPerSecond = 0.5;
         let autoBallPrice = 200;
@@ -869,7 +1047,15 @@
         let lastUpdateTime = Date.now();
 
         function getUpgradeCost(type) {
-            return Math.floor(100 * Math.pow(1.3, ballUpgrades[type].level - 1));
+            const baseCosts = {
+                sniper: 100,
+                big: 150,
+                explosion: 200,
+                multiplying: 250,
+                child: 80
+            };
+            const increment = 50 + rebirthCount * 10; // Increment scales with rebirthCount
+            return baseCosts[type] + (ballUpgrades[type].level - 1) * increment;
         }
 
         // Canvas setup
@@ -917,7 +1103,6 @@
             }, 2000);
         }
 
-        // Show login popup on page load if not authenticated
         window.onload = function() {
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
@@ -1788,7 +1973,9 @@ display: flex;
                 this.y = y;
                 this.width = brickWidth;
                 this.height = brickHeight;
-                this.health = health + Math.floor(level / 2);
+                // Adjust health based on idleGoldPerSecond and totalUpgrades
+                const difficultyFactor = 1 + (idleGoldPerSecond * 0.5) + (stats.totalUpgrades * 0.05);
+                this.health = Math.floor((health + Math.floor(level / 2)) * difficultyFactor);
                 this.hover = false;
             }
 
@@ -1800,6 +1987,7 @@ display: flex;
                     mouseY < this.y + this.height
                 );
             }
+
 
             draw() {
                 ctx.fillStyle = `rgba(255, 0, 0, ${this.health / (3 + level / 2)})`;
@@ -1819,6 +2007,9 @@ display: flex;
                 super(x, y, 10 + Math.floor(level / 2));
                 this.width = 100;
                 this.height = 40;
+                // Adjust boss health based on idleGoldPerSecond and totalUpgrades
+                const difficultyFactor = 1 + (idleGoldPerSecond * 0.5) + (stats.totalUpgrades * 0.05);
+                this.health = Math.floor((10 + Math.floor(level / 2)) * difficultyFactor);
             }
 
             draw() {
@@ -2019,6 +2210,22 @@ display: flex;
             drawBallPreview('explosion-preview', 'orange', 8);
             drawBallPreview('multiplying-preview', 'purple', 8);
             drawBallPreview('auto-preview', 'black', 8);
+
+            // Update tooltips with current speed and damage
+            const ballTooltips = {
+                'sniper-option': `Sniper Ball: Redirects to nearest brick on wall hit. Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}`,
+                'big-option': `Big Ball: Larger size for more hitting surface. Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}`,
+                'explosion-option': `Bomb Ball: Deals ${ballUpgrades.explosion.damage.toFixed(1)} damage to hit brick, ${Math.floor(ballUpgrades.explosion.damage / 2).toFixed(1)} to nearby bricks. Speed: ${ballUpgrades.explosion.speed.toFixed(1)}`,
+                'multiplying-option': `Clones Ball: Spawns a small clone on brick hit. Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}`,
+                'auto-option': `Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 3.6, Damage: 1`
+            };
+            Object.keys(ballTooltips).forEach(id => {
+                const element = document.getElementById(id);
+                const tooltip = element.querySelector('.tooltip');
+                if (tooltip) {
+                    tooltip.textContent = ballTooltips[id];
+                }
+            });
         }
 
         // Buy ball
@@ -2057,9 +2264,13 @@ display: flex;
             }
         }
 
-        // Upgrade ball
         function upgradeBall(type) {
             const cost = getUpgradeCost(type);
+            const maxUpgradeLevel = 10 + rebirthCount * 5; // Max level increases by 5 per rebirth
+            if (ballUpgrades[type].level >= maxUpgradeLevel) {
+                showToast(`Max upgrade level (${maxUpgradeLevel}) reached for ${type} ball!`);
+                return;
+            }
             if (gold >= cost) {
                 gold -= cost;
                 ballUpgrades[type].level++;
@@ -2074,6 +2285,9 @@ display: flex;
                 });
                 updateUI();
                 showToast(`Upgraded ${type} ball to level ${ballUpgrades[type].level}!`);
+                // Refresh the My Balls popup to update costs and stats
+                document.querySelector('.login-overlay')?.remove();
+                showMyBallsPopup();
             } else {
                 showToast('Not enough gold!');
             }
@@ -2089,9 +2303,15 @@ display: flex;
                 setTimeout(() => {
                     globalUpgrades[type].active = false;
                     showToast(`${type} boost expired!`);
+                    // Refresh the My Balls popup to update boost status
+                    document.querySelector('.login-overlay')?.remove();
+                    showMyBallsPopup();
                 }, 60000);
                 updateUI();
                 showToast(`${type} boost activated for 1 minute!`);
+                // Refresh the My Balls popup to update costs and status
+                document.querySelector('.login-overlay')?.remove();
+                showMyBallsPopup();
             } else {
                 showToast(globalUpgrades[type].active ? 'Upgrade already active!' : 'Not enough gold!');
             }
@@ -2119,6 +2339,9 @@ display: flex;
                 rebirthCount += 1;
                 showToast('Rebirth successful! Starting from level 1 with retained ball upgrades.');
                 saveGameState();
+                // Refresh the My Balls popup to update rebirth info
+                document.querySelector('.login-overlay')?.remove();
+                showMyBallsPopup();
             } else {
                 showToast(level < 100 ? 'You need to reach level 100 to rebirth!' : 'Rebirth cancelled.');
             }
@@ -2126,6 +2349,7 @@ display: flex;
 
         // Show My Balls popup
         function showMyBallsPopup() {
+            const maxUpgradeLevel = 10 + rebirthCount * 5; // Max level increases by 5 per rebirth
             const overlay = document.createElement('div');
             overlay.className = 'login-overlay';
             const sniperCost = getUpgradeCost('sniper');
@@ -2135,7 +2359,7 @@ display: flex;
             const childCost = getUpgradeCost('child');
             overlay.innerHTML = `
         <div class="my-balls-popup">
-            <h2>Upgrades</h2>
+            <h2>Upgrades (Max Level: ${maxUpgradeLevel})</h2>
             <button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /> </svg></button>
             <div class="nav-tabs">
                 <button class="tab-btn active" data-tab="my-balls">My Balls</button>
@@ -2147,37 +2371,37 @@ display: flex;
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="sniper-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Sniper</b>: ${balls.filter(b => b.type === 'sniper').length} balls, Level: ${ballUpgrades.sniper.level}, Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}</span>
+                            <span><b>Sniper</b>: ${balls.filter(b => b.type === 'sniper').length} balls, Level: ${ballUpgrades.sniper.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < sniperCost ? 'disabled' : ''} onclick="upgradeBall('sniper')">Upgrade<br>(${sniperCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < sniperCost || ballUpgrades.sniper.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('sniper')">Upgrade<br>(${sniperCost} gold)</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="big-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Big</b>: ${balls.filter(b => b.type === 'big').length} balls, Level: ${ballUpgrades.big.level}, Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}</span>
+                            <span><b>Big</b>: ${balls.filter(b => b.type === 'big').length} balls, Level: ${ballUpgrades.big.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < bigCost ? 'disabled' : ''} onclick="upgradeBall('big')">Upgrade<br>(${bigCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < bigCost || ballUpgrades.big.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('big')">Upgrade<br>(${bigCost} gold)</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="explosion-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Bomb</b>: ${balls.filter(b => b.type === 'explosion').length} balls, Level: ${ballUpgrades.explosion.level}, Speed: ${ballUpgrades.explosion.speed.toFixed(1)}, Damage: ${ballUpgrades.explosion.damage.toFixed(1)}</span>
+                            <span><b>Bomb</b>: ${balls.filter(b => b.type === 'explosion').length} balls, Level: ${ballUpgrades.explosion.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.explosion.speed.toFixed(1)}, Damage: ${ballUpgrades.explosion.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < explosionCost ? 'disabled' : ''} onclick="upgradeBall('explosion')">Upgrade<br>(${explosionCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < explosionCost || ballUpgrades.explosion.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('explosion')">Upgrade<br>(${explosionCost} gold)</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="multiplying-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Clones</b>: ${balls.filter(b => b.type === 'multiplying').length} balls, Level: ${ballUpgrades.multiplying.level}, Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}</span>
+                            <span><b>Clones</b>: ${balls.filter(b => b.type === 'multiplying').length} balls, Level: ${ballUpgrades.multiplying.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < multiplyingCost ? 'disabled' : ''} onclick="upgradeBall('multiplying')">Upgrade<br>(${multiplyingCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < multiplyingCost || ballUpgrades.multiplying.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('multiplying')">Upgrade<br>(${multiplyingCost} gold)</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="child-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${ballUpgrades.child.damage.toFixed(1)}</span>
+                            <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${ballUpgrades.child.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < childCost ? 'disabled' : ''} onclick="upgradeBall('child')">Upgrade<br>(${childCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < childCost || ballUpgrades.child.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('child')">Upgrade<br>(${childCost} gold)</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -2205,7 +2429,7 @@ display: flex;
                 <div class="rebirth-info">
                     <p>Rebirth at level 100 to start from level 1, losing all balls and gold but keeping ball upgrades.</p>
                     <p>Current Idle Gold Per Second: ${idleGoldPerSecond.toFixed(2)}</p>
-                    <p>Each rebirth increases idle gold per second by 1.2 times.</p>
+                    <p>Each rebirth increases idle gold per second by 1.2 times and max upgrade level by 5.</p>
                     <button class="rebirth-btn" ${level < 100 ? 'disabled' : ''} onclick="rebirth()">Rebirth (Level ${level}/100)</button>
                 </div>
             </div>
@@ -2233,6 +2457,7 @@ display: flex;
                 if (e.target === overlay) overlay.remove();
             });
         }
+
         // Show settings popup
         function showSettingsPopup() {
             const user = auth.currentUser;
