@@ -66,6 +66,7 @@
             overflow-x: hidden;
             margin-bottom: 0;
             box-sizing: border-box;
+            padding-bottom: 30px;
         }
 
         .leaderboard-container h2 {
@@ -347,6 +348,10 @@
             color: #000;
         }
 
+        .my-balls-popup {
+            z-index: 9000;
+        }
+
         .my-balls-popup::-webkit-scrollbar,
         .settings-popup::-webkit-scrollbar {
             width: 0;
@@ -436,7 +441,8 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
-            width: 140px;
+            width: 160px;
+            box-sizing: border-box;
         }
 
         .rebirth-btn {
@@ -731,6 +737,162 @@
             font-weight: 600;
             color: #000;
         }
+
+        .shop-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+            background: #f4eed6;
+            border: 2px solid #444;
+        }
+
+        .shop-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #e9dcaf;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .shop-option:hover {
+            background: linear-gradient(145deg, #e9dcaf, #f4eed6);
+        }
+
+        .shop-option span {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .shop-option button {
+            padding: 8px 12px;
+            background: #000;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+        .shop-option button:hover {
+            background: #0053a6;
+        }
+
+        .shop-option button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .spinner-container {
+            background: #e9dcaf;
+            padding: 20px;
+            border: 3px solid #444;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            color: #000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 5px solid transparent;
+            border-top: 5px solid #444;
+            border-radius: 50%;
+            animation: spin 0.5s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .powerup-result {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            background: #f4eed6;
+            border: 2px solid #444;
+            border-radius: 5px;
+        }
+
+        .powerup-result div {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .powerup-result div span:first-child {
+            font-size: 20px;
+        }
+
+        .shop-option img.cosmic-barrage {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ff00ff, #00ffff);
+        }
+
+        .shop-option img.nebula-skin {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4b0082, #00b7eb);
+        }
+
+        .shop-option {
+            position: relative;
+        }
+
+        .shop-option .tooltip {
+            position: absolute;
+            background: #f4eed6;
+            border: 1px solid #444;
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .shop-option:hover .tooltip {
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -860,7 +1022,7 @@
         border-radius: 5px;
         font-family: Arial, sans-serif;
         font-size: 14px;
-        z-index: 1000;
+        z-index: 9999;
         opacity: 0;
         transition: opacity 0.5s;
     }
@@ -977,6 +1139,13 @@
         }
         // Game state variables
 
+        let ballCounts = {
+            sniper: 0,
+            big: 0,
+            explosion: 0,
+            multiplying: 0,
+            child: 0
+        };
         let gold = 20;
         let idleGoldPerSecond = 0.5;
         let autoBallPrice = 200;
@@ -1271,6 +1440,7 @@
                     stats,
                     username,
                     rebirthCount,
+                    cosmetics,
                     globalUpgrades: {
                         speedBoost: {
                             active: globalUpgrades.speedBoost.active,
@@ -1282,16 +1452,10 @@
                         }
                     }
                 };
-                database.ref('leaderboard/' + user.uid).set({
-                    rebirthCount: rebirthCount,
-                    gold: gold,
-                    username: username || 'Anonymous'
-                });
                 database.ref('users/' + user.uid + '/gameState').set(gameState)
                     .then(() => {
                         showToast('Progress saved successfully!');
                         saveBtn.disabled = false;
-                        updateLeaderboard();
                     })
                     .catch(error => {
                         showToast('Save failed: ' + error.message);
@@ -1322,6 +1486,8 @@
     overflow-y: visible;
     padding: 10px;
     height: 100%;
+        padding-bottom: 30px;
+
 }
 
     .leaderboard-card {
@@ -1578,6 +1744,10 @@ display: flex;
             }</p>
             <p>Total Upgrades: ${leader.totalUpgrades}</p>
             <p>Idle Gold Per Second: ${leader.idleGoldPerSecond.toFixed(2)}</p>
+            <div id="donation-container" style="display: none; margin-top: 10px;">
+                <input type="number" id="donation-amount" placeholder="Enter gold to donate" min="1" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #444; border-radius: 5px; background: #e9dcaf; color: #000; box-sizing: border-box;">
+            </div>
+            <button id="donate-btn" onclick="toggleDonationInput('${leader.uid}')">Donate Gold</button>
         </div>
     `;
             document.body.appendChild(overlay);
@@ -1586,6 +1756,95 @@ display: flex;
                 if (e.target === overlay) overlay.remove();
             });
         }
+
+        function toggleDonationInput(recipientUid) {
+            const donationContainer = document.getElementById('donation-container');
+            const donateBtn = document.getElementById('donate-btn');
+            if (donationContainer.style.display === 'none') {
+                donationContainer.style.display = 'block';
+                const donationInput = document.getElementById('donation-amount');
+                donationInput.focus();
+                donationInput.addEventListener('input', () => {
+                    const amount = parseInt(donationInput.value) || 0;
+                    donateBtn.textContent = `Donate ${amount}G`;
+                    donateBtn.onclick = () => showDonationConfirm(recipientUid, amount);
+                });
+            } else {
+                const amount = parseInt(document.getElementById('donation-amount').value) || 0;
+                showDonationConfirm(recipientUid, amount);
+            }
+        }
+
+        // New function to show donation confirmation popup
+        function showDonationConfirm(recipientUid, amount) {
+            if (amount <= 0 || isNaN(amount)) {
+                showToast('Please enter a valid donation amount!');
+                return;
+            }
+            if (gold < amount) {
+                showToast('Not enough gold to donate!');
+                return;
+            }
+            const user = auth.currentUser;
+            if (!user || user.uid === recipientUid) {
+                showToast('Cannot donate to yourself or as a guest!');
+                return;
+            }
+            const overlay = document.createElement('div');
+            overlay.className = 'login-overlay';
+            overlay.innerHTML = `
+        <div class="login-popup">
+            <h2>Confirm Donation</h2>
+            <p>Donate ${amount} gold to this player?</p>
+            <div class="button-group">
+                <button id="proceed-donation">Proceed</button>
+                <button id="cancel-donation">Cancel</button>
+            </div>
+        </div>
+    `;
+            document.body.appendChild(overlay);
+            overlay.querySelector('#proceed-donation').addEventListener('click', () => {
+                proceedDonation(recipientUid, amount);
+                overlay.remove();
+            });
+            overlay.querySelector('#cancel-donation').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+
+        // New function to handle donation
+        function proceedDonation(recipientUid, amount) {
+            const user = auth.currentUser;
+            if (!user || isGuest) {
+                showLoginPopupForSave();
+                return;
+            }
+            gold -= amount;
+            database.ref('users/' + user.uid + '/gameState').update({
+                gold: gold
+            }).then(() => {
+                database.ref('users/' + recipientUid + '/gameState').transaction(gameState => {
+                    if (gameState) {
+                        gameState.gold = (gameState.gold || 0) + amount;
+                    }
+                    return gameState;
+                }).then(() => {
+                    showToast(`Successfully donated ${amount} gold!`);
+                    updateUI();
+                    updateLeaderboard();
+                }).catch(error => {
+                    showToast('Failed to donate: ' + error.message);
+                    gold += amount;
+                    updateUI();
+                });
+            }).catch(error => {
+                showToast('Failed to update your gold: ' + error.message);
+                gold += amount;
+                updateUI();
+            });
+        }
+
 
         // Show login popup when guest tries to save
         function showLoginPopupForSave() {
@@ -1703,6 +1962,13 @@ display: flex;
                                 damage: 1
                             }
                         };
+                        ballCounts = data.ballCounts || {
+                            sniper: 0,
+                            big: 0,
+                            explosion: 0,
+                            multiplying: 0,
+                            child: 0
+                        };
                         stats = data.stats || {
                             totalPlayTime: 0,
                             totalBallsPurchased: 0,
@@ -1710,6 +1976,9 @@ display: flex;
                             startTime: Date.now()
                         };
                         username = data.username || '';
+                        cosmetics = data.cosmetics || {
+                            nebulaSkin: false
+                        };
                         balls = [];
                         if (data.ballCounts) {
                             for (let i = 0; i < (data.ballCounts.sniper || 0); i++) {
@@ -1771,7 +2040,6 @@ display: flex;
                     startGame();
                 });
         }
-
         // Start the game
         function startGame() {
             spawnBricks();
@@ -1929,7 +2197,10 @@ display: flex;
                     nearbyBricks.forEach(b => {
                         if (b !== brick) {
                             const distance = Math.hypot(b.x - brick.x, b.y - brick.y);
-                            if (distance < 60) b.health -= Math.floor(damage / 2);
+                            if (distance < 60) {
+                                b.health -= Math.floor(damage / 2);
+                                if (b.health < 0) b.health = 0; // Prevent negative health
+                            }
                         }
                     });
                 } else {
@@ -1994,7 +2265,9 @@ display: flex;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
                 ctx.fillStyle = '#fff';
                 ctx.font = '18px Arial';
-                ctx.fillText(Math.floor(this.health), this.x + this.width / 2 - 6, this.y + this.height / 2 + 4);
+                ctx.textAlign = 'center'; // Center text horizontally
+                ctx.textBaseline = 'middle'; // Center text vertically
+                ctx.fillText(Math.floor(this.health), this.x + this.width / 2, this.y + this.height / 2);
                 ctx.strokeStyle = '#333';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(this.x, this.y, this.width, this.height);
@@ -2017,7 +2290,9 @@ display: flex;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
                 ctx.fillStyle = '#fff';
                 ctx.font = '15px Arial';
-                ctx.fillText(`Boss: ${Math.floor(this.health)}`, this.x + this.width / 4, this.y + this.height / 2);
+                ctx.textAlign = 'center'; // Center text horizontally
+                ctx.textBaseline = 'middle'; // Center text vertically
+                ctx.fillText(`Boss: ${Math.floor(this.health)}`, this.x + this.width / 2, this.y + this.height / 2); // Center text vertically
             }
         }
 
@@ -2234,6 +2509,7 @@ display: flex;
                 gold -= ballPrices[type];
                 ballPrices[type] = Math.floor(ballPrices[type] * 1.2);
                 stats.totalBallsPurchased++;
+                ballCounts[type]++;
                 const radius = type === 'big' ? 12 : 8;
                 const speed = ballUpgrades[type].speed;
                 const dx = speed * (Math.random() > 0.5 ? 1 : -1);
@@ -2347,7 +2623,664 @@ display: flex;
             }
         }
 
-        // Show My Balls popup
+        const powerUpsList = [{
+                emoji: '⚡',
+                name: 'Thunder Strike',
+                description: 'Destroys 5 random bricks instantly.'
+            },
+            {
+                emoji: '🛡️',
+                name: 'Shield Boost',
+                description: 'Protects balls from disappearing for 30 seconds.'
+            },
+            {
+                emoji: '💥',
+                name: 'Mega Explosion',
+                description: 'Doubles explosion ball damage for 20 seconds.'
+            },
+            {
+                emoji: '🌟',
+                name: 'Star Shower',
+                description: 'Spawns 3 auto balls for 15 seconds.'
+            },
+            {
+                emoji: '🕒',
+                name: 'Time Warp',
+                description: 'Slows down time for 10 seconds.'
+            },
+            {
+                emoji: '🌌',
+                name: 'Cosmic Barrage',
+                description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
+            }
+        ];
+
+        // Game state variables
+        let cosmetics = {
+            nebulaSkin: false
+        };
+
+        // Update buyPowerup function to handle specific powerups
+        function buyPowerup(rebirthCost, powerupCount, specificPowerup = null) {
+            if (rebirthCount >= rebirthCost) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    rebirthCount -= rebirthCost;
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        rebirthCount: rebirthCount
+                    }).then(() => {
+                        const loginOverlay = document.querySelector('.login-overlay');
+                        if (loginOverlay) loginOverlay.remove(); // Close My Balls popup
+                        showSpinner(powerupCount, specificPowerup);
+                        showToast('Rebirths spent successfully!');
+                        updateUI();
+                        updateLeaderboard(); // Update leaderboard after rebirth deduction
+                    }).catch(error => {
+                        showToast('Failed to update rebirths: ' + error.message);
+                        rebirthCount += rebirthCost; // Revert local change
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast('Not enough rebirths!');
+            }
+        }
+
+        // Update showSpinner to handle specific powerups
+        function showSpinner(powerupCount, specificPowerup = null) {
+            const overlay = document.createElement('div');
+            overlay.className = 'spinner-overlay';
+            overlay.innerHTML = `
+        <div class="spinner-container">
+            <div class="spinner"></div>
+            <p>Revealing ${powerupCount} Powerup${powerupCount > 1 ? 's' : ''}...</p>
+        </div>
+    `;
+            document.body.appendChild(overlay);
+            setTimeout(() => {
+                const powerups = [];
+                if (specificPowerup) {
+                    const powerup = powerUpsList.find(p => p.name.toLowerCase() === specificPowerup.toLowerCase());
+                    if (powerup) powerups.push(powerup);
+                } else {
+                    for (let i = 0; i < powerupCount; i++) {
+                        powerups.push(powerUpsList[Math.floor(Math.random() * (powerUpsList.length - 1))]);
+                    }
+                }
+                overlay.remove(); // Ensure spinner is removed
+                showPowerupResult(powerups);
+                powerups.forEach(powerup => applyPowerup(powerup));
+            }, 5000);
+        }
+
+
+        // New function to buy idle gold boost
+        function buyIdleGoldBoost() {
+            const rebirthCost = 3;
+            if (rebirthCount >= rebirthCost) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    rebirthCount -= rebirthCost;
+                    idleGoldPerSecond += 0.5;
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        rebirthCount: rebirthCount,
+                        idleGoldPerSecond: idleGoldPerSecond
+                    }).then(() => {
+                        const loginOverlay = document.querySelector('.login-overlay');
+                        if (loginOverlay) loginOverlay.remove(); // Close My Balls popup
+                        showToast('Idle Gold Boost purchased! +0.5 gold/sec');
+                        updateUI();
+                        updateLeaderboard(); // Update leaderboard after rebirth deduction
+                    }).catch(error => {
+                        showToast('Failed to update game state: ' + error.message);
+                        rebirthCount += rebirthCost;
+                        idleGoldPerSecond -= 0.5;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast('Not enough rebirths!');
+            }
+        }
+
+        // New function to buy cosmetic
+        function buyCosmetic(cosmeticName) {
+            const rebirthCost = 10;
+            if (rebirthCount >= rebirthCost && !cosmetics[cosmeticName]) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    rebirthCount -= rebirthCost;
+                    cosmetics[cosmeticName] = true;
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        rebirthCount: rebirthCount,
+                        cosmetics: cosmetics
+                    }).then(() => {
+                        const loginOverlay = document.querySelector('.login-overlay');
+                        if (loginOverlay) loginOverlay.remove(); // Close My Balls popup
+                        showToast('Nebula Ball Skin unlocked!');
+                        updateUI();
+                        updateLeaderboard(); // Update leaderboard after rebirth deduction
+                    }).catch(error => {
+                        showToast('Failed to unlock cosmetic: ' + error.message);
+                        rebirthCount += rebirthCost;
+                        cosmetics[cosmeticName] = false;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast(cosmetics[cosmeticName] ? 'Cosmetic already owned!' : 'Not enough rebirths!');
+            }
+        }
+
+        // Buy Instant Brick Destroy
+        function buyInstantBrickDestroy() {
+            const cost = getDynamicPrice(basePrices.instantBrickDestroy);
+            if (gold >= cost && bricks.length > 0) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold
+                    }).then(() => {
+                        const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                        if (randomBrick) {
+                            randomBrick.health = 0;
+                            bricks = bricks.filter(b => b !== randomBrick);
+                            gold += 5;
+                            if (powerUps.length < maxPowerUps) spawnPowerUp();
+                        }
+                        showToast('Instant Brick Destroy: 1 brick eliminated!');
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast(gold < cost ? 'Not enough gold!' : 'No bricks to destroy!');
+            }
+        }
+
+        // Buy Double Damage
+        function buyDoubleDamage() {
+            const cost = getDynamicPrice(basePrices.doubleDamage);
+            if (gold >= cost) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    const originalDamages = {};
+                    Object.keys(ballUpgrades).forEach(type => {
+                        originalDamages[type] = ballUpgrades[type].damage;
+                        ballUpgrades[type].damage *= 2;
+                    });
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold,
+                        ballUpgrades: ballUpgrades
+                    }).then(() => {
+                        setTimeout(() => {
+                            Object.keys(ballUpgrades).forEach(type => {
+                                ballUpgrades[type].damage = originalDamages[type];
+                            });
+                            showToast('Double Damage expired!');
+                            updateUI();
+                            document.querySelector('.login-overlay')?.remove();
+                            showMyBallsPopup();
+                        }, 30000);
+                        showToast('Double Damage: All ball damage doubled for 30 seconds!');
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast('Not enough gold!');
+            }
+        }
+
+        // Buy Extra Ball
+        function buyExtraBall() {
+            const cost = getDynamicPrice(basePrices.extraBall);
+            if (gold >= cost && balls.length < maxBalls) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    const type = ['sniper', 'big', 'explosion', 'multiplying'][Math.floor(Math.random() * 4)];
+                    const radius = type === 'big' ? 12 : 8;
+                    const speed = ballUpgrades[type].speed;
+                    const dx = speed * (Math.random() > 0.5 ? 1 : -1);
+                    const dy = speed * (Math.random() > 0.5 ? 1 : -1);
+                    const color = {
+                        sniper: 'blue',
+                        big: 'green',
+                        explosion: 'orange',
+                        multiplying: 'purple'
+                    } [type];
+                    balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
+                    ballCounts[type]++;
+                    stats.totalBallsPurchased++;
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold,
+                        ballCounts: ballCounts,
+                        stats: stats
+                    }).then(() => {
+                        showToast(`Extra Ball: Added 1 ${type} ball!`);
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        balls.pop();
+                        ballCounts[type]--;
+                        stats.totalBallsPurchased--;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast(gold < cost ? 'Not enough gold!' : 'Max balls reached!');
+            }
+        }
+
+        // Buy Gold Magnet
+        function buyGoldMagnet() {
+            const cost = getDynamicPrice(basePrices.goldMagnet);
+            if (gold >= cost) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold
+                    }).then(() => {
+                        powerUps.forEach(powerUp => {
+                            if (powerUp.type === 'gold') {
+                                powerUp.active = false;
+                                gold += 50;
+                            }
+                        });
+                        powerUps = powerUps.filter(p => p.active);
+                        setTimeout(() => {
+                            showToast('Gold Magnet expired!');
+                            updateUI();
+                            document.querySelector('.login-overlay')?.remove();
+                            showMyBallsPopup();
+                        }, 20000);
+                        showToast('Gold Magnet: Collecting all gold power-ups for 20 seconds!');
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast('Not enough gold!');
+            }
+        }
+
+        // Buy Brick Health Reduction
+        function buyBrickHealthReduction() {
+            const cost = getDynamicPrice(basePrices.brickHealthReduction);
+            if (gold >= cost && bricks.length > 0) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    bricks.forEach(brick => {
+                        brick.health = Math.max(1, Math.floor(brick.health * 0.5));
+                    });
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold
+                    }).then(() => {
+                        showToast('Brick Health Reduction: All brick health halved!');
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast(gold < cost ? 'Not enough gold!' : 'No bricks to reduce!');
+            }
+        }
+
+        // Buy Speed Surge
+        function buySpeedSurge() {
+            const cost = getDynamicPrice(basePrices.speedSurge);
+            if (gold >= cost) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    const originalSpeeds = balls.map(ball => ({
+                        dx: ball.dx,
+                        dy: ball.dy
+                    }));
+                    balls.forEach(ball => {
+                        ball.dx *= 1.5;
+                        ball.dy *= 1.5;
+                    });
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold
+                    }).then(() => {
+                        setTimeout(() => {
+                            balls.forEach((ball, index) => {
+                                ball.dx = originalSpeeds[index].dx;
+                                ball.dy = originalSpeeds[index].dy;
+                            });
+                            showToast('Speed Surge expired!');
+                            updateUI();
+                            document.querySelector('.login-overlay')?.remove();
+                            showMyBallsPopup();
+                        }, 15000);
+                        showToast('Speed Surge: Ball speed increased by 1.5x for 15 seconds!');
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast('Not enough gold!');
+            }
+        }
+
+        // Update applyPowerup function to handle Cosmic Barrage
+        function applyPowerup(powerup) {
+            switch (powerup.name) {
+                case 'Thunder Strike':
+                    for (let i = 0; i < 5; i++) {
+                        const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                        if (randomBrick) {
+                            randomBrick.health = 0;
+                            bricks = bricks.filter(b => b !== randomBrick);
+                            gold += 5;
+                            if (powerUps.length < maxPowerUps) spawnPowerUp();
+                        }
+                    }
+                    showToast('Thunder Strike: 5 bricks destroyed!');
+                    updateUI();
+                    break;
+                case 'Shield Boost':
+                    balls.forEach(ball => ball.powerUpUsed = true);
+                    setTimeout(() => {
+                        balls.forEach(ball => ball.powerUpUsed = false);
+                        showToast('Shield Boost expired!');
+                    }, 30000);
+                    showToast('Shield Boost: Balls protected for 30 seconds!');
+                    break;
+                case 'Mega Explosion':
+                    const originalExplosionDamage = ballUpgrades.explosion.damage;
+                    ballUpgrades.explosion.damage *= 2;
+                    setTimeout(() => {
+                        ballUpgrades.explosion.damage = originalExplosionDamage;
+                        showToast('Mega Explosion expired!');
+                    }, 20000);
+                    showToast('Mega Explosion: Explosion ball damage doubled for 20 seconds!');
+                    updateUI();
+                    break;
+                case 'Star Shower':
+                    for (let i = 0; i < 3; i++) {
+                        if (autoBalls.length < 10) autoBalls.push(new AutoBall());
+                    }
+                    setTimeout(() => {
+                        autoBalls.splice(-3);
+                        showToast('Star Shower expired!');
+                    }, 15000);
+                    showToast('Star Shower: 3 auto balls spawned for 15 seconds!');
+                    updateUI();
+                    break;
+                case 'Time Warp':
+                    const originalSpeeds = balls.map(ball => ({
+                        dx: ball.dx,
+                        dy: ball.dy
+                    }));
+                    balls.forEach(ball => {
+                        ball.dx *= 0.5;
+                        ball.dy *= 0.5;
+                    });
+                    setTimeout(() => {
+                        balls.forEach((ball, index) => {
+                            ball.dx = originalSpeeds[index].dx;
+                            ball.dy = originalSpeeds[index].dy;
+                        });
+                        showToast('Time Warp expired!');
+                    }, 10000);
+                    showToast('Time Warp: Time slowed for 10 seconds!');
+                    break;
+                case 'Cosmic Barrage':
+                    for (let i = 0; i < 10; i++) {
+                        const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                        if (randomBrick) {
+                            randomBrick.health = 0;
+                            bricks = bricks.filter(b => b !== randomBrick);
+                            gold += 5;
+                            if (powerUps.length < maxPowerUps) spawnPowerUp();
+                        }
+                    }
+                    const originalBallSpeeds = balls.map(ball => ({
+                        dx: ball.dx,
+                        dy: ball.dy
+                    }));
+                    balls.forEach(ball => {
+                        ball.dx *= 2;
+                        ball.dy *= 2;
+                    });
+                    ctx.fillStyle = 'rgba(255, 0, 255, 0.3)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    setTimeout(() => {
+                        balls.forEach((ball, index) => {
+                            ball.dx = originalBallSpeeds[index].dx;
+                            ball.dy = originalBallSpeeds[index].dy;
+                        });
+                        showToast('Cosmic Barrage expired!');
+                    }, 15000);
+                    showToast('Cosmic Barrage: 10 bricks destroyed, ball speed doubled for 15 seconds!');
+                    updateUI();
+                    break;
+            }
+        }
+
+        function updateShopUI() {
+            const ballShop = document.getElementById('ball-shop');
+            ballShop.innerHTML = '';
+            Object.keys(ballUpgrades).forEach(type => {
+                const count = ballCounts[type] || 0;
+                const price = ballUpgrades[type].price;
+                const ballDiv = document.createElement('div');
+                ballDiv.className = 'shop-item';
+                ballDiv.innerHTML = `
+            <span>${type.charAt(0).toUpperCase() + type.slice(1)} Ball: ${count}</span>
+            <button onclick="buyBall('${type}')">Buy (${price}G)</button>
+            ${count > 0 ? `<button onclick="removeBall('${type}')">Remove</button>` : ''}
+        `;
+                ballShop.appendChild(ballDiv);
+            });
+
+            const upgrades = [{
+                    name: 'Damage',
+                    key: 'damage',
+                    price: 100
+                },
+                {
+                    name: 'Speed',
+                    key: 'speed',
+                    price: 100
+                },
+                {
+                    name: 'Radius',
+                    key: 'radius',
+                    price: 100
+                }
+            ];
+            const upgradeShop = document.getElementById('upgrade-shop');
+            upgradeShop.innerHTML = '';
+            upgrades.forEach(upgrade => {
+                const level = upgradeLevels[upgrade.key] || 0;
+                const upgradeDiv = document.createElement('div');
+                upgradeDiv.className = 'shop-item';
+                upgradeDiv.innerHTML = `
+            <span>${upgrade.name} Upgrade: Level ${level}</span>
+            <button onclick="buyUpgrade('${upgrade.key}')">Buy (${upgrade.price}G)</button>
+            ${level > 0 ? `<button onclick="removeUpgrade('${upgrade.key}')">Remove</button>` : ''}
+        `;
+                upgradeShop.appendChild(upgradeDiv);
+            });
+
+            const powerupShop = document.getElementById('powerup-shop');
+            powerupShop.innerHTML = `
+        <div class="shop-item">
+            <span>Powerup (5 balls)</span>
+            <button onclick="buyPowerup(10, 5)">Buy (10R)</button>
+        </div>
+        <div class="shop-item">
+            <span>Idle Gold Boost (+0.5/sec)</span>
+            <button onclick="buyIdleGoldBoost()">Buy (3R)</button>
+        </div>
+        <div class="shop-item">
+            <span>Nebula Ball Skin</span>
+            <button onclick="buyCosmetic('nebula')">Buy (10R)</button>
+        </div>
+    `;
+        }
+
+        function removeBall(type) {
+            const user = auth.currentUser;
+            if (!user || isGuest) {
+                showLoginPopupForSave();
+                return;
+            }
+            if (ballCounts[type] <= 0) {
+                showToast(`No ${type} balls to remove!`);
+                return;
+            }
+            const refundGold = Math.floor(ballUpgrades[type].price * 0.5); // Refund 50% of purchase price
+            ballCounts[type]--;
+            gold += refundGold;
+            database.ref('users/' + user.uid + '/gameState').update({
+                ballCounts: ballCounts,
+                gold: gold
+            }).then(() => {
+                showToast(`Removed 1 ${type} ball, refunded ${refundGold} gold!`);
+                updateUI();
+                updateShopUI();
+                updateLeaderboard();
+            }).catch(error => {
+                showToast('Failed to remove ball: ' + error.message);
+                ballCounts[type]++;
+                gold -= refundGold;
+                updateUI();
+                updateShopUI();
+            });
+        }
+
+        function removeUpgrade(key) {
+            const user = auth.currentUser;
+            if (!user || isGuest) {
+                showLoginPopupForSave();
+                return;
+            }
+            if (upgradeLevels[key] <= 0) {
+                showToast(`No ${key} upgrades to remove!`);
+                return;
+            }
+            const refundGold = Math.floor(100 * 0.5); // Refund 50% of upgrade price
+            upgradeLevels[key]--;
+            gold += refundGold;
+            // Recalculate ball upgrades based on new level
+            Object.keys(ballUpgrades).forEach(type => {
+                ballUpgrades[type][key] = (ballUpgrades[type][`base${key.charAt(0).toUpperCase() + key.slice(1)}`] || 1) * (1 + upgradeLevels[key] * 0.1);
+            });
+            database.ref('users/' + user.uid + '/gameState').update({
+                upgradeLevels: upgradeLevels,
+                gold: gold,
+                ballUpgrades: ballUpgrades
+            }).then(() => {
+                showToast(`Removed 1 ${key} upgrade, refunded ${refundGold} gold!`);
+                updateUI();
+                updateShopUI();
+                updateLeaderboard();
+            }).catch(error => {
+                showToast('Failed to remove upgrade: ' + error.message);
+                upgradeLevels[key]++;
+                gold -= refundGold;
+                Object.keys(ballUpgrades).forEach(type => {
+                    ballUpgrades[type][key] = (ballUpgrades[type][`base${key.charAt(0).toUpperCase() + key.slice(1)}`] || 1) * (1 + upgradeLevels[key] * 0.1);
+                });
+                updateUI();
+                updateShopUI();
+            });
+        }
+
+        function showPowerupResult(powerups) {
+            const overlay = document.createElement('div');
+            overlay.className = 'spinner-overlay';
+            let resultHTML = '<div class="spinner-container"><h2>Your Powerups</h2><div class="powerup-result">';
+            powerups.forEach(powerup => {
+                resultHTML += `<div><span>${powerup.emoji}</span><span><b>${powerup.name}</b>: ${powerup.description}</span></div>`;
+            });
+            resultHTML += '</div><button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg></button></div>';
+            overlay.innerHTML = resultHTML;
+            document.body.appendChild(overlay);
+            overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+
+
+        Ball.prototype.draw = function() {
+            drawTrail(this);
+            ctx.beginPath();
+            if (cosmetics.nebulaSkin) {
+                const gradient = ctx.createRadialGradient(this.x, this.y, this.radius / 2, this.x, this.y, this.radius);
+                gradient.addColorStop(0, '#4b0082');
+                gradient.addColorStop(1, '#00b7eb');
+                ctx.fillStyle = gradient;
+            } else {
+                ctx.fillStyle = this.color;
+            }
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+        };
+
         function showMyBallsPopup() {
             const maxUpgradeLevel = 10 + rebirthCount * 5; // Max level increases by 5 per rebirth
             const overlay = document.createElement('div');
@@ -2365,6 +3298,7 @@ display: flex;
                 <button class="tab-btn active" data-tab="my-balls">My Balls</button>
                 <button class="tab-btn" data-tab="upgrades">Boosts</button>
                 <button class="tab-btn" data-tab="rebirth">Rebirth</button>
+                <button class="tab-btn" data-tab="shop">Shop</button>
             </div>
             <div class="tab-content active" id="my-balls">
                 <div class="ball-stats">
@@ -2433,6 +3367,60 @@ display: flex;
                     <button class="rebirth-btn" ${level < 100 ? 'disabled' : ''} onclick="rebirth()">Rebirth (Level ${level}/100)</button>
                 </div>
             </div>
+<div class="tab-content" id="shop">
+    <div class="shop-options">
+        <div class="shop-option">
+            <span>🎲 Random Powerup</span>
+            <span class="tooltip">Grants 1 random powerup (e.g., Thunder Strike, Shield Boost).</span>
+            <button onclick="buyPowerup(1, 1)" ${rebirthCount < 1 ? 'disabled' : ''}>Buy (1 Rebirth)</button>
+        </div>
+        <div class="shop-option">
+            <span>💰 Idle Gold Boost</span>
+            <span class="tooltip">Permanently increases idle gold by +0.5/sec.</span>
+            <button onclick="buyIdleGoldBoost()" ${rebirthCount < 3 ? 'disabled' : ''}>Buy (3 Rebirths)</button>
+        </div>
+        <div class="shop-option" style="display: none;">
+            <span>🌌 Cosmic Barrage</span>
+            <span class="tooltip">Destroys 10 bricks and doubles ball speed for 15 seconds.</span>
+            <button onclick="buyPowerup(5, 1, 'cosmicBarrage')" ${rebirthCount < 5 ? 'disabled' : ''}>Buy (5 Rebirths)</button>
+        </div>
+        <div class="shop-option">
+            <span>✨ Nebula Ball Skin</span>
+            <span class="tooltip">Unlocks a cosmic-themed ball skin.</span>
+            <button onclick="buyCosmetic('nebulaSkin')" ${rebirthCount < 10 ? 'disabled' : ''}>Buy (10 Rebirths)</button>
+        </div>
+        <div class="shop-option">
+            <span>💥 Instant Brick Destroy</span>
+            <span class="tooltip">Destroys 1 random brick instantly, grants 5 gold.</span>
+            <button onclick="buyInstantBrickDestroy()" ${gold < getDynamicPrice(basePrices.instantBrickDestroy) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.instantBrickDestroy)} Gold)</button>
+        </div>
+        <div class="shop-option">
+            <span>⚡ Double Damage</span>
+            <span class="tooltip">Doubles all ball damage for 30 seconds.</span>
+            <button onclick="buyDoubleDamage()" ${gold < getDynamicPrice(basePrices.doubleDamage) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.doubleDamage)} Gold)</button>
+        </div>
+        <div class="shop-option">
+            <span>🏀 Extra Ball</span>
+            <span class="tooltip">Adds 1 random ball (Sniper, Big, Bomb, or Clones).</span>
+            <button onclick="buyExtraBall()" ${gold < getDynamicPrice(basePrices.extraBall) || balls.length >= maxBalls ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.extraBall)} Gold)</button>
+        </div>
+        <div class="shop-option">
+            <span>🧲 Gold Magnet</span>
+            <span class="tooltip">Collects all gold power-ups for 20 seconds, 50 gold each.</span>
+            <button onclick="buyGoldMagnet()" ${gold < getDynamicPrice(basePrices.goldMagnet) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.goldMagnet)} Gold)</button>
+        </div>
+        <div class="shop-option">
+            <span>🛠️ Brick Health Reduction</span>
+            <span class="tooltip">Halves all brick health (minimum 1).</span>
+            <button onclick="buyBrickHealthReduction()" ${gold < getDynamicPrice(basePrices.brickHealthReduction) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.brickHealthReduction)} Gold)</button>
+        </div>
+        <div class="shop-option">
+            <span>🚀 Speed Surge</span>
+            <span class="tooltip">Increases ball speed by 1.5x for 15 seconds.</span>
+            <button onclick="buySpeedSurge()" ${gold < getDynamicPrice(basePrices.speedSurge) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.speedSurge)} Gold)</button>
+        </div>
+    </div>
+</div>
         </div>
     `;
             document.body.appendChild(overlay);
@@ -2456,6 +3444,23 @@ display: flex;
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) overlay.remove();
             });
+        }
+
+        // Base prices for gold-based shop options
+        const basePrices = {
+            instantBrickDestroy: 100,
+            doubleDamage: 150,
+            extraBall: 200,
+            goldMagnet: 250,
+            brickHealthReduction: 300,
+            speedSurge: 350
+        };
+
+        // Function to calculate dynamic price based on idle gold rate
+        function getDynamicPrice(basePrice) {
+            const multiplier = Math.max(1, Math.floor(idleGoldPerSecond / 0.5)); // Scale price based on idle gold per second
+            const dynamicPrice = Math.round(basePrice * (1 + multiplier * 0.1)); // Increase by 10% per 0.5 gold/sec
+            return Math.max(basePrice, dynamicPrice); // Ensure price doesn't go below base
         }
 
         // Show settings popup
