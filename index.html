@@ -2987,8 +2987,8 @@ display: flex;
                         dy: ball.dy
                     }));
                     balls.forEach(ball => {
-                        ball.dx *= 1.5;
-                        ball.dy *= 1.5;
+                        ball.dx *= 3;
+                        ball.dy *= 3;
                     });
                     database.ref('users/' + user.uid + '/gameState').update({
                         gold: gold
@@ -3003,7 +3003,7 @@ display: flex;
                             document.querySelector('.login-overlay')?.remove();
                             showMyBallsPopup();
                         }, 15000);
-                        showToast('Speed Surge: Ball speed increased by 1.5x for 15 seconds!');
+                        showToast('Speed Surge: Ball speed increased by 3x for 15 seconds!');
                         updateUI();
                         updateLeaderboard();
                         document.querySelector('.login-overlay')?.remove();
@@ -3416,7 +3416,7 @@ display: flex;
         </div>
         <div class="shop-option">
             <span>🚀 Speed Surge</span>
-            <span class="tooltip">Increases ball speed by 1.5x for 15 seconds.</span>
+            <span class="tooltip">Increases ball speed by 3x for 15 seconds.</span>
             <button onclick="buySpeedSurge()" ${gold < getDynamicPrice(basePrices.speedSurge) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.speedSurge)} Gold)</button>
         </div>
     </div>
