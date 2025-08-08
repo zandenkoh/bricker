@@ -906,6 +906,7 @@
             text-align: center;
             font-family: Arial, sans-serif;
         }
+
         #tips-text {
             color: #fff;
             font-size: 14px;
@@ -1949,132 +1950,168 @@ display: flex;
 
         // Load game state
         function loadGameState(uid) {
-            database.ref('users/' + uid + '/gameState').once('value')
-                .then(snapshot => {
-                    const data = snapshot.val();
-                    if (data) {
-                        gold = data.gold || 20;
-                        level = data.level || 1;
-                        ballPrices.sniper = data.ballPrices?.sniper || 50;
-                        ballPrices.big = data.ballPrices?.big || 75;
-                        ballPrices.explosion = data.ballPrices?.explosion || 100;
-                        ballPrices.multiplying = data.ballPrices?.multiplying || 125;
-                        autoBallPrice = data.autoBallPrice || 200;
-                        idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
-                        rebirthCount = data.rebirthCount || 0;
-                        ballUpgrades = data.ballUpgrades || {
-                            sniper: { level: 1, speed: 4.5, damage: 1 },
-                            big: { level: 1, speed: 2.7, damage: 1 },
-                            explosion: { level: 1, speed: 2.7, damage: 2 },
-                            multiplying: { level: 1, speed: 2.7, damage: 1 },
-                            child: { level: 1, speed: 3.6, damage: 1 }
-                        };
-                        ballCounts = data.ballCounts || {
-                            sniper: 0,
-                            big: 0,
-                            explosion: 0,
-                            multiplying: 0,
-                            child: 0
-                        };
-                        stats = data.stats || {
-                            totalPlayTime: 0,
-                            totalBallsPurchased: 0,
-                            totalUpgrades: 0,
-                            startTime: Date.now()
-                        };
-                        username = data.username || '';
-                        cosmetics = data.cosmetics || {
-                            nebulaSkin: false,
-                            fireTrail: false,
-                            iceTrail: false,
-                            rainbowSkin: false,
-                            bundleSilver: false,
-                            bundleGold: false,
-                            bundlePlatinum: false
-                        };
-                        balls = [];
-                        if (data.ballCounts) {
-                            for (let i = 0; i < (data.ballCounts.sniper || 0); i++) {
-                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 8, ballUpgrades.sniper.speed * (Math.random() * 2 - 1), ballUpgrades.sniper.speed * (Math.random() * 2 - 1), 'blue', 'sniper'));
-                            }
-                            for (let i = 0; i < (data.ballCounts.big || 0); i++) {
-                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 12, ballUpgrades.big.speed * (Math.random() * 2 - 1), ballUpgrades.big.speed * (Math.random() * 2 - 1), 'green', 'big'));
-                            }
-                            for (let i = 0; i < (data.ballCounts.explosion || 0); i++) {
-                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 8, ballUpgrades.explosion.speed * (Math.random() * 2 - 1), ballUpgrades.explosion.speed * (Math.random() * 2 - 1), 'orange', 'explosion'));
-                            }
-                            for (let i = 0; i < (data.ballCounts.multiplying || 0); i++) {
-                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 8, ballUpgrades.multiplying.speed * (Math.random() * 2 - 1), ballUpgrades.multiplying.speed * (Math.random() * 2 - 1), 'purple', 'multiplying'));
-                            }
-                            for (let i = 0; i < (data.ballCounts.child || 0); i++) {
-                                balls.push(new Ball(canvas.width / 2, canvas.height / 2, 4, ballUpgrades.child.speed * (Math.random() * 2 - 1), ballUpgrades.child.speed * (Math.random() * 2 - 1), 'purple', 'child'));
-                            }
-                        }
-                        autoBalls = [];
-                        for (let i = 0; i < (data.autoBalls || 0); i++) {
-                            autoBalls.push(new AutoBall());
-                        }
-                        if (data.globalUpgrades) {
-                            const now = Date.now();
-                            if (data.globalUpgrades.speedBoost.active) {
-                                const elapsed = now - data.globalUpgrades.speedBoost.activationTime;
-                                if (elapsed < 60000) {
-                                    globalUpgrades.speedBoost.active = true;
-                                    setTimeout(() => {
-                                        globalUpgrades.speedBoost.active = false;
-                                        showToast('Speed boost expired!');
-                                    }, 60000 - elapsed);
-                                } else {
-                                    globalUpgrades.speedBoost.active = false;
-                                }
-                            }
-                            if (data.globalUpgrades.goldBoost.active) {
-                                const elapsed = now - data.globalUpgrades.goldBoost.activationTime;
-                                if (elapsed < 60000) {
-                                    globalUpgrades.goldBoost.active = true;
-                                    setTimeout(() => {
-                                        globalUpgrades.goldBoost.active = false;
-                                        showToast('Gold boost expired!');
-                                    }, 60000 - elapsed);
-                                } else {
-                                    globalUpgrades.goldBoost.active = false;
-                                }
-                            }
-                        }
-                        updateUI();
-                        spawnBricks();
-                        startGame();
-                    } else {
-                        startGame();
+            database.ref('users/' + uid + '/gameState').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    gold = data.gold || 20;
+                    level = data.level || 1;
+                    ballPrices.sniper = data.ballPrices?.sniper || 50;
+                    ballPrices.big = data.ballPrices?.big || 75;
+                    ballPrices.explosion = data.ballPrices?.explosion || 100;
+                    ballPrices.multiplying = data.ballPrices?.multiplying || 125;
+                    autoBallPrice = data.autoBallPrice || 200;
+                    idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
+                    rebirthCount = data.rebirthCount || 0;
+                    ballUpgrades = data.ballUpgrades || {
+                        sniper: { level: 1, speed: 4.5, damage: 1 },
+                        big: { level: 1, speed: 2.7, damage: 1 },
+                        explosion: { level: 1, speed: 2.7, damage: 2 },
+                        multiplying: { level: 1, speed: 2.7, damage: 1 },
+                        child: { level: 1, speed: 3.6, damage: 1 }
+                    };
+                    ballCounts = data.ballCounts || {
+                        sniper: 0,
+                        big: 0,
+                        explosion: 0,
+                        multiplying: 0,
+                        child: 0
+                    };
+                    stats = data.stats || {
+                        totalPlayTime: 0,
+                        totalBallsPurchased: 0,
+                        totalUpgrades: 0,
+                        startTime: Date.now()
+                    };
+                    username = data.username || '';
+                    cosmetics = data.cosmetics || {
+                        nebulaSkin: false,
+                        fireTrail: false,
+                        iceTrail: false,
+                        rainbowSkin: false,
+                        bundleSilver: false,
+                        bundleGold: false,
+                        bundlePlatinum: false
+                    };
+                    // Sync balls with ballCounts
+                    syncBallsWithCounts();
+                    // Sync auto balls
+                    autoBalls = [];
+                    for (let i = 0; i < (data.autoBalls || 0); i++) {
+                        autoBalls.push(new AutoBall());
                     }
-                })
-                .catch(error => {
-                    showToast('Failed to load game: ' + error.message);
+                    // Sync global upgrades
+                    const now = Date.now();
+                    if (data.globalUpgrades) {
+                        if (data.globalUpgrades.speedBoost.active) {
+                            const elapsed = now - data.globalUpgrades.speedBoost.activationTime;
+                            if (elapsed < 60000) {
+                                globalUpgrades.speedBoost.active = true;
+                                setTimeout(() => {
+                                    globalUpgrades.speedBoost.active = false;
+                                    showToast('Speed boost expired!');
+                                }, 60000 - elapsed);
+                            } else {
+                                globalUpgrades.speedBoost.active = false;
+                            }
+                        }
+                        if (data.globalUpgrades.goldBoost.active) {
+                            const elapsed = now - data.globalUpgrades.goldBoost.activationTime;
+                            if (elapsed < 60000) {
+                                globalUpgrades.goldBoost.active = true;
+                                setTimeout(() => {
+                                    globalUpgrades.goldBoost.active = false;
+                                    showToast('Gold boost expired!');
+                                }, 60000 - elapsed);
+                            } else {
+                                globalUpgrades.goldBoost.active = false;
+                            }
+                        }
+                    }
+                    updateUI();
+                    spawnBricks();
+                    if (!gameStarted) {
+                        startGame();
+                        gameStarted = true; // Prevent multiple game loop starts
+                    }
+                } else {
                     startGame();
-                });
+                }
+            }, (error) => {
+                showToast('Failed to load game: ' + error.message);
+                startGame();
+            });
         }
+
+        function syncBallsWithCounts() {
+            const currentCounts = {
+                sniper: balls.filter(b => b.type === 'sniper').length,
+                big: balls.filter(b => b.type === 'big').length,
+                explosion: balls.filter(b => b.type === 'explosion').length,
+                multiplying: balls.filter(b => b.type === 'multiplying').length,
+                child: balls.filter(b => b.type === 'child').length
+            };
+            // Remove excess balls
+            Object.keys(ballCounts).forEach(type => {
+                while (currentCounts[type] > ballCounts[type]) {
+                    const index = balls.findIndex(b => b.type === type);
+                    if (index !== -1) {
+                        balls.splice(index, 1);
+                        currentCounts[type]--;
+                    }
+                }
+            });
+            // Add missing balls
+            Object.keys(ballCounts).forEach(type => {
+                while (currentCounts[type] < ballCounts[type] && balls.length < maxBalls) {
+                    const radius = type === 'big' ? 12 : type === 'child' ? 4 : 8;
+                    const speed = ballUpgrades[type].speed;
+                    const color = {
+                        sniper: 'blue',
+                        big: 'green',
+                        explosion: 'orange',
+                        multiplying: 'purple',
+                        child: 'purple'
+                    }[type];
+                    balls.push(new Ball(
+                        canvas.width / 2,
+                        canvas.height / 2,
+                        radius,
+                        speed * (Math.random() * 2 - 1),
+                        speed * (Math.random() * 2 - 1),
+                        color,
+                        type
+                    ));
+                    currentCounts[type]++;
+                }
+            });
+        }
+
+        let gameStarted = false;
 
         // Start the game
         function startGame() {
-            spawnBricks();
-            gameLoop();
-            setInterval(saveGameState, 30000);
-            setInterval(updatePlayTime, 1000);
-            setInterval(updateLeaderboard, 5000); // Poll for leaderboard updates every 5 seconds
-            saveButton.addEventListener('click', saveGameState);
-            document.getElementById('my-balls-btn').addEventListener('click', showMyBallsPopup);
-            document.getElementById('settings-btn').addEventListener('click', showSettingsPopup);
-            document.getElementById('weapons-btn').addEventListener('click', () => {
-                if (gold >= weaponCost) {
-                    gold -= weaponCost;
-                    deployRandomWeapon();
-                    updateUI();
-                    saveGameState();
-                } else {
-                    showToast('Not enough gold!');
-                }
-            });
-            updateLeaderboard();
+            if (!gameStarted) {
+                spawnBricks();
+                gameLoop();
+                setInterval(saveGameState, 30000);
+                setInterval(updatePlayTime, 1000);
+                setInterval(updateLeaderboard, 5000);
+                saveButton.addEventListener('click', saveGameState);
+                document.getElementById('my-balls-btn').addEventListener('click', showMyBallsPopup);
+                document.getElementById('settings-btn').addEventListener('click', showSettingsPopup);
+                document.getElementById('weapons-btn').addEventListener('click', () => {
+                    if (gold >= weaponCost) {
+                        gold -= weaponCost;
+                        deployRandomWeapon();
+                        updateUI();
+                        saveGameState();
+                    } else {
+                        showToast('Not enough gold!');
+                    }
+                });
+                updateLeaderboard();
+                gameStarted = true;
+            }
         }
 
         // Update play time
