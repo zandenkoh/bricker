@@ -47,6 +47,19 @@
 
         }
 
+        .sidebar-container {
+            width: 150px;
+            height: 100%;
+            background: #e9dcaf;
+            color: #000;
+            overflow-y: auto;
+            border-left: 1px solid #444;
+            overflow-x: hidden;
+            margin-bottom: 0;
+            box-sizing: border-box;
+            padding: 15px;
+        }
+
         .leaderboard-card .user-and-info {
             display: flex;
             flex-direction: column;
@@ -918,136 +931,146 @@
         }
 
 
-.sg60-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
+        .sg60-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
 
-.sg60-popup {
-    background: #e9dcaf;
-    padding: 20px;
-    border: 3px solid #444;
-    border-radius: 10px;
-    width: 300px;
-    text-align: center;
-    color: #000;
-    position: relative;
-    font-family: Arial, sans-serif;
-}
+        .sg60-popup {
+            background: #e9dcaf;
+            padding: 20px;
+            border: 3px solid #444;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            color: #000;
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
 
-.sg60-popup .close-btn {
-    display: none;
-}
+        .sg60-popup .close-btn {
+            display: none;
+        }
 
-.sg60-popup h2 {
-    margin: 0 0 15px;
-    font-size: 20px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
+        .sg60-popup h2 {
+            margin: 0 0 15px;
+            font-size: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
 
-.sg60-content {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
+        .sg60-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-.sg60-gift-box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        .sg60-gift-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-#giftBoxCanvas {
-    background: #e9dcaf;
-    border: 2px solid #444;
-    border-radius: 5px;
-}
+        #giftBoxCanvas {
+            background: #e9dcaf;
+            border: 2px solid #444;
+            border-radius: 5px;
+        }
 
-.sg60-popup p {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 500;
-    color: #000;
-}
+        .sg60-popup p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: #000;
+        }
 
-.sg60-popup p strong {
-    color: #000;
-    font-weight: 900;
-}
+        .sg60-popup p strong {
+            color: #000;
+            font-weight: 900;
+        }
 
-.sg60-popup .button-group {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-}
+        .sg60-popup .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
 
-.sg60-popup button {
-    padding: 8px 15px;
-    background: #000;
-    border: none;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    transition: background 0.2s ease;
-}
+        .sg60-popup button {
+            padding: 8px 15px;
+            background: #000;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
 
-.sg60-popup button:hover:not(:disabled) {
-    background: #0053a6;
-}
+        .sg60-popup button:hover:not(:disabled) {
+            background: #0053a6;
+        }
 
-.sg60-popup button:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
+        .sg60-popup button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
 
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    color: #000;
-    padding: 5px;
-    cursor: pointer;
-}
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: #000;
+            padding: 5px;
+            cursor: pointer;
+        }
 
-.close-btn svg {
-    width: 20px;
-    height: 20px;
-    stroke: #000;
-}
+        .close-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: #000;
+        }
 
-.close-btn:hover {
-    background: #f4eed6;
-    border-radius: 5px;
-}
+        .close-btn:hover {
+            background: #f4eed6;
+            border-radius: 5px;
+        }
     </style>
 </head>
 
 <body>
     <div class="main-main-container">
         <div class="main-container">
+            <div class="sidebar-container">
+                <div class="info-container">
+                    <p class="gold-count">Gold: <span id="gold">20</span></p>
+                    <p class="level-count">Level: <span id="level">1</span></p>
+                    <button id="save-button">Save progress</button>
+                </div>
+            </div>
             <div class="together">
                 <!-- Replace the existing .ui div in the HTML body with this updated version -->
                 <div class="ui">
-                    <div class="info-container">
-                        <p class="gold-count">Gold: <span id="gold">20</span></p>
-                        <p class="level-count">Level: <span id="level">1</span></p>
-                        <button id="save-button">Save progress</button>
-                    </div>
-
                     <div class="ball-options">
+                        <div class="ball-option" id="basic-option" onclick="buyBall('basic')">
+                            <p>Basic</p>
+                            <div class="ball-preview">
+                                <canvas id="basic-preview" width="60" height="60"></canvas>
+                            </div>
+                            <div class="ball-price">
+                                <span id="basicPrice">25</span>
+                            </div>
+                        </div>
                         <div class="ball-option" id="sniper-option" onclick="buyBall('sniper')">
                             <p>Sniper</p>
                             <div class="ball-preview">
@@ -1091,6 +1114,33 @@
                             </div>
                             <div class="ball-price">
                                 <span id="autoPrice">100</span>
+                            </div>
+                        </div>
+                        <div class="ball-option" id="cannonball-option" onclick="buyBall('cannonball')">
+                            <p>Cannon</p>
+                            <div class="ball-preview">
+                                <canvas id="cannonball-preview" width="60" height="60"></canvas>
+                            </div>
+                            <div class="ball-price">
+                                <span id="cannonballPrice">150</span>
+                            </div>
+                        </div>
+                        <div class="ball-option" id="poison-option" onclick="buyBall('poison')">
+                            <p>Poison</p>
+                            <div class="ball-preview">
+                                <canvas id="poison-preview" width="60" height="60"></canvas>
+                            </div>
+                            <div class="ball-price">
+                                <span id="poisonPrice">175</span>
+                            </div>
+                        </div>
+                        <div class="ball-option" id="snowball-option" onclick="buyBall('snowball')">
+                            <p>Snowball</p>
+                            <div class="ball-preview">
+                                <canvas id="snowball-preview" width="60" height="60"></canvas>
+                            </div>
+                            <div class="ball-price">
+                                <span id="snowballPrice">200</span>
                             </div>
                         </div>
                         <div class="button-group">
@@ -1225,7 +1275,7 @@
                 },
                 {
                     element: document.querySelector('.ball-options'),
-                    intro: "Buy different balls here, like Sniper or Bomb, each with unique abilities.",
+                    intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
                     position: "bottom"
                 },
                 {
@@ -1280,14 +1330,17 @@
                 });
             }).start();
         }
-        // Game state variables
 
         let ballCounts = {
+            basic: 0,
             sniper: 0,
             big: 0,
             explosion: 0,
             multiplying: 0,
-            child: 0
+            child: 0,
+            cannonball: 0,
+            poison: 0,
+            snowball: 0
         };
         let gold = 20;
         let idleGoldPerSecond = 0.5;
@@ -1305,37 +1358,25 @@
         const maxPowerUps = 10;
         const maxBricks = 66;
         const ballPrices = {
+            basic: 25,
             sniper: 50,
             big: 75,
             explosion: 100,
-            multiplying: 125
+            multiplying: 125,
+            cannonball: 150,
+            poison: 175,
+            snowball: 200
         };
         let ballUpgrades = {
-            sniper: {
-                level: 1,
-                speed: 4.5,
-                damage: 1
-            },
-            big: {
-                level: 1,
-                speed: 2.7,
-                damage: 1
-            },
-            explosion: {
-                level: 1,
-                speed: 2.7,
-                damage: 2
-            },
-            multiplying: {
-                level: 1,
-                speed: 2.7,
-                damage: 1
-            },
-            child: {
-                level: 1,
-                speed: 3.6,
-                damage: 1
-            }
+            basic: { level: 1, speed: 3.5, damage: 1 },
+            sniper: { level: 1, speed: 4.5, damage: 1 },
+            big: { level: 1, speed: 2.7, damage: 1 },
+            explosion: { level: 1, speed: 2.7, damage: 2 },
+            multiplying: { level: 1, speed: 2.7, damage: 1 },
+            child: { level: 1, speed: 3.6, damage: 1 },
+            cannonball: { level: 1, speed: 3.0, damage: 3 },
+            poison: { level: 1, speed: 3.5, damage: 1 },
+            snowball: { level: 1, speed: 3.5, damage: 1 }
         };
         let globalUpgrades = {
             speedBoost: {
@@ -1360,13 +1401,17 @@
 
         function getUpgradeCost(type) {
             const baseCosts = {
+                basic: 50,
                 sniper: 100,
                 big: 150,
                 explosion: 200,
                 multiplying: 250,
-                child: 80
+                child: 80,
+                cannonball: 300,
+                poison: 350,
+                snowball: 400
             };
-            const increment = 50 + rebirthCount * 10; // Increment scales with rebirthCount
+            const increment = 50 + rebirthCount * 10;
             return baseCosts[type] + (ballUpgrades[type].level - 1) * increment;
         }
 
@@ -1383,12 +1428,27 @@
         let isGuest = false;
 
         // Add tooltips to ball options
-        const ballTooltips = {
+        /*const ballTooltips = {
             'sniper-option': 'Sniper Ball: Redirects to nearest brick on wall hit. Speed: 4.5, Damage: 1',
             'big-option': 'Big Ball: Larger size for more hitting surface. Speed: 2.7, Damage: 1',
             'explosion-option': 'Bomb Ball: Deals 2 damage to hit brick, 1 to nearby bricks. Speed: 2.7',
             'multiplying-option': 'Clones Ball: Spawns a small clone on brick hit. Speed: 2.7, Damage: 1',
-            'auto-option': 'Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 3.6'
+            'auto-option': 'Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 3.6',
+            'basic-option': `Basic Ball: Standard ball that bounces off walls and breaks bricks. Speed: 3.5, Damage: 1`,
+            'cannonball-option': `Cannonball: Powerful ball that smashes through bricks. Speed: 3.0, Damage: 3.0`,
+            'poison-option': `Poison Ball: Infects bricks to receive double damage. Speed: 3.5, Damage: 1.0`,
+            'snowball-option': `Snowball: Gains power and speed with every bounce. Speed: 3.5, Damage: 1.0`
+        };*/
+        const ballTooltips = {
+            'basic-option': `Basic Ball: Standard ball that bounces off walls and breaks bricks. Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${ballUpgrades.basic.damage.toFixed(1)}`,
+            'sniper-option': `Sniper Ball: Redirects to nearest brick on wall hit. Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}`,
+            'big-option': `Big Ball: Larger size for more hitting surface. Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}`,
+            'explosion-option': `Bomb Ball: Deals ${ballUpgrades.explosion.damage.toFixed(1)} damage to hit brick, ${Math.floor(ballUpgrades.explosion.damage / 2).toFixed(1)} to nearby bricks. Speed: ${ballUpgrades.explosion.speed.toFixed(1)}`,
+            'multiplying-option': `Clones Ball: Spawns a small clone on brick hit. Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}`,
+            'auto-option': `Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 5, Damage: 1000`,
+            'cannonball-option': `Cannonball: Powerful ball that smashes through bricks. Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${ballUpgrades.cannonball.damage.toFixed(1)}`,
+            'poison-option': `Poison Ball: Infects bricks to receive double damage. Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${ballUpgrades.poison.damage.toFixed(1)}`,
+            'snowball-option': `Snowball: Gains power and speed with every bounce. Speed: ${ballUpgrades.snowball.speed.toFixed(1)}, Damage: ${ballUpgrades.snowball.damage.toFixed(1)}`
         };
         Object.keys(ballTooltips).forEach(id => {
             const element = document.getElementById(id);
@@ -1421,7 +1481,8 @@
                     // Load game state but don't save until user interaction
                     loadGameState(user.uid);
                     startTutorialIfNeeded(user.uid);
-                    showSG60GiveawayPopup(user.uid); // Show giveaway popup for logged-in users
+                    showSG60GiveawayPopup(user.uid);
+                    migrateNewBalls();
 
                 } else {
                     showLoginPopup();
@@ -1557,11 +1618,15 @@
             const user = auth.currentUser;
             if (user) {
                 const ballCounts = {
+                    basic: balls.filter(b => b.type === 'basic').length,
                     sniper: balls.filter(b => b.type === 'sniper').length,
                     big: balls.filter(b => b.type === 'big').length,
                     explosion: balls.filter(b => b.type === 'explosion').length,
                     multiplying: balls.filter(b => b.type === 'multiplying').length,
-                    child: balls.filter(b => b.type === 'child').length
+                    child: balls.filter(b => b.type === 'child').length,
+                    cannonball: balls.filter(b => b.type === 'cannonball').length,
+                    poison: balls.filter(b => b.type === 'poison').length,
+                    snowball: balls.filter(b => b.type === 'snowball').length
                 };
                 const gameState = {
                     gold,
@@ -1870,12 +1935,15 @@ display: flex;
             <h3>${leader.username}</h3>
             <p>Rebirths: ${leader.rebirthCount}</p>
             <p>Gold: ${Math.floor(leader.gold)}</p>
-            <p>Total Balls: ${(leader.ballCounts.sniper || 0) +
+            <p>Total Balls: ${(leader.ballCounts.basic || 0) +
+                (leader.ballCounts.sniper || 0) +
                 (leader.ballCounts.big || 0) +
                 (leader.ballCounts.explosion || 0) +
                 (leader.ballCounts.multiplying || 0) +
-                (leader.ballCounts.child || 0)
-                }</p>
+                (leader.ballCounts.child || 0) +
+                (leader.ballCounts.cannonball || 0) +
+                (leader.ballCounts.poison || 0) +
+                (leader.ballCounts.snowball || 0)}</p>
             <p>Total Upgrades: ${leader.totalUpgrades}</p>
             <p>Idle Gold Per Second: ${leader.idleGoldPerSecond.toFixed(2)}</p>
             <div id="donation-container" style="display: none; margin-top: 10px;">
@@ -2061,27 +2129,39 @@ display: flex;
                 const data = snapshot.val();
                 if (data) {
                     gold = data.gold || 20;
-                    level = data.level || 1; // Ensure level is loaded correctly
+                    level = data.level || 1;
+                    ballPrices.basic = data.ballPrices?.basic || 25;
                     ballPrices.sniper = data.ballPrices?.sniper || 50;
                     ballPrices.big = data.ballPrices?.big || 75;
                     ballPrices.explosion = data.ballPrices?.explosion || 100;
                     ballPrices.multiplying = data.ballPrices?.multiplying || 125;
+                    ballPrices.cannonball = data.ballPrices?.cannonball || 150;
+                    ballPrices.poison = data.ballPrices?.poison || 175;
+                    ballPrices.snowball = data.ballPrices?.snowball || 200;
                     autoBallPrice = data.autoBallPrice || 200;
                     idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
                     rebirthCount = data.rebirthCount || 0;
                     ballUpgrades = data.ballUpgrades || {
+                        basic: { level: 1, speed: 3.5, damage: 1 },
                         sniper: { level: 1, speed: 4.5, damage: 1 },
                         big: { level: 1, speed: 2.7, damage: 1 },
                         explosion: { level: 1, speed: 2.7, damage: 2 },
                         multiplying: { level: 1, speed: 2.7, damage: 1 },
-                        child: { level: 1, speed: 3.6, damage: 1 }
+                        child: { level: 1, speed: 3.6, damage: 1 },
+                        cannonball: { level: 1, speed: 3.0, damage: 3 },
+                        poison: { level: 1, speed: 3.5, damage: 1 },
+                        snowball: { level: 1, speed: 3.5, damage: 1 }
                     };
                     ballCounts = data.ballCounts || {
+                        basic: 0,
                         sniper: 0,
                         big: 0,
                         explosion: 0,
                         multiplying: 0,
-                        child: 0
+                        child: 0,
+                        cannonball: 0,
+                        poison: 0,
+                        snowball: 0
                     };
                     stats = data.stats || {
                         totalPlayTime: 0,
@@ -2099,7 +2179,7 @@ display: flex;
                         bundleGold: false,
                         bundlePlatinum: false
                     };
-                    syncBallsWithCounts(); // Sync balls after loading
+                    syncBallsWithCounts();
                     autoBalls = [];
                     for (let i = 0; i < (data.autoBalls || 0); i++) {
                         autoBalls.push(new AutoBall());
@@ -2132,7 +2212,7 @@ display: flex;
                         }
                     }
                     updateUI();
-                    spawnBricks(); // Respawn bricks based on loaded level
+                    spawnBricks();
                     if (!gameStarted) {
                         startGame();
                         gameStarted = true;
@@ -2148,13 +2228,16 @@ display: flex;
 
         function syncBallsWithCounts() {
             const currentCounts = {
+                basic: balls.filter(b => b.type === 'basic').length,
                 sniper: balls.filter(b => b.type === 'sniper').length,
                 big: balls.filter(b => b.type === 'big').length,
                 explosion: balls.filter(b => b.type === 'explosion').length,
                 multiplying: balls.filter(b => b.type === 'multiplying').length,
-                child: balls.filter(b => b.type === 'child').length
+                child: balls.filter(b => b.type === 'child').length,
+                cannonball: balls.filter(b => b.type === 'cannonball').length,
+                poison: balls.filter(b => b.type === 'poison').length,
+                snowball: balls.filter(b => b.type === 'snowball').length
             };
-            // Remove excess balls
             Object.keys(ballCounts).forEach(type => {
                 while (currentCounts[type] > ballCounts[type]) {
                     const index = balls.findIndex(b => b.type === type);
@@ -2164,17 +2247,20 @@ display: flex;
                     }
                 }
             });
-            // Add missing balls
             Object.keys(ballCounts).forEach(type => {
                 while (currentCounts[type] < ballCounts[type] && balls.length < maxBalls) {
                     const radius = type === 'big' ? 12 : type === 'child' ? 4 : 8;
                     const speed = ballUpgrades[type].speed;
                     const color = {
+                        basic: 'gray',
                         sniper: 'blue',
                         big: 'green',
                         explosion: 'orange',
                         multiplying: 'purple',
-                        child: 'purple'
+                        child: 'purple',
+                        cannonball: 'darkgray',
+                        poison: 'lime',
+                        snowball: 'white'
                     }[type];
                     balls.push(new Ball(
                         canvas.width / 2,
@@ -2188,7 +2274,7 @@ display: flex;
                     currentCounts[type]++;
                 }
             });
-            updateUI(); // Ensure UI reflects updated ball counts
+            updateUI();
         }
 
         let gameStarted = false;
@@ -2272,30 +2358,40 @@ display: flex;
                 this.type = type;
                 this.powerUpUsed = false;
                 this.hasBouncedWall = false;
+                this.bounceCount = type === 'snowball' ? 0 : null; // Track bounces for snowball
+                this.poisonedBricks = type === 'poison' ? new Set() : null; // Track poisoned bricks
             }
 
             move() {
                 const speedMultiplier = globalUpgrades.speedBoost.active ? 2 : 1;
                 this.x += this.dx * speedMultiplier;
                 this.y += this.dy * speedMultiplier;
+                let speed = ballUpgrades[this.type].speed;
+                if (this.type === 'snowball') {
+                    speed += this.bounceCount * 0.1; // Increase speed per bounce
+                }
 
                 if (this.x + this.radius > canvas.width) {
                     this.dx = -this.dx;
                     this.x = canvas.width - this.radius - 2;
+                    if (this.type === 'snowball') this.bounceCount++;
                     if (this.type === 'sniper') this.redirectToClosestBrick();
                 } else if (this.x - this.radius < 0) {
                     this.dx = -this.dx;
                     this.x = this.radius + 2;
+                    if (this.type === 'snowball') this.bounceCount++;
                     if (this.type === 'sniper') this.redirectToClosestBrick();
                 }
 
                 if (this.y + this.radius > canvas.height) {
                     this.dy = -this.dy;
                     this.y = canvas.height - this.radius - 2;
+                    if (this.type === 'snowball') this.bounceCount++;
                     if (this.type === 'sniper') this.redirectToClosestBrick();
                 } else if (this.y - this.radius < 0) {
                     this.dy = -this.dy;
                     this.y = this.radius + 2;
+                    if (this.type === 'snowball') this.bounceCount++;
                     if (this.type === 'sniper') this.redirectToClosestBrick();
                 }
 
@@ -2347,6 +2443,25 @@ display: flex;
 
             handleBrickCollision(brick) {
                 let damage = ballUpgrades[this.type].damage;
+                if (this.type === 'snowball') {
+                    damage += this.bounceCount * 0.2; // Increase damage per bounce
+                }
+                if (this.type === 'cannonball') {
+                    brick.health -= damage; // High damage
+                    if (brick.health <= 0) {
+                        bricks = bricks.filter(b => b !== brick);
+                        gold += 5;
+                        if (powerUps.length < maxPowerUps) spawnPowerUp();
+                        updateUI();
+                    }
+                    return; // Cannonball smashes through without bouncing
+                }
+                if (this.type === 'poison') {
+                    this.poisonedBricks.add(brick); // Mark brick as poisoned
+                }
+                if (this.poisonedBricks && this.poisonedBricks.has(brick)) {
+                    damage *= 2; // Double damage for poisoned bricks
+                }
                 if (this.type === 'explosion') {
                     brick.health -= damage;
                     const nearbyBricks = getNearbyBricks(this);
@@ -2382,7 +2497,6 @@ display: flex;
                     balls = balls.filter(ball => ball !== this);
                 }
             }
-
             draw() {
                 drawTrail(this);
                 ctx.beginPath();
@@ -2571,11 +2685,16 @@ display: flex;
             }
         }
 
+
         const tips = [
             "Click bricks to reduce their health by 1!",
+            "Basic balls are standard balls that bounce off walls and break bricks.",
             "Sniper balls target the nearest brick on wall hits.",
             "Bomb balls deal splash damage to nearby bricks.",
             "Clones balls spawn a child ball on brick hit.",
+            "Cannonballs smash through bricks with high damage.",
+            "Poison balls infect bricks to take double damage.",
+            "Snowballs gain power and speed with every bounce.",
             "Auto balls respawn at the bottom if they miss bricks.",
             "Auto balls are 10x stronger from 11 AM to 2 PM!",
             "Rebirth at level 100 to keep upgrades, boost gold.",
@@ -2668,28 +2787,39 @@ display: flex;
             previewCtx.closePath();
         }
 
-        // Update UI
         function updateUI() {
             goldDisplay.textContent = Math.floor(gold);
             levelDisplay.textContent = level;
+            document.getElementById('basicPrice').textContent = ballPrices.basic;
             document.getElementById('sniperPrice').textContent = ballPrices.sniper;
             document.getElementById('bigPrice').textContent = ballPrices.big;
             document.getElementById('explosionPrice').textContent = ballPrices.explosion;
             document.getElementById('multiplyingPrice').textContent = ballPrices.multiplying;
             document.getElementById('autoPrice').textContent = autoBallPrice;
+            document.getElementById('cannonballPrice').textContent = ballPrices.cannonball;
+            document.getElementById('poisonPrice').textContent = ballPrices.poison;
+            document.getElementById('snowballPrice').textContent = ballPrices.snowball;
+            drawBallPreview('basic-preview', 'gray', 8);
             drawBallPreview('sniper-preview', 'blue', 8);
             drawBallPreview('big-preview', 'green', 12);
             drawBallPreview('explosion-preview', 'orange', 8);
             drawBallPreview('multiplying-preview', 'purple', 8);
             drawBallPreview('auto-preview', 'black', 8);
+            drawBallPreview('cannonball-preview', 'darkgray', 8);
+            drawBallPreview('poison-preview', 'lime', 8);
+            drawBallPreview('snowball-preview', 'white', 8);
 
             // Update tooltips with current speed and damage
             const ballTooltips = {
+                'basic-option': `Basic Ball: Standard ball that bounces off walls and breaks bricks. Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${ballUpgrades.basic.damage.toFixed(1)}`,
                 'sniper-option': `Sniper Ball: Redirects to nearest brick on wall hit. Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}`,
                 'big-option': `Big Ball: Larger size for more hitting surface. Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}`,
                 'explosion-option': `Bomb Ball: Deals ${ballUpgrades.explosion.damage.toFixed(1)} damage to hit brick, ${Math.floor(ballUpgrades.explosion.damage / 2).toFixed(1)} to nearby bricks. Speed: ${ballUpgrades.explosion.speed.toFixed(1)}`,
                 'multiplying-option': `Clones Ball: Spawns a small clone on brick hit. Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}`,
-                'auto-option': `Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 5, Damage: 1000`
+                'auto-option': `Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 5, Damage: 1000`,
+                'cannonball-option': `Cannonball: Powerful ball that smashes through bricks. Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${ballUpgrades.cannonball.damage.toFixed(1)}`,
+                'poison-option': `Poison Ball: Infects bricks to receive double damage. Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${ballUpgrades.poison.damage.toFixed(1)}`,
+                'snowball-option': `Snowball: Gains power and speed with every bounce. Speed: ${ballUpgrades.snowball.speed.toFixed(1)}, Damage: ${ballUpgrades.snowball.damage.toFixed(1)}`
             };
             Object.keys(ballTooltips).forEach(id => {
                 const element = document.getElementById(id);
@@ -2707,15 +2837,19 @@ display: flex;
                 ballPrices[type] = Math.floor(ballPrices[type] * 1.2);
                 stats.totalBallsPurchased++;
                 ballCounts[type]++;
-                const radius = type === 'big' ? 12 : 8;
+                const radius = type === 'big' ? 12 : type === 'child' ? 4 : 8;
                 const speed = ballUpgrades[type].speed;
                 const dx = speed * (Math.random() > 0.5 ? 1 : -1);
                 const dy = speed * (Math.random() > 0.5 ? 1 : -1);
                 const color = {
+                    basic: 'gray',
                     sniper: 'blue',
                     big: 'green',
                     explosion: 'orange',
-                    multiplying: 'purple'
+                    multiplying: 'purple',
+                    cannonball: 'darkgray',
+                    poison: 'lime',
+                    snowball: 'white'
                 }[type];
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
@@ -2961,41 +3095,41 @@ display: flex;
 
 
         // New function to buy idle gold boost
-function buyIdleGoldBoost() {
-    // Base cost scales with idleGoldPerSecond, ensuring it's higher than rebirth's equivalent gain
-    const baseCost = 1500; // Increased base cost for balance
-    const rebirthEquivalentGain = idleGoldPerSecond * 0.2; // Rebirth gives 1.2x, so increase is 0.2x current rate
-    const boostGain = 0.5; // Boost gives +0.5 gold/sec
-    const costMultiplier = Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5; // Premium over rebirth
-    const goldCost = Math.floor(baseCost * costMultiplier * (boostGain / rebirthEquivalentGain));
+        function buyIdleGoldBoost() {
+            // Base cost scales with idleGoldPerSecond, ensuring it's higher than rebirth's equivalent gain
+            const baseCost = 1500; // Increased base cost for balance
+            const rebirthEquivalentGain = idleGoldPerSecond * 0.2; // Rebirth gives 1.2x, so increase is 0.2x current rate
+            const boostGain = 0.5; // Boost gives +0.5 gold/sec
+            const costMultiplier = Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5; // Premium over rebirth
+            const goldCost = Math.floor(baseCost * costMultiplier * (boostGain / rebirthEquivalentGain));
 
-    if (gold >= goldCost) {
-        const user = auth.currentUser;
-        if (user && !isGuest) {
-            gold -= goldCost;
-            idleGoldPerSecond += 0.5;
-            database.ref('users/' + user.uid + '/gameState').update({
-                gold: gold,
-                idleGoldPerSecond: idleGoldPerSecond
-            }).then(() => {
-                const loginOverlay = document.querySelector('.login-overlay');
-                if (loginOverlay) loginOverlay.remove();
-                showToast('Idle Gold Boost purchased! +0.5 gold/sec');
-                updateUI();
-                updateLeaderboard();
-            }).catch(error => {
-                showToast('Failed to update game state: ' + error.message);
-                gold += goldCost;
-                idleGoldPerSecond -= 0.5;
-                updateUI();
-            });
-        } else {
-            showLoginPopupForSave();
+            if (gold >= goldCost) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= goldCost;
+                    idleGoldPerSecond += 0.5;
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold,
+                        idleGoldPerSecond: idleGoldPerSecond
+                    }).then(() => {
+                        const loginOverlay = document.querySelector('.login-overlay');
+                        if (loginOverlay) loginOverlay.remove();
+                        showToast('Idle Gold Boost purchased! +0.5 gold/sec');
+                        updateUI();
+                        updateLeaderboard();
+                    }).catch(error => {
+                        showToast('Failed to update game state: ' + error.message);
+                        gold += goldCost;
+                        idleGoldPerSecond -= 0.5;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast('Not enough gold!');
+            }
         }
-    } else {
-        showToast('Not enough gold!');
-    }
-}
 
         // New function to buy cosmetic
         function buyCosmetic(cosmeticName) {
@@ -3061,83 +3195,83 @@ function buyIdleGoldBoost() {
         }
 
         // Buy Instant Brick Destroy
-function buyInstantBrickDestroy() {
-    const cost = getDynamicPrice(basePrices.instantBrickDestroy);
-    if (gold >= cost && bricks.length > 0) {
-        const user = auth.currentUser;
-        if (user && !isGuest) {
-            gold -= cost;
-            database.ref('users/' + user.uid + '/gameState').update({
-                gold: gold
-            }).then(() => {
-                for (let i = 0; i < 3; i++) { // Destroy 3 bricks instead of 1
-                    const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
-                    if (randomBrick) {
-                        randomBrick.health = 0;
-                        bricks = bricks.filter(b => b !== randomBrick);
-                        gold += 5;
-                        if (powerUps.length < maxPowerUps) spawnPowerUp();
-                    }
-                }
-                showToast('Instant Brick Destroy: 3 bricks eliminated!');
-                updateUI();
-                updateLeaderboard();
-                document.querySelector('.login-overlay')?.remove();
-                showMyBallsPopup();
-            }).catch(error => {
-                showToast('Failed to purchase: ' + error.message);
-                gold += cost;
-                updateUI();
-            });
-        } else {
-            showLoginPopupForSave();
-        }
-    } else {
-        showToast(gold < cost ? 'Not enough gold!' : 'No bricks to destroy!');
-    }
-}
-        // Buy Double Damage
-function buyDoubleDamage() {
-    const cost = getDynamicPrice(basePrices.doubleDamage);
-    if (gold >= cost) {
-        const user = auth.currentUser;
-        if (user && !isGuest) {
-            gold -= cost;
-            const originalDamages = {};
-            Object.keys(ballUpgrades).forEach(type => {
-                originalDamages[type] = ballUpgrades[type].damage;
-                ballUpgrades[type].damage *= 2.5; // Increased from 2x to 2.5x
-            });
-            database.ref('users/' + user.uid + '/gameState').update({
-                gold: gold,
-                ballUpgrades: ballUpgrades
-            }).then(() => {
-                setTimeout(() => {
-                    Object.keys(ballUpgrades).forEach(type => {
-                        ballUpgrades[type].damage = originalDamages[type];
+        function buyInstantBrickDestroy() {
+            const cost = getDynamicPrice(basePrices.instantBrickDestroy);
+            if (gold >= cost && bricks.length > 0) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold
+                    }).then(() => {
+                        for (let i = 0; i < 3; i++) { // Destroy 3 bricks instead of 1
+                            const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                            if (randomBrick) {
+                                randomBrick.health = 0;
+                                bricks = bricks.filter(b => b !== randomBrick);
+                                gold += 5;
+                                if (powerUps.length < maxPowerUps) spawnPowerUp();
+                            }
+                        }
+                        showToast('Instant Brick Destroy: 3 bricks eliminated!');
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        updateUI();
                     });
-                    showToast('Double Damage expired!');
-                    updateUI();
-                    document.querySelector('.login-overlay')?.remove();
-                    showMyBallsPopup();
-                }, 60000); // Increased from 30s to 60s
-                showToast('Double Damage: All ball damage increased by 2.5x for 60 seconds!');
-                updateUI();
-                updateLeaderboard();
-                document.querySelector('.login-overlay')?.remove();
-                showMyBallsPopup();
-            }).catch(error => {
-                showToast('Failed to purchase: ' + error.message);
-                gold += cost;
-                updateUI();
-            });
-        } else {
-            showLoginPopupForSave();
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast(gold < cost ? 'Not enough gold!' : 'No bricks to destroy!');
+            }
         }
-    } else {
-        showToast('Not enough gold!');
-    }
-}
+        // Buy Double Damage
+        function buyDoubleDamage() {
+            const cost = getDynamicPrice(basePrices.doubleDamage);
+            if (gold >= cost) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    const originalDamages = {};
+                    Object.keys(ballUpgrades).forEach(type => {
+                        originalDamages[type] = ballUpgrades[type].damage;
+                        ballUpgrades[type].damage *= 2.5; // Increased from 2x to 2.5x
+                    });
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold,
+                        ballUpgrades: ballUpgrades
+                    }).then(() => {
+                        setTimeout(() => {
+                            Object.keys(ballUpgrades).forEach(type => {
+                                ballUpgrades[type].damage = originalDamages[type];
+                            });
+                            showToast('Double Damage expired!');
+                            updateUI();
+                            document.querySelector('.login-overlay')?.remove();
+                            showMyBallsPopup();
+                        }, 60000); // Increased from 30s to 60s
+                        showToast('Double Damage: All ball damage increased by 2.5x for 60 seconds!');
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast('Not enough gold!');
+            }
+        }
         // Buy Extra Ball
         function buyExtraBall() {
             const cost = getDynamicPrice(basePrices.extraBall);
@@ -3145,16 +3279,20 @@ function buyDoubleDamage() {
                 const user = auth.currentUser;
                 if (user && !isGuest) {
                     gold -= cost;
-                    const type = ['sniper', 'big', 'explosion', 'multiplying'][Math.floor(Math.random() * 4)];
-                    const radius = type === 'big' ? 12 : 8;
+                    const type = ['basic', 'sniper', 'big', 'explosion', 'multiplying', 'cannonball', 'poison', 'snowball'][Math.floor(Math.random() * 8)];
+                    const radius = type === 'big' ? 12 : type === 'child' ? 4 : 8;
                     const speed = ballUpgrades[type].speed;
                     const dx = speed * (Math.random() > 0.5 ? 1 : -1);
                     const dy = speed * (Math.random() > 0.5 ? 1 : -1);
                     const color = {
+                        basic: 'gray',
                         sniper: 'blue',
                         big: 'green',
                         explosion: 'orange',
-                        multiplying: 'purple'
+                        multiplying: 'purple',
+                        cannonball: 'darkgray',
+                        poison: 'lime',
+                        snowball: 'white'
                     }[type];
                     balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                     ballCounts[type]++;
@@ -3184,77 +3322,76 @@ function buyDoubleDamage() {
                 showToast(gold < cost ? 'Not enough gold!' : 'Max balls reached!');
             }
         }
-
         // Buy Gold Magnet
-function buyGoldMagnet() {
-    const cost = getDynamicPrice(basePrices.goldMagnet);
-    if (gold >= cost) {
-        const user = auth.currentUser;
-        if (user && !isGuest) {
-            gold -= cost;
-            database.ref('users/' + user.uid + '/gameState').update({
-                gold: gold
-            }).then(() => {
-                powerUps.forEach(powerUp => {
-                    if (powerUp.type === 'gold') {
-                        powerUp.active = false;
-                        gold += 100; // Increased from 50 to 100 gold per power-up
-                    }
-                });
-                powerUps = powerUps.filter(p => p.active);
-                setTimeout(() => {
-                    showToast('Gold Magnet expired!');
-                    updateUI();
-                    document.querySelector('.login-overlay')?.remove();
-                    showMyBallsPopup();
-                }, 30000); // Increased from 20s to 30s
-                showToast('Gold Magnet: Collecting all gold power-ups for 30 seconds, 100 gold each!');
-                updateUI();
-                updateLeaderboard();
-                document.querySelector('.login-overlay')?.remove();
-                showMyBallsPopup();
-            }).catch(error => {
-                showToast('Failed to purchase: ' + error.message);
-                gold += cost;
-                updateUI();
-            });
-        } else {
-            showLoginPopupForSave();
+        function buyGoldMagnet() {
+            const cost = getDynamicPrice(basePrices.goldMagnet);
+            if (gold >= cost) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold
+                    }).then(() => {
+                        powerUps.forEach(powerUp => {
+                            if (powerUp.type === 'gold') {
+                                powerUp.active = false;
+                                gold += 100; // Increased from 50 to 100 gold per power-up
+                            }
+                        });
+                        powerUps = powerUps.filter(p => p.active);
+                        setTimeout(() => {
+                            showToast('Gold Magnet expired!');
+                            updateUI();
+                            document.querySelector('.login-overlay')?.remove();
+                            showMyBallsPopup();
+                        }, 30000); // Increased from 20s to 30s
+                        showToast('Gold Magnet: Collecting all gold power-ups for 30 seconds, 100 gold each!');
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast('Not enough gold!');
+            }
         }
-    } else {
-        showToast('Not enough gold!');
-    }
-}
         // Buy Brick Health Reduction
-function buyBrickHealthReduction() {
-    const cost = getDynamicPrice(basePrices.brickHealthReduction);
-    if (gold >= cost && bricks.length > 0) {
-        const user = auth.currentUser;
-        if (user && !isGuest) {
-            gold -= cost;
-            bricks.forEach(brick => {
-                brick.health = Math.max(1, Math.floor(brick.health * 0.3)); // Reduced to 30% instead of 50%
-            });
-            database.ref('users/' + user.uid + '/gameState').update({
-                gold: gold
-            }).then(() => {
-                showToast('Brick Health Reduction: All brick health reduced to 30%!');
-                updateUI();
-                updateLeaderboard();
-                document.querySelector('.login-overlay')?.remove();
-                showMyBallsPopup();
-            }).catch(error => {
-                showToast('Failed to purchase: ' + error.message);
-                gold += cost;
-                updateUI();
-            });
-        } else {
-            showLoginPopupForSave();
+        function buyBrickHealthReduction() {
+            const cost = getDynamicPrice(basePrices.brickHealthReduction);
+            if (gold >= cost && bricks.length > 0) {
+                const user = auth.currentUser;
+                if (user && !isGuest) {
+                    gold -= cost;
+                    bricks.forEach(brick => {
+                        brick.health = Math.max(1, Math.floor(brick.health * 0.3)); // Reduced to 30% instead of 50%
+                    });
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        gold: gold
+                    }).then(() => {
+                        showToast('Brick Health Reduction: All brick health reduced to 30%!');
+                        updateUI();
+                        updateLeaderboard();
+                        document.querySelector('.login-overlay')?.remove();
+                        showMyBallsPopup();
+                    }).catch(error => {
+                        showToast('Failed to purchase: ' + error.message);
+                        gold += cost;
+                        updateUI();
+                    });
+                } else {
+                    showLoginPopupForSave();
+                }
+            } else {
+                showToast(gold < cost ? 'Not enough gold!' : 'No bricks to reduce!');
+            }
         }
-    } else {
-        showToast(gold < cost ? 'Not enough gold!' : 'No bricks to reduce!');
-    }
-}
         // Buy Speed Surge
         function buySpeedSurge() {
             const cost = getDynamicPrice(basePrices.speedSurge);
@@ -3302,107 +3439,107 @@ function buyBrickHealthReduction() {
         }
 
         // Update applyPowerup function to handle Cosmic Barrage
-function applyPowerup(powerup) {
-    switch (powerup.name) {
-        case 'Thunder Strike':
-            for (let i = 0; i < 10; i++) { // Increased from 5 to 10 bricks
-                const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
-                if (randomBrick) {
-                    randomBrick.health = 0;
-                    bricks = bricks.filter(b => b !== randomBrick);
-                    gold += 5;
-                    if (powerUps.length < maxPowerUps) spawnPowerUp();
-                }
+        function applyPowerup(powerup) {
+            switch (powerup.name) {
+                case 'Thunder Strike':
+                    for (let i = 0; i < 10; i++) { // Increased from 5 to 10 bricks
+                        const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                        if (randomBrick) {
+                            randomBrick.health = 0;
+                            bricks = bricks.filter(b => b !== randomBrick);
+                            gold += 5;
+                            if (powerUps.length < maxPowerUps) spawnPowerUp();
+                        }
+                    }
+                    showToast('Thunder Strike: 10 bricks destroyed!');
+                    updateUI();
+                    break;
+                case 'Shield Boost':
+                    balls.forEach(ball => ball.powerUpUsed = true);
+                    setTimeout(() => {
+                        balls.forEach(ball => ball.powerUpUsed = false);
+                        showToast('Shield Boost expired!');
+                    }, 60000); // Increased from 30s to 60s
+                    showToast('Shield Boost: Balls protected for 60 seconds!');
+                    break;
+                case 'Mega Explosion':
+                    const originalExplosionDamage = ballUpgrades.explosion.damage;
+                    ballUpgrades.explosion.damage *= 3; // Increased from 2x to 3x
+                    setTimeout(() => {
+                        ballUpgrades.explosion.damage = originalExplosionDamage;
+                        showToast('Mega Explosion expired!');
+                    }, 30000); // Increased from 20s to 30s
+                    showToast('Mega Explosion: Explosion ball damage tripled for 30 seconds!');
+                    updateUI();
+                    break;
+                case 'Star Shower':
+                    for (let i = 0; i < 5; i++) { // Increased from 3 to 5 auto balls
+                        if (autoBalls.length < 10) autoBalls.push(new AutoBall());
+                    }
+                    setTimeout(() => {
+                        autoBalls.splice(-5);
+                        showToast('Star Shower expired!');
+                    }, 30000); // Increased from 15s to 30s
+                    showToast('Star Shower: 5 auto balls spawned for 30 seconds!');
+                    updateUI();
+                    break;
+                case 'Time Warp':
+                    const originalSpeeds = balls.map(ball => ({
+                        dx: ball.dx,
+                        dy: ball.dy
+                    }));
+                    balls.forEach(ball => {
+                        ball.dx *= 0.3; // Slower time (was 0.5)
+                        ball.dy *= 0.3;
+                    });
+                    setTimeout(() => {
+                        balls.forEach((ball, index) => {
+                            ball.dx = originalSpeeds[index].dx;
+                            ball.dy = originalSpeeds[index].dy;
+                        });
+                        showToast('Time Warp expired!');
+                    }, 15000); // Increased from 10s to 15s
+                    showToast('Time Warp: Time slowed for 15 seconds!');
+                    break;
+                case 'Cosmic Barrage':
+                    for (let i = 0; i < 15; i++) { // Increased from 10 to 15 bricks
+                        const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                        if (randomBrick) {
+                            randomBrick.health = 0;
+                            bricks = bricks.filter(b => b !== brick);
+                            gold += 5;
+                            if (powerUps.length < maxPowerUps) spawnPowerUp();
+                        }
+                    }
+                    const originalBallSpeeds = balls.map(ball => ({
+                        dx: ball.dx,
+                        dy: ball.dy
+                    }));
+                    balls.forEach(ball => {
+                        ball.dx *= 3; // Increased from 2x to 3x speed
+                        ball.dy *= 3;
+                    });
+                    ctx.fillStyle = 'rgba(255, 0, 255, 0.3)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    setTimeout(() => {
+                        balls.forEach((ball, index) => {
+                            ball.dx = originalBallSpeeds[index].dx;
+                            ball.dy = originalBallSpeeds[index].dy;
+                        });
+                        showToast('Cosmic Barrage expired!');
+                    }, 30000); // Increased from 15s to 30s
+                    showToast('Cosmic Barrage: 15 bricks destroyed, ball speed tripled for 30 seconds!');
+                    updateUI();
+                    break;
             }
-            showToast('Thunder Strike: 10 bricks destroyed!');
-            updateUI();
-            break;
-        case 'Shield Boost':
-            balls.forEach(ball => ball.powerUpUsed = true);
-            setTimeout(() => {
-                balls.forEach(ball => ball.powerUpUsed = false);
-                showToast('Shield Boost expired!');
-            }, 60000); // Increased from 30s to 60s
-            showToast('Shield Boost: Balls protected for 60 seconds!');
-            break;
-        case 'Mega Explosion':
-            const originalExplosionDamage = ballUpgrades.explosion.damage;
-            ballUpgrades.explosion.damage *= 3; // Increased from 2x to 3x
-            setTimeout(() => {
-                ballUpgrades.explosion.damage = originalExplosionDamage;
-                showToast('Mega Explosion expired!');
-            }, 30000); // Increased from 20s to 30s
-            showToast('Mega Explosion: Explosion ball damage tripled for 30 seconds!');
-            updateUI();
-            break;
-        case 'Star Shower':
-            for (let i = 0; i < 5; i++) { // Increased from 3 to 5 auto balls
-                if (autoBalls.length < 10) autoBalls.push(new AutoBall());
-            }
-            setTimeout(() => {
-                autoBalls.splice(-5);
-                showToast('Star Shower expired!');
-            }, 30000); // Increased from 15s to 30s
-            showToast('Star Shower: 5 auto balls spawned for 30 seconds!');
-            updateUI();
-            break;
-        case 'Time Warp':
-            const originalSpeeds = balls.map(ball => ({
-                dx: ball.dx,
-                dy: ball.dy
-            }));
-            balls.forEach(ball => {
-                ball.dx *= 0.3; // Slower time (was 0.5)
-                ball.dy *= 0.3;
-            });
-            setTimeout(() => {
-                balls.forEach((ball, index) => {
-                    ball.dx = originalSpeeds[index].dx;
-                    ball.dy = originalSpeeds[index].dy;
-                });
-                showToast('Time Warp expired!');
-            }, 15000); // Increased from 10s to 15s
-            showToast('Time Warp: Time slowed for 15 seconds!');
-            break;
-        case 'Cosmic Barrage':
-            for (let i = 0; i < 15; i++) { // Increased from 10 to 15 bricks
-                const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
-                if (randomBrick) {
-                    randomBrick.health = 0;
-                    bricks = bricks.filter(b => b !== brick);
-                    gold += 5;
-                    if (powerUps.length < maxPowerUps) spawnPowerUp();
-                }
-            }
-            const originalBallSpeeds = balls.map(ball => ({
-                dx: ball.dx,
-                dy: ball.dy
-            }));
-            balls.forEach(ball => {
-                ball.dx *= 3; // Increased from 2x to 3x speed
-                ball.dy *= 3;
-            });
-            ctx.fillStyle = 'rgba(255, 0, 255, 0.3)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            setTimeout(() => {
-                balls.forEach((ball, index) => {
-                    ball.dx = originalBallSpeeds[index].dx;
-                    ball.dy = originalBallSpeeds[index].dy;
-                });
-                showToast('Cosmic Barrage expired!');
-            }, 30000); // Increased from 15s to 30s
-            showToast('Cosmic Barrage: 15 bricks destroyed, ball speed tripled for 30 seconds!');
-            updateUI();
-            break;
-    }
-}
+        }
 
         function updateShopUI() {
             const ballShop = document.getElementById('ball-shop');
             ballShop.innerHTML = '';
-            Object.keys(ballUpgrades).forEach(type => {
+            Object.keys(ballPrices).forEach(type => {
                 const count = ballCounts[type] || 0;
-                const price = ballUpgrades[type].price;
+                const price = ballPrices[type];
                 const ballDiv = document.createElement('div');
                 ballDiv.className = 'shop-item';
                 ballDiv.innerHTML = `
@@ -3413,21 +3550,10 @@ function applyPowerup(powerup) {
                 ballShop.appendChild(ballDiv);
             });
 
-            const upgrades = [{
-                name: 'Damage',
-                key: 'damage',
-                price: 100
-            },
-            {
-                name: 'Speed',
-                key: 'speed',
-                price: 100
-            },
-            {
-                name: 'Radius',
-                key: 'radius',
-                price: 100
-            }
+            const upgrades = [
+                { name: 'Damage', key: 'damage', price: 100 },
+                { name: 'Speed', key: 'speed', price: 100 },
+                { name: 'Radius', key: 'radius', price: 100 }
             ];
             const upgradeShop = document.getElementById('upgrade-shop');
             upgradeShop.innerHTML = '';
@@ -3451,11 +3577,11 @@ function applyPowerup(powerup) {
         </div>
         <div class="shop-item">
             <span>Idle Gold Boost (+0.5/sec)</span>
-            <button onclick="buyIdleGoldBoost()">Buy (3R)</button>
+            <button onclick="buyIdleGoldBoost()">Buy (${Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1)))} Gold)</button>
         </div>
         <div class="shop-item">
             <span>Nebula Ball Skin</span>
-            <button onclick="buyCosmetic('nebula')">Buy (10R)</button>
+            <button onclick="buyCosmetic('nebulaSkin')">Buy (10R)</button>
         </div>
     `;
         }
@@ -3470,8 +3596,10 @@ function applyPowerup(powerup) {
                 showToast(`No ${type} balls to remove!`);
                 return;
             }
-            const refundGold = Math.floor(ballUpgrades[type].price * 0.5); // Refund 50% of purchase price
+            const refundGold = Math.floor(ballPrices[type] * 0.5); // Refund 50% of purchase price
             ballCounts[type]--;
+            const index = balls.findIndex(b => b.type === type);
+            if (index !== -1) balls.splice(index, 1);
             gold += refundGold;
             database.ref('users/' + user.uid + '/gameState').update({
                 ballCounts: ballCounts,
@@ -3485,11 +3613,19 @@ function applyPowerup(powerup) {
                 showToast('Failed to remove ball: ' + error.message);
                 ballCounts[type]++;
                 gold -= refundGold;
+                balls.push(new Ball(
+                    canvas.width / 2,
+                    canvas.height / 2,
+                    type === 'big' ? 12 : type === 'child' ? 4 : 8,
+                    ballUpgrades[type].speed * (Math.random() > 0.5 ? 1 : -1),
+                    ballUpgrades[type].speed * (Math.random() > 0.5 ? 1 : -1),
+                    { basic: 'gray', sniper: 'blue', big: 'green', explosion: 'orange', multiplying: 'purple', child: 'purple', cannonball: 'darkgray', poison: 'lime', snowball: 'white' }[type],
+                    type
+                ));
                 updateUI();
                 updateShopUI();
             });
         }
-
         function removeUpgrade(key) {
             const user = auth.currentUser;
             if (!user || isGuest) {
@@ -3570,16 +3706,20 @@ function applyPowerup(powerup) {
             ctx.closePath();
         };
 
-function showMyBallsPopup() {
-    const maxUpgradeLevel = 10 + rebirthCount * 5;
-    const overlay = document.createElement('div');
-    overlay.className = 'login-overlay';
-    const sniperCost = getUpgradeCost('sniper');
-    const bigCost = getUpgradeCost('big');
-    const explosionCost = getUpgradeCost('explosion');
-    const multiplyingCost = getUpgradeCost('multiplying');
-    const childCost = getUpgradeCost('child');
-    overlay.innerHTML = `
+        function showMyBallsPopup() {
+            const maxUpgradeLevel = 10 + rebirthCount * 5;
+            const overlay = document.createElement('div');
+            overlay.className = 'login-overlay';
+            const basicCost = getUpgradeCost('basic');
+            const sniperCost = getUpgradeCost('sniper');
+            const bigCost = getUpgradeCost('big');
+            const explosionCost = getUpgradeCost('explosion');
+            const multiplyingCost = getUpgradeCost('multiplying');
+            const childCost = getUpgradeCost('child');
+            const cannonballCost = getUpgradeCost('cannonball');
+            const poisonCost = getUpgradeCost('poison');
+            const snowballCost = getUpgradeCost('snowball');
+            overlay.innerHTML = `
         <div class="my-balls-popup">
             <h2>Upgrades (Max Level: ${maxUpgradeLevel})</h2>
             <button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /> </svg></button>
@@ -3591,6 +3731,13 @@ function showMyBallsPopup() {
             </div>
             <div class="tab-content active" id="my-balls">
                 <div class="ball-stats">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="basic-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Basic</b>: ${balls.filter(b => b.type === 'basic').length} balls, Level: ${ballUpgrades.basic.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${ballUpgrades.basic.damage.toFixed(1)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < basicCost || ballUpgrades.basic.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('basic')">Upgrade<br>(${basicCost} gold)</button>
+                    </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="sniper-stats-preview" width="40" height="40"></canvas>
@@ -3625,6 +3772,27 @@ function showMyBallsPopup() {
                             <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${ballUpgrades.child.damage.toFixed(1)}</span>
                         </div>
                         <button class="upgrade-btn" ${gold < childCost || ballUpgrades.child.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('child')">Upgrade<br>(${childCost} gold)</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="cannonball-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Cannon</b>: ${balls.filter(b => b.type === 'cannonball').length} balls, Level: ${ballUpgrades.cannonball.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${ballUpgrades.cannonball.damage.toFixed(1)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < cannonballCost || ballUpgrades.cannonball.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('cannonball')">Upgrade<br>(${cannonballCost} gold)</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="poison-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Poison</b>: ${balls.filter(b => b.type === 'poison').length} balls, Level: ${ballUpgrades.poison.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${ballUpgrades.poison.damage.toFixed(1)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < poisonCost || ballUpgrades.poison.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('poison')">Upgrade<br>(${poisonCost} gold)</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="snowball-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Snowball</b>: ${balls.filter(b => b.type === 'snowball').length} balls, Level: ${ballUpgrades.snowball.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.snowball.speed.toFixed(1)}, Damage: ${ballUpgrades.snowball.damage.toFixed(1)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < snowballCost || ballUpgrades.snowball.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('snowball')">Upgrade<br>(${snowballCost} gold)</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -3752,28 +3920,32 @@ function showMyBallsPopup() {
             }
         </style>
     `;
-    document.body.appendChild(overlay);
-    drawBallPreview('sniper-stats-preview', 'blue', 8);
-    drawBallPreview('big-stats-preview', 'green', 12);
-    drawBallPreview('explosion-stats-preview', 'orange', 8);
-    drawBallPreview('multiplying-stats-preview', 'purple', 8);
-    drawBallPreview('child-stats-preview', 'purple', 4);
-    drawBallPreview('auto-stats-preview', 'black', 8);
-    const tabs = overlay.querySelectorAll('.tab-btn');
-    const contents = overlay.querySelectorAll('.tab-content');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
-            tab.classList.add('active');
-            overlay.querySelector(`#${tab.dataset.tab}`).classList.add('active');
-        });
-    });
-    overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) overlay.remove();
-    });
-}
+            document.body.appendChild(overlay);
+            drawBallPreview('basic-stats-preview', 'gray', 8);
+            drawBallPreview('sniper-stats-preview', 'blue', 8);
+            drawBallPreview('big-stats-preview', 'green', 12);
+            drawBallPreview('explosion-stats-preview', 'orange', 8);
+            drawBallPreview('multiplying-stats-preview', 'purple', 8);
+            drawBallPreview('child-stats-preview', 'purple', 4);
+            drawBallPreview('cannonball-stats-preview', 'darkgray', 8);
+            drawBallPreview('poison-stats-preview', 'lime', 8);
+            drawBallPreview('snowball-stats-preview', 'white', 8);
+            drawBallPreview('auto-stats-preview', 'black', 8);
+            const tabs = overlay.querySelectorAll('.tab-btn');
+            const contents = overlay.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    overlay.querySelector(`#${tab.dataset.tab}`).classList.add('active');
+                });
+            });
+            overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
 
         function toggleCosmeticButton(button, cosmeticName) {
             if (!cosmetics[cosmeticName] && !button.disabled) {
@@ -4112,12 +4284,12 @@ function showMyBallsPopup() {
             return hours >= 11 && hours < 14; // 11 AM to 2 PM
         }
 
-   function showSG60GiveawayPopup(userId) {
-        const giveawayRedeemed = localStorage.getItem(`sg60Giveaway_${userId}`);
-        if (!giveawayRedeemed && document.querySelector('#gameCanvas')) {
-            const overlay = document.createElement('div');
-            overlay.className = 'sg60-overlay';
-            overlay.innerHTML = `
+        function showSG60GiveawayPopup(userId) {
+            const giveawayRedeemed = localStorage.getItem(`sg60Giveaway_${userId}`);
+            if (!giveawayRedeemed && document.querySelector('#gameCanvas')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'sg60-overlay';
+                overlay.innerHTML = `
                 <div class="sg60-popup">
                     <button class="close-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -4137,59 +4309,59 @@ function showMyBallsPopup() {
                     </div>
                 </div>
             `;
-            document.body.appendChild(overlay);
+                document.body.appendChild(overlay);
 
-            // Draw simple gift box on canvas to match game style
-            const canvas = overlay.querySelector('#giftBoxCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#f4eed6';
-            ctx.fillRect(15, 25, 50, 40); // Gift body
-            ctx.strokeStyle = '#444';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(15, 25, 50, 40);
-            ctx.fillStyle = '#e9dcaf';
-            ctx.fillRect(10, 15, 60, 10); // Gift lid
-            ctx.strokeRect(10, 15, 60, 10);
-            ctx.fillStyle = '#000';
-            ctx.font = '14px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('500K', 40, 45); // Gold text
+                // Draw simple gift box on canvas to match game style
+                const canvas = overlay.querySelector('#giftBoxCanvas');
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#f4eed6';
+                ctx.fillRect(15, 25, 50, 40); // Gift body
+                ctx.strokeStyle = '#444';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(15, 25, 50, 40);
+                ctx.fillStyle = '#e9dcaf';
+                ctx.fillRect(10, 15, 60, 10); // Gift lid
+                ctx.strokeRect(10, 15, 60, 10);
+                ctx.fillStyle = '#000';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('500K', 40, 45); // Gold text
 
-            const redeemBtn = overlay.querySelector('#redeem-giveaway');
-            const cancelBtn = overlay.querySelector('#cancel-giveaway');
-            const closeBtn = overlay.querySelector('.close-btn');
+                const redeemBtn = overlay.querySelector('#redeem-giveaway');
+                const cancelBtn = overlay.querySelector('#cancel-giveaway');
+                const closeBtn = overlay.querySelector('.close-btn');
 
-            redeemBtn.addEventListener('click', () => {
-                redeemBtn.disabled = true;
-                redeemSG60Giveaway(userId);
-                overlay.remove();
-            });
-            cancelBtn.addEventListener('click', () => overlay.remove());
-            closeBtn.addEventListener('click', () => overlay.remove());
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) overlay.remove();
-            });
+                redeemBtn.addEventListener('click', () => {
+                    redeemBtn.disabled = true;
+                    redeemSG60Giveaway(userId);
+                    overlay.remove();
+                });
+                cancelBtn.addEventListener('click', () => overlay.remove());
+                closeBtn.addEventListener('click', () => overlay.remove());
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) overlay.remove();
+                });
+            }
         }
-    }
 
-    function redeemSG60Giveaway(userId) {
-        const user = auth.currentUser;
-        if (user) {
-            gold += 500000;
-            localStorage.setItem(`sg60Giveaway_${userId}`, 'true');
-            database.ref('users/' + userId + '/gameState').update({
-                gold: gold
-            }).then(() => {
-                showToast('SG60 Giveaway redeemed! 500,000 Gold added!');
-                updateUI();
-            }).catch(error => {
-                showToast('Failed to redeem giveaway: ' + error.message);
-                gold -= 500000;
-                localStorage.removeItem(`sg60Giveaway_${userId}`);
-                updateUI();
-            });
+        function redeemSG60Giveaway(userId) {
+            const user = auth.currentUser;
+            if (user) {
+                gold += 500000;
+                localStorage.setItem(`sg60Giveaway_${userId}`, 'true');
+                database.ref('users/' + userId + '/gameState').update({
+                    gold: gold
+                }).then(() => {
+                    showToast('SG60 Giveaway redeemed! 500,000 Gold added!');
+                    updateUI();
+                }).catch(error => {
+                    showToast('Failed to redeem giveaway: ' + error.message);
+                    gold -= 500000;
+                    localStorage.removeItem(`sg60Giveaway_${userId}`);
+                    updateUI();
+                });
+            }
         }
-    }
 
         // Simple confetti animation
         function triggerConfetti(container) {
@@ -4201,6 +4373,73 @@ function showMyBallsPopup() {
                 confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
                 container.appendChild(confetti);
             }
+        }
+
+        function migrateNewBalls() {
+            const user = auth.currentUser;
+            if (!user || isGuest) {
+                return; // Skip migration for guests or unauthenticated users
+            }
+
+            const migrationKey = `newBallsMigrated_${user.uid}`;
+            if (localStorage.getItem(migrationKey)) {
+                return; // Migration already completed
+            }
+
+            database.ref('users/' + user.uid + '/gameState').once('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                const ballCounts = data.ballCounts || {};
+                const ballPrices = data.ballPrices || {};
+                const ballUpgrades = data.ballUpgrades || {};
+
+                // Check if any new ball type is missing
+                const newBallTypes = ['basic', 'cannonball', 'poison', 'snowball'];
+                const needsMigration = newBallTypes.some(type => !(type in ballCounts));
+
+                if (needsMigration) {
+                    // Set default counts (add 1 of each new ball type)
+                    ballCounts.basic = (ballCounts.basic || 0) + 1;
+                    ballCounts.cannonball = (ballCounts.cannonball || 0) + 1;
+                    ballCounts.poison = (ballCounts.poison || 0) + 1;
+                    ballCounts.snowball = (ballCounts.snowball || 0) + 1;
+
+                    // Set default prices
+                    ballPrices.basic = ballPrices.basic || 25;
+                    ballPrices.cannonball = ballPrices.cannonball || 150;
+                    ballPrices.poison = ballPrices.poison || 175;
+                    ballPrices.snowball = ballPrices.snowball || 200;
+
+                    // Set default upgrades
+                    ballUpgrades.basic = ballUpgrades.basic || { level: 1, speed: 3.5, damage: 1 };
+                    ballUpgrades.cannonball = ballUpgrades.cannonball || { level: 1, speed: 3.0, damage: 3 };
+                    ballUpgrades.poison = ballUpgrades.poison || { level: 1, speed: 3.5, damage: 1 };
+                    ballUpgrades.snowball = ballUpgrades.snowball || { level: 1, speed: 3.5, damage: 1 };
+
+                    // Update Firebase database
+                    database.ref('users/' + user.uid + '/gameState').update({
+                        ballCounts: ballCounts,
+                        ballPrices: ballPrices,
+                        ballUpgrades: ballUpgrades
+                    }).then(() => {
+                        // Mark migration as complete in local storage
+                        localStorage.setItem(migrationKey, 'true');
+                        showToast('Added new ball types: Basic, Cannonball, Poison, and Snowball!');
+                        // Update local game state
+                        Object.assign(window.ballCounts, ballCounts);
+                        Object.assign(window.ballPrices, ballPrices);
+                        Object.assign(window.ballUpgrades, ballUpgrades);
+                        syncBallsWithCounts(); // Ensure balls array reflects new counts
+                        updateUI();
+                    }).catch(error => {
+                        showToast('Failed to migrate new balls: ' + error.message);
+                    });
+                } else {
+                    // Mark migration as complete if no update is needed
+                    localStorage.setItem(migrationKey, 'true');
+                }
+            }, (error) => {
+                showToast('Failed to check game state: ' + error.message);
+            });
         }
 
         // Canvas click event
