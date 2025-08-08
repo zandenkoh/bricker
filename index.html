@@ -893,92 +893,118 @@
         .shop-option:hover .tooltip {
             opacity: 1;
         }
+
+        .main-main-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tips-container {
+            margin: none;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        #tips-text {
+            color: #fff;
+            font-size: 14px;
+            transition: opacity 0.5s ease-in-out;
+            text-align: center;
+            margin: 20px;
+            letter-spacing: 0.7px;
+            font-weight: 600;
+        }
     </style>
 </head>
 
 <body>
-    <div class="main-container">
-        <div class="together">
-            <!-- Replace the existing .ui div in the HTML body with this updated version -->
-            <div class="ui">
-                <div class="info-container">
-                    <p class="gold-count">Gold: <span id="gold">20</span></p>
-                    <p class="level-count">Level: <span id="level">1</span></p>
-                    <button id="save-button">Save progress</button>
-                </div>
+    <div class="main-main-container">
+        <div class="main-container">
+            <div class="together">
+                <!-- Replace the existing .ui div in the HTML body with this updated version -->
+                <div class="ui">
+                    <div class="info-container">
+                        <p class="gold-count">Gold: <span id="gold">20</span></p>
+                        <p class="level-count">Level: <span id="level">1</span></p>
+                        <button id="save-button">Save progress</button>
+                    </div>
 
-                <div class="ball-options">
-                    <div class="ball-option" id="sniper-option" onclick="buyBall('sniper')">
-                        <p>Sniper</p>
-                        <div class="ball-preview">
-                            <canvas id="sniper-preview" width="60" height="60"></canvas>
-                        </div>
-                        <div class="ball-price">
-                            <span id="sniperPrice">20</span>
-                        </div>
-                    </div>
-                    <div class="ball-option" id="big-option" onclick="buyBall('big')">
-                        <p>Big</p>
-                        <div class="ball-preview">
-                            <canvas id="big-preview" width="60" height="60"></canvas>
-                        </div>
-                        <div class="ball-price">
-                            <span id="bigPrice">30</span>
-                        </div>
-                    </div>
-                    <div class="ball-option" id="explosion-option" onclick="buyBall('explosion')">
-                        <p>Bomb</p>
-                        <div class="ball-preview">
-                            <canvas id="explosion-preview" width="60" height="60"></canvas>
-                        </div>
-                        <div class="ball-price">
-                            <span id="explosionPrice">40</span>
-                        </div>
-                    </div>
-                    <div class="ball-option" id="multiplying-option" onclick="buyBall('multiplying')">
-                        <p>Clones</p>
-                        <div class="ball-preview">
-                            <canvas id="multiplying-preview" width="60" height="60"></canvas>
-                        </div>
-                        <div class="ball-price">
-                            <span id="multiplyingPrice">50</span>
-                        </div>
-                    </div>
-                    <div class="ball-option" id="auto-option" onclick="buyAutoBall()">
-                        <p>Auto</p>
-                        <div class="ball-preview">
-                            <canvas id="auto-preview" width="60" height="60"></canvas>
-                        </div>
-                        <div class="ball-price">
-                            <span id="autoPrice">100</span>
-                        </div>
-                    </div>
-                    <div class="button-group">
-                        <div class="ball-option" id="weapons-btn">
-                            <p>Mass Destruction</p>
+                    <div class="ball-options">
+                        <div class="ball-option" id="sniper-option" onclick="buyBall('sniper')">
+                            <p>Sniper</p>
+                            <div class="ball-preview">
+                                <canvas id="sniper-preview" width="60" height="60"></canvas>
+                            </div>
                             <div class="ball-price">
-                                <span>1000</span>
+                                <span id="sniperPrice">20</span>
                             </div>
                         </div>
-                        <div class="inside-button-group">
-                            <div class="ball-option" id="my-balls-btn">
-                                <p>Upgrades</p>
+                        <div class="ball-option" id="big-option" onclick="buyBall('big')">
+                            <p>Big</p>
+                            <div class="ball-preview">
+                                <canvas id="big-preview" width="60" height="60"></canvas>
                             </div>
-                            <div class="ball-option" id="settings-btn">
-                                <p>Settings</p>
+                            <div class="ball-price">
+                                <span id="bigPrice">30</span>
+                            </div>
+                        </div>
+                        <div class="ball-option" id="explosion-option" onclick="buyBall('explosion')">
+                            <p>Bomb</p>
+                            <div class="ball-preview">
+                                <canvas id="explosion-preview" width="60" height="60"></canvas>
+                            </div>
+                            <div class="ball-price">
+                                <span id="explosionPrice">40</span>
+                            </div>
+                        </div>
+                        <div class="ball-option" id="multiplying-option" onclick="buyBall('multiplying')">
+                            <p>Clones</p>
+                            <div class="ball-preview">
+                                <canvas id="multiplying-preview" width="60" height="60"></canvas>
+                            </div>
+                            <div class="ball-price">
+                                <span id="multiplyingPrice">50</span>
+                            </div>
+                        </div>
+                        <div class="ball-option" id="auto-option" onclick="buyAutoBall()">
+                            <p>Auto</p>
+                            <div class="ball-preview">
+                                <canvas id="auto-preview" width="60" height="60"></canvas>
+                            </div>
+                            <div class="ball-price">
+                                <span id="autoPrice">100</span>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <div class="ball-option" id="weapons-btn">
+                                <p>Mass Destruction</p>
+                                <div class="ball-price">
+                                    <span>1000</span>
+                                </div>
+                            </div>
+                            <div class="inside-button-group">
+                                <div class="ball-option" id="my-balls-btn">
+                                    <p>Upgrades</p>
+                                </div>
+                                <div class="ball-option" id="settings-btn">
+                                    <p>Settings</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <h1>Bricker</h1>
+                    <h1>Bricker</h1>
+                </div>
+                <canvas id="gameCanvas" width="1000" height="520"></canvas>
             </div>
-            <canvas id="gameCanvas" width="1000" height="520"></canvas>
+            <div class="leaderboard-container">
+                <h2>Leaderboard</h2>
+                <div class="leaderboard-list"></div>
+            </div>
+
         </div>
-        <div class="leaderboard-container">
-            <h2>Leaderboard</h2>
-            <div class="leaderboard-list"></div>
-        </div>
+        <div id="tips-text"></div>
 
     </div>
 
@@ -1062,53 +1088,53 @@
         function startTutorial() {
             introJs().setOptions({
                 steps: [{
-                        intro: "Welcome to Bricker! Let's explore the game.",
-                        position: "center"
-                    },
-                    {
-                        element: document.querySelector('#gameCanvas'),
-                        intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
-                        position: "top"
-                    },
-                    {
-                        element: document.querySelector('.info-container'),
-                        intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
-                        position: "right"
-                    },
-                    {
-                        element: document.querySelector('#save-button'),
-                        intro: "Click here to save your progress to your account.",
-                        position: "right"
-                    },
-                    {
-                        element: document.querySelector('.ball-options'),
-                        intro: "Buy different balls here, like Sniper or Bomb, each with unique abilities.",
-                        position: "bottom"
-                    },
-                    {
-                        element: document.querySelector('#my-balls-btn'),
-                        intro: "View your balls and upgrade them.",
-                        position: "left"
-                    },
-                    {
-                        element: document.querySelector('#settings-btn'),
-                        intro: "Update your username or log out in the settings.",
-                        position: "left"
-                    },
-                    {
-                        element: document.querySelector('#weapons-btn'),
-                        intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
-                        position: "left"
-                    },
-                    {
-                        element: document.querySelector('.leaderboard-container'),
-                        intro: "Check the leaderboard to see top players' rankings and stats.",
-                        position: "left"
-                    },
-                    {
-                        intro: "You're all set! Start destroying bricks and earning gold!",
-                        position: "center"
-                    }
+                    intro: "Welcome to Bricker! Let's explore the game.",
+                    position: "center"
+                },
+                {
+                    element: document.querySelector('#gameCanvas'),
+                    intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
+                    position: "top"
+                },
+                {
+                    element: document.querySelector('.info-container'),
+                    intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
+                    position: "right"
+                },
+                {
+                    element: document.querySelector('#save-button'),
+                    intro: "Click here to save your progress to your account.",
+                    position: "right"
+                },
+                {
+                    element: document.querySelector('.ball-options'),
+                    intro: "Buy different balls here, like Sniper or Bomb, each with unique abilities.",
+                    position: "bottom"
+                },
+                {
+                    element: document.querySelector('#my-balls-btn'),
+                    intro: "View your balls and upgrade them.",
+                    position: "left"
+                },
+                {
+                    element: document.querySelector('#settings-btn'),
+                    intro: "Update your username or log out in the settings.",
+                    position: "left"
+                },
+                {
+                    element: document.querySelector('#weapons-btn'),
+                    intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
+                    position: "left"
+                },
+                {
+                    element: document.querySelector('.leaderboard-container'),
+                    intro: "Check the leaderboard to see top players' rankings and stats.",
+                    position: "left"
+                },
+                {
+                    intro: "You're all set! Start destroying bricks and earning gold!",
+                    position: "center"
+                }
                 ],
                 showProgress: true,
                 showBullets: false,
@@ -1272,7 +1298,7 @@
             }, 2000);
         }
 
-        window.onload = function() {
+        window.onload = function () {
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
                     // Load game state but don't save until user interaction
@@ -1394,7 +1420,7 @@
                 });
         }
 
-        window.onload = function() {
+        window.onload = function () {
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
                     loadGameState(user.uid);
@@ -1463,6 +1489,7 @@
                     });
             }
         }
+
 
         function saveGameStateFromLocalStorage(uid) {
             const gameState = JSON.parse(localStorage.getItem('brickerGameState'));
@@ -1735,13 +1762,12 @@ display: flex;
             <h3>${leader.username}</h3>
             <p>Rebirths: ${leader.rebirthCount}</p>
             <p>Gold: ${Math.floor(leader.gold)}</p>
-            <p>Total Balls: ${
-                (leader.ballCounts.sniper || 0) +
+            <p>Total Balls: ${(leader.ballCounts.sniper || 0) +
                 (leader.ballCounts.big || 0) +
                 (leader.ballCounts.explosion || 0) +
                 (leader.ballCounts.multiplying || 0) +
                 (leader.ballCounts.child || 0)
-            }</p>
+                }</p>
             <p>Total Upgrades: ${leader.totalUpgrades}</p>
             <p>Idle Gold Per Second: ${leader.idleGoldPerSecond.toFixed(2)}</p>
             <div id="donation-container" style="display: none; margin-top: 10px;">
@@ -1906,6 +1932,7 @@ display: flex;
                 stats,
                 username,
                 rebirthCount,
+                cosmetics,
                 globalUpgrades: {
                     speedBoost: {
                         active: globalUpgrades.speedBoost.active,
@@ -1936,31 +1963,11 @@ display: flex;
                         idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
                         rebirthCount = data.rebirthCount || 0;
                         ballUpgrades = data.ballUpgrades || {
-                            sniper: {
-                                level: 1,
-                                speed: 4.5,
-                                damage: 1
-                            },
-                            big: {
-                                level: 1,
-                                speed: 2.7,
-                                damage: 1
-                            },
-                            explosion: {
-                                level: 1,
-                                speed: 2.7,
-                                damage: 2
-                            },
-                            multiplying: {
-                                level: 1,
-                                speed: 2.7,
-                                damage: 1
-                            },
-                            child: {
-                                level: 1,
-                                speed: 3.6,
-                                damage: 1
-                            }
+                            sniper: { level: 1, speed: 4.5, damage: 1 },
+                            big: { level: 1, speed: 2.7, damage: 1 },
+                            explosion: { level: 1, speed: 2.7, damage: 2 },
+                            multiplying: { level: 1, speed: 2.7, damage: 1 },
+                            child: { level: 1, speed: 3.6, damage: 1 }
                         };
                         ballCounts = data.ballCounts || {
                             sniper: 0,
@@ -1977,7 +1984,13 @@ display: flex;
                         };
                         username = data.username || '';
                         cosmetics = data.cosmetics || {
-                            nebulaSkin: false
+                            nebulaSkin: false,
+                            fireTrail: false,
+                            iceTrail: false,
+                            rainbowSkin: false,
+                            bundleSilver: false,
+                            bundleGold: false,
+                            bundlePlatinum: false
                         };
                         balls = [];
                         if (data.ballCounts) {
@@ -2040,6 +2053,7 @@ display: flex;
                     startGame();
                 });
         }
+
         // Start the game
         function startGame() {
             spawnBricks();
@@ -2317,7 +2331,7 @@ display: flex;
                     gold: 'gold',
                     speed: 'cyan',
                     multiBall: 'magenta'
-                } [this.type];
+                }[this.type];
                 ctx.fillRect(this.x - (width - this.width) / 2, this.y - (height - this.height) / 2, width, height);
             }
 
@@ -2369,7 +2383,10 @@ display: flex;
             }
 
             move() {
-                this.y += this.dy;
+                const isBoostTime = isAutoBallBoostTime();
+                const speedMultiplier = isBoostTime ? 10 : 1;
+                const damageMultiplier = isBoostTime ? 10 : 1;
+                this.y += this.dy * speedMultiplier;
                 if (this.y < 0) {
                     this.y = canvas.height - 30;
                     const maxCols = 6;
@@ -2386,7 +2403,7 @@ display: flex;
                         this.y > brick.y &&
                         this.y < brick.y + brick.height
                     ) {
-                        brick.health -= 1;
+                        brick.health -= 1 * damageMultiplier;
                         if (brick.health <= 0) {
                             bricks = bricks.filter(b => b !== brick);
                             gold += 5;
@@ -2411,6 +2428,44 @@ display: flex;
                 ctx.closePath();
             }
         }
+
+        const tips = [
+            "Click bricks to reduce their health by 1!",
+            "Sniper balls target the nearest brick on wall hits.",
+            "Bomb balls deal splash damage to nearby bricks.",
+            "Clones balls spawn a child ball on brick hit.",
+            "Auto balls respawn at the bottom if they miss bricks.",
+            "Auto balls are 10x stronger from 11 AM to 2 PM!",
+            "Rebirth at level 100 to keep upgrades, boost gold.",
+            "Rebirths increase max upgrade levels by 5.",
+            "Power-ups spawn randomly when bricks are destroyed.",
+            "Gold power-ups grant 50 gold instantly.",
+            "Mass Destruction weapons cost 1000 gold.",
+            "Donate gold to players via the leaderboard.",
+            "Cosmetic bundles include skins and power-ups.",
+            "Idle gold per second grows with rebirths.",
+            "Save progress to avoid losing gold and upgrades.",
+            "Check the leaderboard to see global rankings.",
+            "Upgrade balls for permanent speed and damage boosts.",
+            "Speed and Gold Boosts last 1 minute, use wisely!",
+            "Instant Brick Destroy eliminates one brick for gold.",
+            "Time Warp slows balls for 10 seconds."
+        ];
+
+        let currentTipIndex = 0;
+        const tipsText = document.getElementById('tips-text');
+
+        function showNextTip() {
+            tipsText.style.opacity = 0;
+            setTimeout(() => {
+                tipsText.textContent = tips[currentTipIndex];
+                tipsText.style.opacity = 1;
+                currentTipIndex = (currentTipIndex + 1) % tips.length;
+            }, 500);
+            setTimeout(showNextTip, 4000);
+        }
+
+        showNextTip();
 
         // Spawn power-up
         function spawnPowerUp() {
@@ -2519,7 +2574,7 @@ display: flex;
                     big: 'green',
                     explosion: 'orange',
                     multiplying: 'purple'
-                } [type];
+                }[type];
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
             } else {
@@ -2624,41 +2679,88 @@ display: flex;
         }
 
         const powerUpsList = [{
-                emoji: '⚡',
-                name: 'Thunder Strike',
-                description: 'Destroys 5 random bricks instantly.'
-            },
-            {
-                emoji: '🛡️',
-                name: 'Shield Boost',
-                description: 'Protects balls from disappearing for 30 seconds.'
-            },
-            {
-                emoji: '💥',
-                name: 'Mega Explosion',
-                description: 'Doubles explosion ball damage for 20 seconds.'
-            },
-            {
-                emoji: '🌟',
-                name: 'Star Shower',
-                description: 'Spawns 3 auto balls for 15 seconds.'
-            },
-            {
-                emoji: '🕒',
-                name: 'Time Warp',
-                description: 'Slows down time for 10 seconds.'
-            },
-            {
-                emoji: '🌌',
-                name: 'Cosmic Barrage',
-                description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
-            }
+            emoji: '⚡',
+            name: 'Thunder Strike',
+            description: 'Destroys 5 random bricks instantly.'
+        },
+        {
+            emoji: '🛡️',
+            name: 'Shield Boost',
+            description: 'Protects balls from disappearing for 30 seconds.'
+        },
+        {
+            emoji: '💥',
+            name: 'Mega Explosion',
+            description: 'Doubles explosion ball damage for 20 seconds.'
+        },
+        {
+            emoji: '🌟',
+            name: 'Star Shower',
+            description: 'Spawns 3 auto balls for 15 seconds.'
+        },
+        {
+            emoji: '🕒',
+            name: 'Time Warp',
+            description: 'Slows down time for 10 seconds.'
+        },
+        {
+            emoji: '🌌',
+            name: 'Cosmic Barrage',
+            description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
+        }
         ];
 
         // Game state variables
         let cosmetics = {
-            nebulaSkin: false
+            nebulaSkin: false,
+            fireTrail: false,
+            iceTrail: false,
+            rainbowSkin: false,
+            bundleSilver: false,
+            bundleGold: false,
+            bundlePlatinum: false
         };
+
+        function deleteCosmetic(cosmeticName) {
+            const user = auth.currentUser;
+            if (!user || isGuest) {
+                showLoginPopupForSave();
+                return;
+            }
+            if (!cosmetics[cosmeticName]) {
+                showToast('Cosmetic not owned!');
+                return;
+            }
+            // Confirm deletion
+            if (!confirm(`Are you sure you want to delete ${cosmeticName.replace(/([A-Z])/g, ' $1').trim()}?`)) {
+                return;
+            }
+            cosmetics[cosmeticName] = false;
+            // If a bundle is deleted, remove associated cosmetics
+            if (cosmeticName === 'bundleSilver') {
+                cosmetics.nebulaSkin = false;
+            } else if (cosmeticName === 'bundleGold') {
+                cosmetics.nebulaSkin = false;
+                cosmetics.fireTrail = false;
+            } else if (cosmeticName === 'bundlePlatinum') {
+                cosmetics.nebulaSkin = false;
+                cosmetics.fireTrail = false;
+                cosmetics.iceTrail = false;
+                cosmetics.rainbowSkin = false;
+            }
+            database.ref('users/' + user.uid + '/gameState').update({
+                cosmetics: cosmetics
+            }).then(() => {
+                document.querySelector('.login-overlay')?.remove();
+                showToast(`${cosmeticName.replace(/([A-Z])/g, ' $1').trim()} deleted!`);
+                updateUI();
+                showMyBallsPopup();
+            }).catch(error => {
+                showToast('Failed to delete cosmetic: ' + error.message);
+                cosmetics[cosmeticName] = true; // Revert on failure
+                updateUI();
+            });
+        }
 
         // Update buyPowerup function to handle specific powerups
         function buyPowerup(rebirthCost, powerupCount, specificPowerup = null) {
@@ -2749,33 +2851,65 @@ display: flex;
 
         // New function to buy cosmetic
         function buyCosmetic(cosmeticName) {
-            const rebirthCost = 10;
-            if (rebirthCount >= rebirthCost && !cosmetics[cosmeticName]) {
-                const user = auth.currentUser;
-                if (user && !isGuest) {
-                    rebirthCount -= rebirthCost;
-                    cosmetics[cosmeticName] = true;
-                    database.ref('users/' + user.uid + '/gameState').update({
-                        rebirthCount: rebirthCount,
-                        cosmetics: cosmetics
-                    }).then(() => {
-                        const loginOverlay = document.querySelector('.login-overlay');
-                        if (loginOverlay) loginOverlay.remove(); // Close My Balls popup
-                        showToast('Nebula Ball Skin unlocked!');
-                        updateUI();
-                        updateLeaderboard(); // Update leaderboard after rebirth deduction
-                    }).catch(error => {
-                        showToast('Failed to unlock cosmetic: ' + error.message);
-                        rebirthCount += rebirthCost;
-                        cosmetics[cosmeticName] = false;
-                        updateUI();
-                    });
-                } else {
-                    showLoginPopupForSave();
-                }
-            } else {
-                showToast(cosmetics[cosmeticName] ? 'Cosmetic already owned!' : 'Not enough rebirths!');
+            const costs = {
+                nebulaSkin: { rebirths: 10 },
+                fireTrail: { gold: 500 },
+                iceTrail: { gold: 500 },
+                rainbowSkin: { rebirths: 15 },
+                bundleSilver: { rebirths: 20 },
+                bundleGold: { rebirths: 30 },
+                bundlePlatinum: { rebirths: 50 }
+            };
+            const cost = costs[cosmeticName];
+            const user = auth.currentUser;
+            if (!user || isGuest) {
+                showLoginPopupForSave();
+                return;
             }
+            if (cosmetics[cosmeticName]) {
+                showToast('Cosmetic already owned!');
+                return;
+            }
+            const canAfford = (cost.rebirths && rebirthCount >= cost.rebirths) || (cost.gold && gold >= cost.gold);
+            if (!canAfford) {
+                showToast(cost.rebirths ? 'Not enough rebirths!' : 'Not enough gold!');
+                return;
+            }
+            if (cost.rebirths) rebirthCount -= cost.rebirths;
+            if (cost.gold) gold -= cost.gold;
+            cosmetics[cosmeticName] = true;
+            // Apply bundle effects
+            if (cosmeticName === 'bundleSilver') {
+                cosmetics.nebulaSkin = true;
+                showSpinner(2); // 2 random powerups
+            } else if (cosmeticName === 'bundleGold') {
+                cosmetics.nebulaSkin = true;
+                cosmetics.fireTrail = true;
+                showSpinner(3); // 3 random powerups
+            } else if (cosmeticName === 'bundlePlatinum') {
+                cosmetics.nebulaSkin = true;
+                cosmetics.fireTrail = true;
+                cosmetics.iceTrail = true;
+                cosmetics.rainbowSkin = true;
+                showSpinner(5); // 5 random powerups
+            }
+            database.ref('users/' + user.uid + '/gameState').update({
+                rebirthCount: rebirthCount,
+                gold: gold,
+                cosmetics: cosmetics
+            }).then(() => {
+                document.querySelector('.login-overlay')?.remove();
+                showToast(`${cosmeticName.replace(/([A-Z])/g, ' $1').trim()} unlocked!`);
+                updateUI();
+                updateLeaderboard();
+                showMyBallsPopup();
+            }).catch(error => {
+                showToast('Failed to unlock cosmetic: ' + error.message);
+                if (cost.rebirths) rebirthCount += cost.rebirths;
+                if (cost.gold) gold += cost.gold;
+                cosmetics[cosmeticName] = false;
+                updateUI();
+            });
         }
 
         // Buy Instant Brick Destroy
@@ -2873,7 +3007,7 @@ display: flex;
                         big: 'green',
                         explosion: 'orange',
                         multiplying: 'purple'
-                    } [type];
+                    }[type];
                     balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                     ballCounts[type]++;
                     stats.totalBallsPurchased++;
@@ -3134,20 +3268,20 @@ display: flex;
             });
 
             const upgrades = [{
-                    name: 'Damage',
-                    key: 'damage',
-                    price: 100
-                },
-                {
-                    name: 'Speed',
-                    key: 'speed',
-                    price: 100
-                },
-                {
-                    name: 'Radius',
-                    key: 'radius',
-                    price: 100
-                }
+                name: 'Damage',
+                key: 'damage',
+                price: 100
+            },
+            {
+                name: 'Speed',
+                key: 'speed',
+                price: 100
+            },
+            {
+                name: 'Radius',
+                key: 'radius',
+                price: 100
+            }
             ];
             const upgradeShop = document.getElementById('upgrade-shop');
             upgradeShop.innerHTML = '';
@@ -3265,10 +3399,19 @@ display: flex;
         }
 
 
-        Ball.prototype.draw = function() {
+        Ball.prototype.draw = function () {
             drawTrail(this);
             ctx.beginPath();
-            if (cosmetics.nebulaSkin) {
+            if (cosmetics.rainbowSkin) {
+                const gradient = ctx.createLinearGradient(this.x - this.radius, this.y, this.x + this.radius, this.y);
+                gradient.addColorStop(0, 'red');
+                gradient.addColorStop(0.2, 'orange');
+                gradient.addColorStop(0.4, 'yellow');
+                gradient.addColorStop(0.6, 'green');
+                gradient.addColorStop(0.8, 'blue');
+                gradient.addColorStop(1, 'violet');
+                ctx.fillStyle = gradient;
+            } else if (cosmetics.nebulaSkin) {
                 const gradient = ctx.createRadialGradient(this.x, this.y, this.radius / 2, this.x, this.y, this.radius);
                 gradient.addColorStop(0, '#4b0082');
                 gradient.addColorStop(1, '#00b7eb');
@@ -3282,7 +3425,7 @@ display: flex;
         };
 
         function showMyBallsPopup() {
-            const maxUpgradeLevel = 10 + rebirthCount * 5; // Max level increases by 5 per rebirth
+            const maxUpgradeLevel = 10 + rebirthCount * 5;
             const overlay = document.createElement('div');
             overlay.className = 'login-overlay';
             const sniperCost = getUpgradeCost('sniper');
@@ -3367,61 +3510,101 @@ display: flex;
                     <button class="rebirth-btn" ${level < 100 ? 'disabled' : ''} onclick="rebirth()">Rebirth (Level ${level}/100)</button>
                 </div>
             </div>
-<div class="tab-content" id="shop">
-    <div class="shop-options">
-        <div class="shop-option">
-            <span>🎲 Random Powerup</span>
-            <span class="tooltip">Grants 1 random powerup (e.g., Thunder Strike, Shield Boost).</span>
-            <button onclick="buyPowerup(1, 1)" ${rebirthCount < 1 ? 'disabled' : ''}>Buy (1 Rebirth)</button>
+            <div class="tab-content" id="shop">
+                <div class="shop-options">
+                    <h3>Powerups</h3>
+                    <div class="shop-option">
+                        <span>🎲 Random Powerup</span>
+                        <span class="tooltip">Grants 1 random powerup (e.g., Thunder Strike, Shield Boost).</span>
+                        <button onclick="buyPowerup(1, 1)" ${rebirthCount < 1 ? 'disabled' : ''}>Buy (1 Rebirth)</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>💰 Idle Gold Boost</span>
+                        <span class="tooltip">Permanently increases idle gold by +0.5/sec.</span>
+                        <button onclick="buyIdleGoldBoost()" ${rebirthCount < 3 ? 'disabled' : ''}>Buy (3 Rebirths)</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>🌌 Cosmic Barrage</span>
+                        <span class="tooltip">Destroys 10 bricks and doubles ball speed for 15 seconds.</span>
+                        <button onclick="buyPowerup(5, 1, 'cosmicBarrage')" ${rebirthCount < 5 ? 'disabled' : ''}>Buy (5 Rebirths)</button>
+                    </div>
+                    <h3>Skins & Trails</h3>
+                    <div class="shop-option">
+                        <span>🌌 Nebula Ball Skin</span>
+                        <span class="tooltip">Cosmic-themed ball skin with a starry gradient.</span>
+                        <button class="cosmetic-btn" data-cosmetic="nebulaSkin" onmouseenter="toggleCosmeticButton(this, 'nebulaSkin')" onmouseleave="toggleCosmeticButton(this, 'nebulaSkin')" onclick="${cosmetics.nebulaSkin ? "deleteCosmetic('nebulaSkin')" : "buyCosmetic('nebulaSkin')"}" ${!cosmetics.nebulaSkin && rebirthCount < 10 ? 'disabled' : ''}>${cosmetics.nebulaSkin ? 'Delete' : 'Buy (10 Rebirths)'}</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>🔥 Fire Trail</span>
+                        <span class="tooltip">Leaves a fiery trail behind balls.</span>
+                        <button class="cosmetic-btn" data-cosmetic="fireTrail" onmouseenter="toggleCosmeticButton(this, 'fireTrail')" onmouseleave="toggleCosmeticButton(this, 'fireTrail')" onclick="${cosmetics.fireTrail ? "deleteCosmetic('fireTrail')" : "buyCosmetic('fireTrail')"}" ${!cosmetics.fireTrail && gold < 500 ? 'disabled' : ''}>${cosmetics.fireTrail ? 'Delete' : 'Buy (500 Gold)'}</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>❄️ Ice Trail</span>
+                        <span class="tooltip">Leaves a frosty trail behind balls.</span>
+                        <button class="cosmetic-btn" data-cosmetic="iceTrail" onmouseenter="toggleCosmeticButton(this, 'iceTrail')" onmouseleave="toggleCosmeticButton(this, 'iceTrail')" onclick="${cosmetics.iceTrail ? "deleteCosmetic('iceTrail')" : "buyCosmetic('iceTrail')"}" ${!cosmetics.iceTrail && gold < 500 ? 'disabled' : ''}>${cosmetics.iceTrail ? 'Delete' : 'Buy (500 Gold)'}</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>🌈 Rainbow Ball Skin</span>
+                        <span class="tooltip">Vibrant, color-shifting ball skin.</span>
+                        <button class="cosmetic-btn" data-cosmetic="rainbowSkin" onmouseenter="toggleCosmeticButton(this, 'rainbowSkin')" onmouseleave="toggleCosmeticButton(this, 'rainbowSkin')" onclick="${cosmetics.rainbowSkin ? "deleteCosmetic('rainbowSkin')" : "buyCosmetic('rainbowSkin')"}" ${!cosmetics.rainbowSkin && rebirthCount < 15 ? 'disabled' : ''}>${cosmetics.rainbowSkin ? 'Delete' : 'Buy (15 Rebirths)'}</button>
+                    </div>
+                    <h3>Bundles</h3>
+                    <div class="shop-option">
+                        <span>🥈 Silver Bundle</span>
+                        <span class="tooltip">Includes Nebula Skin and 2 Random Powerups.</span>
+                        <button class="cosmetic-btn" data-cosmetic="bundleSilver" onmouseenter="toggleCosmeticButton(this, 'bundleSilver')" onmouseleave="toggleCosmeticButton(this, 'bundleSilver')" onclick="${cosmetics.bundleSilver ? "deleteCosmetic('bundleSilver')" : "buyCosmetic('bundleSilver')"}" ${!cosmetics.bundleSilver && rebirthCount < 20 ? 'disabled' : ''}>${cosmetics.bundleSilver ? 'Delete' : 'Buy (20 Rebirths)'}</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>🥇 Gold Bundle</span>
+                        <span class="tooltip">Includes Nebula Skin, Fire Trail, and 3 Random Powerups.</span>
+                        <button class="cosmetic-btn" data-cosmetic="bundleGold" onmouseenter="toggleCosmeticButton(this, 'bundleGold')" onmouseleave="toggleCosmeticButton(this, 'bundleGold')" onclick="${cosmetics.bundleGold ? "deleteCosmetic('bundleGold')" : "buyCosmetic('bundleGold')"}" ${!cosmetics.bundleGold && rebirthCount < 30 ? 'disabled' : ''}>${cosmetics.bundleGold ? 'Delete' : 'Buy (30 Rebirths)'}</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>💎 Platinum Bundle</span>
+                        <span class="tooltip">Includes Nebula Skin, Fire Trail, Ice Trail, Rainbow Skin, and 5 Random Powerups.</span>
+                        <button class="cosmetic-btn" data-cosmetic="bundlePlatinum" onmouseenter="toggleCosmeticButton(this, 'bundlePlatinum')" onmouseleave="toggleCosmeticButton(this, 'bundlePlatinum')" onclick="${cosmetics.bundlePlatinum ? "deleteCosmetic('bundlePlatinum')" : "buyCosmetic('bundlePlatinum')"}" ${!cosmetics.bundlePlatinum && rebirthCount < 50 ? 'disabled' : ''}>${cosmetics.bundlePlatinum ? 'Delete' : 'Buy (50 Rebirths)'}</button>
+                    </div>
+                    <h3>Boosts</h3>
+                    <div class="shop-option">
+                        <span>💥 Instant Brick Destroy</span>
+                        <span class="tooltip">Destroys 1 random brick instantly, grants 5 gold.</span>
+                        <button onclick="buyInstantBrickDestroy()" ${gold < getDynamicPrice(basePrices.instantBrickDestroy) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.instantBrickDestroy)} Gold)</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>⚡ Double Damage</span>
+                        <span class="tooltip">Doubles all ball damage for 30 seconds.</span>
+                        <button onclick="buyDoubleDamage()" ${gold < getDynamicPrice(basePrices.doubleDamage) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.doubleDamage)} Gold)</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>🏀 Extra Ball</span>
+                        <span class="tooltip">Adds 1 random ball (Sniper, Big, Bomb, or Clones).</span>
+                        <button onclick="buyExtraBall()" ${gold < getDynamicPrice(basePrices.extraBall) || balls.length >= maxBalls ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.extraBall)} Gold)</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>🧲 Gold Magnet</span>
+                        <span class="tooltip">Collects all gold power-ups for 20 seconds, 50 gold each.</span>
+                        <button onclick="buyGoldMagnet()" ${gold < getDynamicPrice(basePrices.goldMagnet) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.goldMagnet)} Gold)</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>🛠️ Brick Health Reduction</span>
+                        <span class="tooltip">Halves all brick health (minimum 1).</span>
+                        <button onclick="buyBrickHealthReduction()" ${gold < getDynamicPrice(basePrices.brickHealthReduction) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.brickHealthReduction)} Gold)</button>
+                    </div>
+                    <div class="shop-option">
+                        <span>🚀 Speed Surge</span>
+                        <span class="tooltip">Increases ball speed by 3x for 15 seconds.</span>
+                        <button onclick="buySpeedSurge()" ${gold < getDynamicPrice(basePrices.speedSurge) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.speedSurge)} Gold)</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="shop-option">
-            <span>💰 Idle Gold Boost</span>
-            <span class="tooltip">Permanently increases idle gold by +0.5/sec.</span>
-            <button onclick="buyIdleGoldBoost()" ${rebirthCount < 3 ? 'disabled' : ''}>Buy (3 Rebirths)</button>
-        </div>
-        <div class="shop-option" style="display: none;">
-            <span>🌌 Cosmic Barrage</span>
-            <span class="tooltip">Destroys 10 bricks and doubles ball speed for 15 seconds.</span>
-            <button onclick="buyPowerup(5, 1, 'cosmicBarrage')" ${rebirthCount < 5 ? 'disabled' : ''}>Buy (5 Rebirths)</button>
-        </div>
-        <div class="shop-option">
-            <span>✨ Nebula Ball Skin</span>
-            <span class="tooltip">Unlocks a cosmic-themed ball skin.</span>
-            <button onclick="buyCosmetic('nebulaSkin')" ${rebirthCount < 10 ? 'disabled' : ''}>Buy (10 Rebirths)</button>
-        </div>
-        <div class="shop-option">
-            <span>💥 Instant Brick Destroy</span>
-            <span class="tooltip">Destroys 1 random brick instantly, grants 5 gold.</span>
-            <button onclick="buyInstantBrickDestroy()" ${gold < getDynamicPrice(basePrices.instantBrickDestroy) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.instantBrickDestroy)} Gold)</button>
-        </div>
-        <div class="shop-option">
-            <span>⚡ Double Damage</span>
-            <span class="tooltip">Doubles all ball damage for 30 seconds.</span>
-            <button onclick="buyDoubleDamage()" ${gold < getDynamicPrice(basePrices.doubleDamage) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.doubleDamage)} Gold)</button>
-        </div>
-        <div class="shop-option">
-            <span>🏀 Extra Ball</span>
-            <span class="tooltip">Adds 1 random ball (Sniper, Big, Bomb, or Clones).</span>
-            <button onclick="buyExtraBall()" ${gold < getDynamicPrice(basePrices.extraBall) || balls.length >= maxBalls ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.extraBall)} Gold)</button>
-        </div>
-        <div class="shop-option">
-            <span>🧲 Gold Magnet</span>
-            <span class="tooltip">Collects all gold power-ups for 20 seconds, 50 gold each.</span>
-            <button onclick="buyGoldMagnet()" ${gold < getDynamicPrice(basePrices.goldMagnet) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.goldMagnet)} Gold)</button>
-        </div>
-        <div class="shop-option">
-            <span>🛠️ Brick Health Reduction</span>
-            <span class="tooltip">Halves all brick health (minimum 1).</span>
-            <button onclick="buyBrickHealthReduction()" ${gold < getDynamicPrice(basePrices.brickHealthReduction) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.brickHealthReduction)} Gold)</button>
-        </div>
-        <div class="shop-option">
-            <span>🚀 Speed Surge</span>
-            <span class="tooltip">Increases ball speed by 3x for 15 seconds.</span>
-            <button onclick="buySpeedSurge()" ${gold < getDynamicPrice(basePrices.speedSurge) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.speedSurge)} Gold)</button>
-        </div>
-    </div>
-</div>
-        </div>
+        <style>
+            .cosmetic-btn:hover:not(:disabled) {
+                background: #ff4d4d;
+                color: white;
+            }
+        </style>
     `;
             document.body.appendChild(overlay);
             drawBallPreview('sniper-stats-preview', 'blue', 8);
@@ -3446,6 +3629,24 @@ display: flex;
             });
         }
 
+        function toggleCosmeticButton(button, cosmeticName) {
+            if (!cosmetics[cosmeticName] && !button.disabled) {
+                button.textContent = button.textContent === `Buy (${getCosmeticCostText(cosmeticName)})` ? 'Buy' : `Buy (${getCosmeticCostText(cosmeticName)})`;
+            }
+        }
+
+        function getCosmeticCostText(cosmeticName) {
+            const costs = {
+                nebulaSkin: '10 Rebirths',
+                fireTrail: '500 Gold',
+                iceTrail: '500 Gold',
+                rainbowSkin: '15 Rebirths',
+                bundleSilver: '20 Rebirths',
+                bundleGold: '30 Rebirths',
+                bundlePlatinum: '50 Rebirths'
+            };
+            return costs[cosmeticName] || '';
+        }
         // Base prices for gold-based shop options
         const basePrices = {
             instantBrickDestroy: 100,
@@ -3692,7 +3893,13 @@ display: flex;
                 const alpha = index / ball.trail.length;
                 ctx.beginPath();
                 ctx.arc(position.x, position.y, ball.radius * 1.2, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${0.2 * alpha})`;
+                let fillStyle = `rgba(255, 255, 255, ${0.2 * alpha})`;
+                if (cosmetics.fireTrail) {
+                    fillStyle = `rgba(255, 69, 0, ${0.4 * alpha})`;
+                } else if (cosmetics.iceTrail) {
+                    fillStyle = `rgba(135, 206, 235, ${0.4 * alpha})`;
+                }
+                ctx.fillStyle = fillStyle;
                 ctx.fill();
                 ctx.closePath();
             });
@@ -3751,6 +3958,12 @@ display: flex;
                 requestAnimationFrame(loop);
             }
             requestAnimationFrame(loop);
+        }
+
+        function isAutoBallBoostTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            return hours >= 11 && hours < 14; // 11 AM to 2 PM
         }
 
         // Canvas click event
