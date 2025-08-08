@@ -916,6 +916,122 @@
             letter-spacing: 0.7px;
             font-weight: 600;
         }
+
+
+.sg60-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.sg60-popup {
+    background: #e9dcaf;
+    padding: 20px;
+    border: 3px solid #444;
+    border-radius: 10px;
+    width: 300px;
+    text-align: center;
+    color: #000;
+    position: relative;
+    font-family: Arial, sans-serif;
+}
+
+.sg60-popup .close-btn {
+    display: none;
+}
+
+.sg60-popup h2 {
+    margin: 0 0 15px;
+    font-size: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.sg60-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.sg60-gift-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#giftBoxCanvas {
+    background: #e9dcaf;
+    border: 2px solid #444;
+    border-radius: 5px;
+}
+
+.sg60-popup p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #000;
+}
+
+.sg60-popup p strong {
+    color: #000;
+    font-weight: 900;
+}
+
+.sg60-popup .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.sg60-popup button {
+    padding: 8px 15px;
+    background: #000;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.sg60-popup button:hover:not(:disabled) {
+    background: #0053a6;
+}
+
+.sg60-popup button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #000;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.close-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: #000;
+}
+
+.close-btn:hover {
+    background: #f4eed6;
+    border-radius: 5px;
+}
     </style>
 </head>
 
@@ -1305,6 +1421,8 @@
                     // Load game state but don't save until user interaction
                     loadGameState(user.uid);
                     startTutorialIfNeeded(user.uid);
+                    showSG60GiveawayPopup(user.uid); // Show giveaway popup for logged-in users
+
                 } else {
                     showLoginPopup();
                 }
@@ -1421,16 +1539,6 @@
                 });
         }
 
-        window.onload = function () {
-            auth.onAuthStateChanged(user => {
-                if (user && !isGuest) {
-                    loadGameState(user.uid);
-                } else {
-                    showLoginPopup();
-                }
-            });
-        };
-
         // Play as guest
         function playAsGuest() {
             isGuest = true;
@@ -1439,57 +1547,57 @@
         }
 
         // Save game state
-function saveGameState() {
-    if (isGuest) {
-        showLoginPopupForSave();
-        return;
-    }
-    const saveBtn = document.getElementById('save-button');
-    saveBtn.disabled = true;
-    const user = auth.currentUser;
-    if (user) {
-        const ballCounts = {
-            sniper: balls.filter(b => b.type === 'sniper').length,
-            big: balls.filter(b => b.type === 'big').length,
-            explosion: balls.filter(b => b.type === 'explosion').length,
-            multiplying: balls.filter(b => b.type === 'multiplying').length,
-            child: balls.filter(b => b.type === 'child').length
-        };
-        const gameState = {
-            gold,
-            level,
-            ballCounts,
-            autoBalls: autoBalls.length,
-            ballPrices,
-            autoBallPrice,
-            idleGoldPerSecond,
-            ballUpgrades,
-            stats,
-            username,
-            rebirthCount,
-            cosmetics,
-            globalUpgrades: {
-                speedBoost: {
-                    active: globalUpgrades.speedBoost.active,
-                    activationTime: globalUpgrades.speedBoost.active ? Date.now() : null
-                },
-                goldBoost: {
-                    active: globalUpgrades.goldBoost.active,
-                    activationTime: globalUpgrades.goldBoost.active ? Date.now() : null
-                }
+        function saveGameState() {
+            if (isGuest) {
+                showLoginPopupForSave();
+                return;
             }
-        };
-        database.ref('users/' + user.uid + '/gameState').update(gameState)
-            .then(() => {
-                showToast('Progress saved successfully!');
-                saveBtn.disabled = false;
-            })
-            .catch(error => {
-                showToast('Save failed: ' + error.message);
-                saveBtn.disabled = false;
-            });
-    }
-}
+            const saveBtn = document.getElementById('save-button');
+            saveBtn.disabled = true;
+            const user = auth.currentUser;
+            if (user) {
+                const ballCounts = {
+                    sniper: balls.filter(b => b.type === 'sniper').length,
+                    big: balls.filter(b => b.type === 'big').length,
+                    explosion: balls.filter(b => b.type === 'explosion').length,
+                    multiplying: balls.filter(b => b.type === 'multiplying').length,
+                    child: balls.filter(b => b.type === 'child').length
+                };
+                const gameState = {
+                    gold,
+                    level,
+                    ballCounts,
+                    autoBalls: autoBalls.length,
+                    ballPrices,
+                    autoBallPrice,
+                    idleGoldPerSecond,
+                    ballUpgrades,
+                    stats,
+                    username,
+                    rebirthCount,
+                    cosmetics,
+                    globalUpgrades: {
+                        speedBoost: {
+                            active: globalUpgrades.speedBoost.active,
+                            activationTime: globalUpgrades.speedBoost.active ? Date.now() : null
+                        },
+                        goldBoost: {
+                            active: globalUpgrades.goldBoost.active,
+                            activationTime: globalUpgrades.goldBoost.active ? Date.now() : null
+                        }
+                    }
+                };
+                database.ref('users/' + user.uid + '/gameState').update(gameState)
+                    .then(() => {
+                        showToast('Progress saved successfully!');
+                        saveBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        showToast('Save failed: ' + error.message);
+                        saveBtn.disabled = false;
+                    });
+            }
+        }
 
         function saveGameStateFromLocalStorage(uid) {
             const gameState = JSON.parse(localStorage.getItem('brickerGameState'));
@@ -1948,140 +2056,140 @@ display: flex;
         }
 
         // Load game state
-function loadGameState(uid) {
-    database.ref('users/' + uid + '/gameState').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            gold = data.gold || 20;
-            level = data.level || 1; // Ensure level is loaded correctly
-            ballPrices.sniper = data.ballPrices?.sniper || 50;
-            ballPrices.big = data.ballPrices?.big || 75;
-            ballPrices.explosion = data.ballPrices?.explosion || 100;
-            ballPrices.multiplying = data.ballPrices?.multiplying || 125;
-            autoBallPrice = data.autoBallPrice || 200;
-            idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
-            rebirthCount = data.rebirthCount || 0;
-            ballUpgrades = data.ballUpgrades || {
-                sniper: { level: 1, speed: 4.5, damage: 1 },
-                big: { level: 1, speed: 2.7, damage: 1 },
-                explosion: { level: 1, speed: 2.7, damage: 2 },
-                multiplying: { level: 1, speed: 2.7, damage: 1 },
-                child: { level: 1, speed: 3.6, damage: 1 }
-            };
-            ballCounts = data.ballCounts || {
-                sniper: 0,
-                big: 0,
-                explosion: 0,
-                multiplying: 0,
-                child: 0
-            };
-            stats = data.stats || {
-                totalPlayTime: 0,
-                totalBallsPurchased: 0,
-                totalUpgrades: 0,
-                startTime: Date.now()
-            };
-            username = data.username || '';
-            cosmetics = data.cosmetics || {
-                nebulaSkin: false,
-                fireTrail: false,
-                iceTrail: false,
-                rainbowSkin: false,
-                bundleSilver: false,
-                bundleGold: false,
-                bundlePlatinum: false
-            };
-            syncBallsWithCounts(); // Sync balls after loading
-            autoBalls = [];
-            for (let i = 0; i < (data.autoBalls || 0); i++) {
-                autoBalls.push(new AutoBall());
-            }
-            const now = Date.now();
-            if (data.globalUpgrades) {
-                if (data.globalUpgrades.speedBoost.active) {
-                    const elapsed = now - data.globalUpgrades.speedBoost.activationTime;
-                    if (elapsed < 60000) {
-                        globalUpgrades.speedBoost.active = true;
-                        setTimeout(() => {
-                            globalUpgrades.speedBoost.active = false;
-                            showToast('Speed boost expired!');
-                        }, 60000 - elapsed);
-                    } else {
-                        globalUpgrades.speedBoost.active = false;
+        function loadGameState(uid) {
+            database.ref('users/' + uid + '/gameState').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    gold = data.gold || 20;
+                    level = data.level || 1; // Ensure level is loaded correctly
+                    ballPrices.sniper = data.ballPrices?.sniper || 50;
+                    ballPrices.big = data.ballPrices?.big || 75;
+                    ballPrices.explosion = data.ballPrices?.explosion || 100;
+                    ballPrices.multiplying = data.ballPrices?.multiplying || 125;
+                    autoBallPrice = data.autoBallPrice || 200;
+                    idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
+                    rebirthCount = data.rebirthCount || 0;
+                    ballUpgrades = data.ballUpgrades || {
+                        sniper: { level: 1, speed: 4.5, damage: 1 },
+                        big: { level: 1, speed: 2.7, damage: 1 },
+                        explosion: { level: 1, speed: 2.7, damage: 2 },
+                        multiplying: { level: 1, speed: 2.7, damage: 1 },
+                        child: { level: 1, speed: 3.6, damage: 1 }
+                    };
+                    ballCounts = data.ballCounts || {
+                        sniper: 0,
+                        big: 0,
+                        explosion: 0,
+                        multiplying: 0,
+                        child: 0
+                    };
+                    stats = data.stats || {
+                        totalPlayTime: 0,
+                        totalBallsPurchased: 0,
+                        totalUpgrades: 0,
+                        startTime: Date.now()
+                    };
+                    username = data.username || '';
+                    cosmetics = data.cosmetics || {
+                        nebulaSkin: false,
+                        fireTrail: false,
+                        iceTrail: false,
+                        rainbowSkin: false,
+                        bundleSilver: false,
+                        bundleGold: false,
+                        bundlePlatinum: false
+                    };
+                    syncBallsWithCounts(); // Sync balls after loading
+                    autoBalls = [];
+                    for (let i = 0; i < (data.autoBalls || 0); i++) {
+                        autoBalls.push(new AutoBall());
                     }
-                }
-                if (data.globalUpgrades.goldBoost.active) {
-                    const elapsed = now - data.globalUpgrades.goldBoost.activationTime;
-                    if (elapsed < 60000) {
-                        globalUpgrades.goldBoost.active = true;
-                        setTimeout(() => {
-                            globalUpgrades.goldBoost.active = false;
-                            showToast('Gold boost expired!');
-                        }, 60000 - elapsed);
-                    } else {
-                        globalUpgrades.goldBoost.active = false;
+                    const now = Date.now();
+                    if (data.globalUpgrades) {
+                        if (data.globalUpgrades.speedBoost.active) {
+                            const elapsed = now - data.globalUpgrades.speedBoost.activationTime;
+                            if (elapsed < 60000) {
+                                globalUpgrades.speedBoost.active = true;
+                                setTimeout(() => {
+                                    globalUpgrades.speedBoost.active = false;
+                                    showToast('Speed boost expired!');
+                                }, 60000 - elapsed);
+                            } else {
+                                globalUpgrades.speedBoost.active = false;
+                            }
+                        }
+                        if (data.globalUpgrades.goldBoost.active) {
+                            const elapsed = now - data.globalUpgrades.goldBoost.activationTime;
+                            if (elapsed < 60000) {
+                                globalUpgrades.goldBoost.active = true;
+                                setTimeout(() => {
+                                    globalUpgrades.goldBoost.active = false;
+                                    showToast('Gold boost expired!');
+                                }, 60000 - elapsed);
+                            } else {
+                                globalUpgrades.goldBoost.active = false;
+                            }
+                        }
                     }
+                    updateUI();
+                    spawnBricks(); // Respawn bricks based on loaded level
+                    if (!gameStarted) {
+                        startGame();
+                        gameStarted = true;
+                    }
+                } else {
+                    startGame();
                 }
-            }
-            updateUI();
-            spawnBricks(); // Respawn bricks based on loaded level
-            if (!gameStarted) {
+            }, (error) => {
+                showToast('Failed to load game: ' + error.message);
                 startGame();
-                gameStarted = true;
-            }
-        } else {
-            startGame();
+            });
         }
-    }, (error) => {
-        showToast('Failed to load game: ' + error.message);
-        startGame();
-    });
-}
 
-function syncBallsWithCounts() {
-    const currentCounts = {
-        sniper: balls.filter(b => b.type === 'sniper').length,
-        big: balls.filter(b => b.type === 'big').length,
-        explosion: balls.filter(b => b.type === 'explosion').length,
-        multiplying: balls.filter(b => b.type === 'multiplying').length,
-        child: balls.filter(b => b.type === 'child').length
-    };
-    // Remove excess balls
-    Object.keys(ballCounts).forEach(type => {
-        while (currentCounts[type] > ballCounts[type]) {
-            const index = balls.findIndex(b => b.type === type);
-            if (index !== -1) {
-                balls.splice(index, 1);
-                currentCounts[type]--;
-            }
+        function syncBallsWithCounts() {
+            const currentCounts = {
+                sniper: balls.filter(b => b.type === 'sniper').length,
+                big: balls.filter(b => b.type === 'big').length,
+                explosion: balls.filter(b => b.type === 'explosion').length,
+                multiplying: balls.filter(b => b.type === 'multiplying').length,
+                child: balls.filter(b => b.type === 'child').length
+            };
+            // Remove excess balls
+            Object.keys(ballCounts).forEach(type => {
+                while (currentCounts[type] > ballCounts[type]) {
+                    const index = balls.findIndex(b => b.type === type);
+                    if (index !== -1) {
+                        balls.splice(index, 1);
+                        currentCounts[type]--;
+                    }
+                }
+            });
+            // Add missing balls
+            Object.keys(ballCounts).forEach(type => {
+                while (currentCounts[type] < ballCounts[type] && balls.length < maxBalls) {
+                    const radius = type === 'big' ? 12 : type === 'child' ? 4 : 8;
+                    const speed = ballUpgrades[type].speed;
+                    const color = {
+                        sniper: 'blue',
+                        big: 'green',
+                        explosion: 'orange',
+                        multiplying: 'purple',
+                        child: 'purple'
+                    }[type];
+                    balls.push(new Ball(
+                        canvas.width / 2,
+                        canvas.height / 2,
+                        radius,
+                        speed * (Math.random() * 2 - 1),
+                        speed * (Math.random() * 2 - 1),
+                        color,
+                        type
+                    ));
+                    currentCounts[type]++;
+                }
+            });
+            updateUI(); // Ensure UI reflects updated ball counts
         }
-    });
-    // Add missing balls
-    Object.keys(ballCounts).forEach(type => {
-        while (currentCounts[type] < ballCounts[type] && balls.length < maxBalls) {
-            const radius = type === 'big' ? 12 : type === 'child' ? 4 : 8;
-            const speed = ballUpgrades[type].speed;
-            const color = {
-                sniper: 'blue',
-                big: 'green',
-                explosion: 'orange',
-                multiplying: 'purple',
-                child: 'purple'
-            }[type];
-            balls.push(new Ball(
-                canvas.width / 2,
-                canvas.height / 2,
-                radius,
-                speed * (Math.random() * 2 - 1),
-                speed * (Math.random() * 2 - 1),
-                color,
-                type
-            ));
-            currentCounts[type]++;
-        }
-    });
-    updateUI(); // Ensure UI reflects updated ball counts
-}
 
         let gameStarted = false;
 
@@ -3998,6 +4106,97 @@ function syncBallsWithCounts() {
             const now = new Date();
             const hours = now.getHours();
             return hours >= 11 && hours < 14; // 11 AM to 2 PM
+        }
+
+   function showSG60GiveawayPopup(userId) {
+        const giveawayRedeemed = localStorage.getItem(`sg60Giveaway_${userId}`);
+        if (!giveawayRedeemed && document.querySelector('#gameCanvas')) {
+            const overlay = document.createElement('div');
+            overlay.className = 'sg60-overlay';
+            overlay.innerHTML = `
+                <div class="sg60-popup">
+                    <button class="close-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <h2>SG60 GIVEAWAY!</h2>
+                    <div class="sg60-content">
+                        <div class="sg60-gift-box">
+                            <canvas id="giftBoxCanvas" width="80" height="80"></canvas>
+                        </div>
+                        <p>Redeem your exclusive SG60 gift of <strong>500,000 Gold</strong> now and dominate the Bricker leaderboard!</p>
+                        <div class="button-group">
+                            <button id="redeem-giveaway">Claim Now</button>
+                            <button id="cancel-giveaway">Later</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            // Draw simple gift box on canvas to match game style
+            const canvas = overlay.querySelector('#giftBoxCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#f4eed6';
+            ctx.fillRect(15, 25, 50, 40); // Gift body
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(15, 25, 50, 40);
+            ctx.fillStyle = '#e9dcaf';
+            ctx.fillRect(10, 15, 60, 10); // Gift lid
+            ctx.strokeRect(10, 15, 60, 10);
+            ctx.fillStyle = '#000';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('500K', 40, 45); // Gold text
+
+            const redeemBtn = overlay.querySelector('#redeem-giveaway');
+            const cancelBtn = overlay.querySelector('#cancel-giveaway');
+            const closeBtn = overlay.querySelector('.close-btn');
+
+            redeemBtn.addEventListener('click', () => {
+                redeemBtn.disabled = true;
+                redeemSG60Giveaway(userId);
+                overlay.remove();
+            });
+            cancelBtn.addEventListener('click', () => overlay.remove());
+            closeBtn.addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+    }
+
+    function redeemSG60Giveaway(userId) {
+        const user = auth.currentUser;
+        if (user) {
+            gold += 500000;
+            localStorage.setItem(`sg60Giveaway_${userId}`, 'true');
+            database.ref('users/' + userId + '/gameState').update({
+                gold: gold
+            }).then(() => {
+                showToast('SG60 Giveaway redeemed! 500,000 Gold added!');
+                updateUI();
+            }).catch(error => {
+                showToast('Failed to redeem giveaway: ' + error.message);
+                gold -= 500000;
+                localStorage.removeItem(`sg60Giveaway_${userId}`);
+                updateUI();
+            });
+        }
+    }
+
+        // Simple confetti animation
+        function triggerConfetti(container) {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                container.appendChild(confetti);
+            }
         }
 
         // Canvas click event
