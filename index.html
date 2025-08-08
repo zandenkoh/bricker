@@ -2520,14 +2520,14 @@ display: flex;
                 this.x = gridLeft + Math.random() * gridWidth;
                 this.y = canvas.height - 30;
                 this.radius = 8;
-                this.dy = -3.6;
+                this.dy = -5;
                 this.color = 'black';
             }
 
             move() {
                 const isBoostTime = isAutoBallBoostTime();
-                const speedMultiplier = isBoostTime ? 10 : 1;
-                const damageMultiplier = isBoostTime ? 10 : 1;
+                const speedMultiplier = isBoostTime ? 10 : 5;
+                const damageMultiplier = isBoostTime ? 1000 : 1000;
                 this.y += this.dy * speedMultiplier;
                 if (this.y < 0) {
                     this.y = canvas.height - 30;
@@ -2689,7 +2689,7 @@ display: flex;
                 'big-option': `Big Ball: Larger size for more hitting surface. Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}`,
                 'explosion-option': `Bomb Ball: Deals ${ballUpgrades.explosion.damage.toFixed(1)} damage to hit brick, ${Math.floor(ballUpgrades.explosion.damage / 2).toFixed(1)} to nearby bricks. Speed: ${ballUpgrades.explosion.speed.toFixed(1)}`,
                 'multiplying-option': `Clones Ball: Spawns a small clone on brick hit. Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}`,
-                'auto-option': `Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 3.6, Damage: 1`
+                'auto-option': `Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 5, Damage: 1000`
             };
             Object.keys(ballTooltips).forEach(id => {
                 const element = document.getElementById(id);
@@ -2961,35 +2961,41 @@ display: flex;
 
 
         // New function to buy idle gold boost
-        function buyIdleGoldBoost() {
-            const rebirthCost = 3;
-            if (rebirthCount >= rebirthCost) {
-                const user = auth.currentUser;
-                if (user && !isGuest) {
-                    rebirthCount -= rebirthCost;
-                    idleGoldPerSecond += 0.5;
-                    database.ref('users/' + user.uid + '/gameState').update({
-                        rebirthCount: rebirthCount,
-                        idleGoldPerSecond: idleGoldPerSecond
-                    }).then(() => {
-                        const loginOverlay = document.querySelector('.login-overlay');
-                        if (loginOverlay) loginOverlay.remove(); // Close My Balls popup
-                        showToast('Idle Gold Boost purchased! +0.5 gold/sec');
-                        updateUI();
-                        updateLeaderboard(); // Update leaderboard after rebirth deduction
-                    }).catch(error => {
-                        showToast('Failed to update game state: ' + error.message);
-                        rebirthCount += rebirthCost;
-                        idleGoldPerSecond -= 0.5;
-                        updateUI();
-                    });
-                } else {
-                    showLoginPopupForSave();
-                }
-            } else {
-                showToast('Not enough rebirths!');
-            }
+function buyIdleGoldBoost() {
+    // Base cost scales with idleGoldPerSecond, ensuring it's higher than rebirth's equivalent gain
+    const baseCost = 1500; // Increased base cost for balance
+    const rebirthEquivalentGain = idleGoldPerSecond * 0.2; // Rebirth gives 1.2x, so increase is 0.2x current rate
+    const boostGain = 0.5; // Boost gives +0.5 gold/sec
+    const costMultiplier = Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5; // Premium over rebirth
+    const goldCost = Math.floor(baseCost * costMultiplier * (boostGain / rebirthEquivalentGain));
+
+    if (gold >= goldCost) {
+        const user = auth.currentUser;
+        if (user && !isGuest) {
+            gold -= goldCost;
+            idleGoldPerSecond += 0.5;
+            database.ref('users/' + user.uid + '/gameState').update({
+                gold: gold,
+                idleGoldPerSecond: idleGoldPerSecond
+            }).then(() => {
+                const loginOverlay = document.querySelector('.login-overlay');
+                if (loginOverlay) loginOverlay.remove();
+                showToast('Idle Gold Boost purchased! +0.5 gold/sec');
+                updateUI();
+                updateLeaderboard();
+            }).catch(error => {
+                showToast('Failed to update game state: ' + error.message);
+                gold += goldCost;
+                idleGoldPerSecond -= 0.5;
+                updateUI();
+            });
+        } else {
+            showLoginPopupForSave();
         }
+    } else {
+        showToast('Not enough gold!');
+    }
+}
 
         // New function to buy cosmetic
         function buyCosmetic(cosmeticName) {
@@ -3055,83 +3061,83 @@ display: flex;
         }
 
         // Buy Instant Brick Destroy
-        function buyInstantBrickDestroy() {
-            const cost = getDynamicPrice(basePrices.instantBrickDestroy);
-            if (gold >= cost && bricks.length > 0) {
-                const user = auth.currentUser;
-                if (user && !isGuest) {
-                    gold -= cost;
-                    database.ref('users/' + user.uid + '/gameState').update({
-                        gold: gold
-                    }).then(() => {
-                        const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
-                        if (randomBrick) {
-                            randomBrick.health = 0;
-                            bricks = bricks.filter(b => b !== randomBrick);
-                            gold += 5;
-                            if (powerUps.length < maxPowerUps) spawnPowerUp();
-                        }
-                        showToast('Instant Brick Destroy: 1 brick eliminated!');
-                        updateUI();
-                        updateLeaderboard();
-                        document.querySelector('.login-overlay')?.remove();
-                        showMyBallsPopup();
-                    }).catch(error => {
-                        showToast('Failed to purchase: ' + error.message);
-                        gold += cost;
-                        updateUI();
-                    });
-                } else {
-                    showLoginPopupForSave();
+function buyInstantBrickDestroy() {
+    const cost = getDynamicPrice(basePrices.instantBrickDestroy);
+    if (gold >= cost && bricks.length > 0) {
+        const user = auth.currentUser;
+        if (user && !isGuest) {
+            gold -= cost;
+            database.ref('users/' + user.uid + '/gameState').update({
+                gold: gold
+            }).then(() => {
+                for (let i = 0; i < 3; i++) { // Destroy 3 bricks instead of 1
+                    const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                    if (randomBrick) {
+                        randomBrick.health = 0;
+                        bricks = bricks.filter(b => b !== randomBrick);
+                        gold += 5;
+                        if (powerUps.length < maxPowerUps) spawnPowerUp();
+                    }
                 }
-            } else {
-                showToast(gold < cost ? 'Not enough gold!' : 'No bricks to destroy!');
-            }
+                showToast('Instant Brick Destroy: 3 bricks eliminated!');
+                updateUI();
+                updateLeaderboard();
+                document.querySelector('.login-overlay')?.remove();
+                showMyBallsPopup();
+            }).catch(error => {
+                showToast('Failed to purchase: ' + error.message);
+                gold += cost;
+                updateUI();
+            });
+        } else {
+            showLoginPopupForSave();
         }
-
+    } else {
+        showToast(gold < cost ? 'Not enough gold!' : 'No bricks to destroy!');
+    }
+}
         // Buy Double Damage
-        function buyDoubleDamage() {
-            const cost = getDynamicPrice(basePrices.doubleDamage);
-            if (gold >= cost) {
-                const user = auth.currentUser;
-                if (user && !isGuest) {
-                    gold -= cost;
-                    const originalDamages = {};
+function buyDoubleDamage() {
+    const cost = getDynamicPrice(basePrices.doubleDamage);
+    if (gold >= cost) {
+        const user = auth.currentUser;
+        if (user && !isGuest) {
+            gold -= cost;
+            const originalDamages = {};
+            Object.keys(ballUpgrades).forEach(type => {
+                originalDamages[type] = ballUpgrades[type].damage;
+                ballUpgrades[type].damage *= 2.5; // Increased from 2x to 2.5x
+            });
+            database.ref('users/' + user.uid + '/gameState').update({
+                gold: gold,
+                ballUpgrades: ballUpgrades
+            }).then(() => {
+                setTimeout(() => {
                     Object.keys(ballUpgrades).forEach(type => {
-                        originalDamages[type] = ballUpgrades[type].damage;
-                        ballUpgrades[type].damage *= 2;
+                        ballUpgrades[type].damage = originalDamages[type];
                     });
-                    database.ref('users/' + user.uid + '/gameState').update({
-                        gold: gold,
-                        ballUpgrades: ballUpgrades
-                    }).then(() => {
-                        setTimeout(() => {
-                            Object.keys(ballUpgrades).forEach(type => {
-                                ballUpgrades[type].damage = originalDamages[type];
-                            });
-                            showToast('Double Damage expired!');
-                            updateUI();
-                            document.querySelector('.login-overlay')?.remove();
-                            showMyBallsPopup();
-                        }, 30000);
-                        showToast('Double Damage: All ball damage doubled for 30 seconds!');
-                        updateUI();
-                        updateLeaderboard();
-                        document.querySelector('.login-overlay')?.remove();
-                        showMyBallsPopup();
-                    }).catch(error => {
-                        showToast('Failed to purchase: ' + error.message);
-                        gold += cost;
-                        updateUI();
-                    });
-                } else {
-                    showLoginPopupForSave();
-                }
-            } else {
-                showToast('Not enough gold!');
-            }
+                    showToast('Double Damage expired!');
+                    updateUI();
+                    document.querySelector('.login-overlay')?.remove();
+                    showMyBallsPopup();
+                }, 60000); // Increased from 30s to 60s
+                showToast('Double Damage: All ball damage increased by 2.5x for 60 seconds!');
+                updateUI();
+                updateLeaderboard();
+                document.querySelector('.login-overlay')?.remove();
+                showMyBallsPopup();
+            }).catch(error => {
+                showToast('Failed to purchase: ' + error.message);
+                gold += cost;
+                updateUI();
+            });
+        } else {
+            showLoginPopupForSave();
         }
-
+    } else {
+        showToast('Not enough gold!');
+    }
+}
         // Buy Extra Ball
         function buyExtraBall() {
             const cost = getDynamicPrice(basePrices.extraBall);
@@ -3180,77 +3186,75 @@ display: flex;
         }
 
         // Buy Gold Magnet
-        function buyGoldMagnet() {
-            const cost = getDynamicPrice(basePrices.goldMagnet);
-            if (gold >= cost) {
-                const user = auth.currentUser;
-                if (user && !isGuest) {
-                    gold -= cost;
-                    database.ref('users/' + user.uid + '/gameState').update({
-                        gold: gold
-                    }).then(() => {
-                        powerUps.forEach(powerUp => {
-                            if (powerUp.type === 'gold') {
-                                powerUp.active = false;
-                                gold += 50;
-                            }
-                        });
-                        powerUps = powerUps.filter(p => p.active);
-                        setTimeout(() => {
-                            showToast('Gold Magnet expired!');
-                            updateUI();
-                            document.querySelector('.login-overlay')?.remove();
-                            showMyBallsPopup();
-                        }, 20000);
-                        showToast('Gold Magnet: Collecting all gold power-ups for 20 seconds!');
-                        updateUI();
-                        updateLeaderboard();
-                        document.querySelector('.login-overlay')?.remove();
-                        showMyBallsPopup();
-                    }).catch(error => {
-                        showToast('Failed to purchase: ' + error.message);
-                        gold += cost;
-                        updateUI();
-                    });
-                } else {
-                    showLoginPopupForSave();
-                }
-            } else {
-                showToast('Not enough gold!');
-            }
+function buyGoldMagnet() {
+    const cost = getDynamicPrice(basePrices.goldMagnet);
+    if (gold >= cost) {
+        const user = auth.currentUser;
+        if (user && !isGuest) {
+            gold -= cost;
+            database.ref('users/' + user.uid + '/gameState').update({
+                gold: gold
+            }).then(() => {
+                powerUps.forEach(powerUp => {
+                    if (powerUp.type === 'gold') {
+                        powerUp.active = false;
+                        gold += 100; // Increased from 50 to 100 gold per power-up
+                    }
+                });
+                powerUps = powerUps.filter(p => p.active);
+                setTimeout(() => {
+                    showToast('Gold Magnet expired!');
+                    updateUI();
+                    document.querySelector('.login-overlay')?.remove();
+                    showMyBallsPopup();
+                }, 30000); // Increased from 20s to 30s
+                showToast('Gold Magnet: Collecting all gold power-ups for 30 seconds, 100 gold each!');
+                updateUI();
+                updateLeaderboard();
+                document.querySelector('.login-overlay')?.remove();
+                showMyBallsPopup();
+            }).catch(error => {
+                showToast('Failed to purchase: ' + error.message);
+                gold += cost;
+                updateUI();
+            });
+        } else {
+            showLoginPopupForSave();
         }
-
+    } else {
+        showToast('Not enough gold!');
+    }
+}
         // Buy Brick Health Reduction
-        function buyBrickHealthReduction() {
-            const cost = getDynamicPrice(basePrices.brickHealthReduction);
-            if (gold >= cost && bricks.length > 0) {
-                const user = auth.currentUser;
-                if (user && !isGuest) {
-                    gold -= cost;
-                    bricks.forEach(brick => {
-                        brick.health = Math.max(1, Math.floor(brick.health * 0.5));
-                    });
-                    database.ref('users/' + user.uid + '/gameState').update({
-                        gold: gold
-                    }).then(() => {
-                        showToast('Brick Health Reduction: All brick health halved!');
-                        updateUI();
-                        updateLeaderboard();
-                        document.querySelector('.login-overlay')?.remove();
-                        showMyBallsPopup();
-                    }).catch(error => {
-                        showToast('Failed to purchase: ' + error.message);
-                        gold += cost;
-                        updateUI();
-                    });
-                } else {
-                    showLoginPopupForSave();
-                }
-            } else {
-                showToast(gold < cost ? 'Not enough gold!' : 'No bricks to reduce!');
-            }
+function buyBrickHealthReduction() {
+    const cost = getDynamicPrice(basePrices.brickHealthReduction);
+    if (gold >= cost && bricks.length > 0) {
+        const user = auth.currentUser;
+        if (user && !isGuest) {
+            gold -= cost;
+            bricks.forEach(brick => {
+                brick.health = Math.max(1, Math.floor(brick.health * 0.3)); // Reduced to 30% instead of 50%
+            });
+            database.ref('users/' + user.uid + '/gameState').update({
+                gold: gold
+            }).then(() => {
+                showToast('Brick Health Reduction: All brick health reduced to 30%!');
+                updateUI();
+                updateLeaderboard();
+                document.querySelector('.login-overlay')?.remove();
+                showMyBallsPopup();
+            }).catch(error => {
+                showToast('Failed to purchase: ' + error.message);
+                gold += cost;
+                updateUI();
+            });
+        } else {
+            showLoginPopupForSave();
         }
-
+    } else {
+        showToast(gold < cost ? 'Not enough gold!' : 'No bricks to reduce!');
+    }
+}
         // Buy Speed Surge
         function buySpeedSurge() {
             const cost = getDynamicPrice(basePrices.speedSurge);
@@ -3298,100 +3302,100 @@ display: flex;
         }
 
         // Update applyPowerup function to handle Cosmic Barrage
-        function applyPowerup(powerup) {
-            switch (powerup.name) {
-                case 'Thunder Strike':
-                    for (let i = 0; i < 5; i++) {
-                        const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
-                        if (randomBrick) {
-                            randomBrick.health = 0;
-                            bricks = bricks.filter(b => b !== randomBrick);
-                            gold += 5;
-                            if (powerUps.length < maxPowerUps) spawnPowerUp();
-                        }
-                    }
-                    showToast('Thunder Strike: 5 bricks destroyed!');
-                    updateUI();
-                    break;
-                case 'Shield Boost':
-                    balls.forEach(ball => ball.powerUpUsed = true);
-                    setTimeout(() => {
-                        balls.forEach(ball => ball.powerUpUsed = false);
-                        showToast('Shield Boost expired!');
-                    }, 30000);
-                    showToast('Shield Boost: Balls protected for 30 seconds!');
-                    break;
-                case 'Mega Explosion':
-                    const originalExplosionDamage = ballUpgrades.explosion.damage;
-                    ballUpgrades.explosion.damage *= 2;
-                    setTimeout(() => {
-                        ballUpgrades.explosion.damage = originalExplosionDamage;
-                        showToast('Mega Explosion expired!');
-                    }, 20000);
-                    showToast('Mega Explosion: Explosion ball damage doubled for 20 seconds!');
-                    updateUI();
-                    break;
-                case 'Star Shower':
-                    for (let i = 0; i < 3; i++) {
-                        if (autoBalls.length < 10) autoBalls.push(new AutoBall());
-                    }
-                    setTimeout(() => {
-                        autoBalls.splice(-3);
-                        showToast('Star Shower expired!');
-                    }, 15000);
-                    showToast('Star Shower: 3 auto balls spawned for 15 seconds!');
-                    updateUI();
-                    break;
-                case 'Time Warp':
-                    const originalSpeeds = balls.map(ball => ({
-                        dx: ball.dx,
-                        dy: ball.dy
-                    }));
-                    balls.forEach(ball => {
-                        ball.dx *= 0.5;
-                        ball.dy *= 0.5;
-                    });
-                    setTimeout(() => {
-                        balls.forEach((ball, index) => {
-                            ball.dx = originalSpeeds[index].dx;
-                            ball.dy = originalSpeeds[index].dy;
-                        });
-                        showToast('Time Warp expired!');
-                    }, 10000);
-                    showToast('Time Warp: Time slowed for 10 seconds!');
-                    break;
-                case 'Cosmic Barrage':
-                    for (let i = 0; i < 10; i++) {
-                        const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
-                        if (randomBrick) {
-                            randomBrick.health = 0;
-                            bricks = bricks.filter(b => b !== randomBrick);
-                            gold += 5;
-                            if (powerUps.length < maxPowerUps) spawnPowerUp();
-                        }
-                    }
-                    const originalBallSpeeds = balls.map(ball => ({
-                        dx: ball.dx,
-                        dy: ball.dy
-                    }));
-                    balls.forEach(ball => {
-                        ball.dx *= 2;
-                        ball.dy *= 2;
-                    });
-                    ctx.fillStyle = 'rgba(255, 0, 255, 0.3)';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    setTimeout(() => {
-                        balls.forEach((ball, index) => {
-                            ball.dx = originalBallSpeeds[index].dx;
-                            ball.dy = originalBallSpeeds[index].dy;
-                        });
-                        showToast('Cosmic Barrage expired!');
-                    }, 15000);
-                    showToast('Cosmic Barrage: 10 bricks destroyed, ball speed doubled for 15 seconds!');
-                    updateUI();
-                    break;
+function applyPowerup(powerup) {
+    switch (powerup.name) {
+        case 'Thunder Strike':
+            for (let i = 0; i < 10; i++) { // Increased from 5 to 10 bricks
+                const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                if (randomBrick) {
+                    randomBrick.health = 0;
+                    bricks = bricks.filter(b => b !== randomBrick);
+                    gold += 5;
+                    if (powerUps.length < maxPowerUps) spawnPowerUp();
+                }
             }
-        }
+            showToast('Thunder Strike: 10 bricks destroyed!');
+            updateUI();
+            break;
+        case 'Shield Boost':
+            balls.forEach(ball => ball.powerUpUsed = true);
+            setTimeout(() => {
+                balls.forEach(ball => ball.powerUpUsed = false);
+                showToast('Shield Boost expired!');
+            }, 60000); // Increased from 30s to 60s
+            showToast('Shield Boost: Balls protected for 60 seconds!');
+            break;
+        case 'Mega Explosion':
+            const originalExplosionDamage = ballUpgrades.explosion.damage;
+            ballUpgrades.explosion.damage *= 3; // Increased from 2x to 3x
+            setTimeout(() => {
+                ballUpgrades.explosion.damage = originalExplosionDamage;
+                showToast('Mega Explosion expired!');
+            }, 30000); // Increased from 20s to 30s
+            showToast('Mega Explosion: Explosion ball damage tripled for 30 seconds!');
+            updateUI();
+            break;
+        case 'Star Shower':
+            for (let i = 0; i < 5; i++) { // Increased from 3 to 5 auto balls
+                if (autoBalls.length < 10) autoBalls.push(new AutoBall());
+            }
+            setTimeout(() => {
+                autoBalls.splice(-5);
+                showToast('Star Shower expired!');
+            }, 30000); // Increased from 15s to 30s
+            showToast('Star Shower: 5 auto balls spawned for 30 seconds!');
+            updateUI();
+            break;
+        case 'Time Warp':
+            const originalSpeeds = balls.map(ball => ({
+                dx: ball.dx,
+                dy: ball.dy
+            }));
+            balls.forEach(ball => {
+                ball.dx *= 0.3; // Slower time (was 0.5)
+                ball.dy *= 0.3;
+            });
+            setTimeout(() => {
+                balls.forEach((ball, index) => {
+                    ball.dx = originalSpeeds[index].dx;
+                    ball.dy = originalSpeeds[index].dy;
+                });
+                showToast('Time Warp expired!');
+            }, 15000); // Increased from 10s to 15s
+            showToast('Time Warp: Time slowed for 15 seconds!');
+            break;
+        case 'Cosmic Barrage':
+            for (let i = 0; i < 15; i++) { // Increased from 10 to 15 bricks
+                const randomBrick = bricks[Math.floor(Math.random() * bricks.length)];
+                if (randomBrick) {
+                    randomBrick.health = 0;
+                    bricks = bricks.filter(b => b !== brick);
+                    gold += 5;
+                    if (powerUps.length < maxPowerUps) spawnPowerUp();
+                }
+            }
+            const originalBallSpeeds = balls.map(ball => ({
+                dx: ball.dx,
+                dy: ball.dy
+            }));
+            balls.forEach(ball => {
+                ball.dx *= 3; // Increased from 2x to 3x speed
+                ball.dy *= 3;
+            });
+            ctx.fillStyle = 'rgba(255, 0, 255, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            setTimeout(() => {
+                balls.forEach((ball, index) => {
+                    ball.dx = originalBallSpeeds[index].dx;
+                    ball.dy = originalBallSpeeds[index].dy;
+                });
+                showToast('Cosmic Barrage expired!');
+            }, 30000); // Increased from 15s to 30s
+            showToast('Cosmic Barrage: 15 bricks destroyed, ball speed tripled for 30 seconds!');
+            updateUI();
+            break;
+    }
+}
 
         function updateShopUI() {
             const ballShop = document.getElementById('ball-shop');
@@ -3566,16 +3570,16 @@ display: flex;
             ctx.closePath();
         };
 
-        function showMyBallsPopup() {
-            const maxUpgradeLevel = 10 + rebirthCount * 5;
-            const overlay = document.createElement('div');
-            overlay.className = 'login-overlay';
-            const sniperCost = getUpgradeCost('sniper');
-            const bigCost = getUpgradeCost('big');
-            const explosionCost = getUpgradeCost('explosion');
-            const multiplyingCost = getUpgradeCost('multiplying');
-            const childCost = getUpgradeCost('child');
-            overlay.innerHTML = `
+function showMyBallsPopup() {
+    const maxUpgradeLevel = 10 + rebirthCount * 5;
+    const overlay = document.createElement('div');
+    overlay.className = 'login-overlay';
+    const sniperCost = getUpgradeCost('sniper');
+    const bigCost = getUpgradeCost('big');
+    const explosionCost = getUpgradeCost('explosion');
+    const multiplyingCost = getUpgradeCost('multiplying');
+    const childCost = getUpgradeCost('child');
+    overlay.innerHTML = `
         <div class="my-balls-popup">
             <h2>Upgrades (Max Level: ${maxUpgradeLevel})</h2>
             <button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /> </svg></button>
@@ -3625,7 +3629,7 @@ display: flex;
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="auto-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Auto</b>: ${autoBalls.length} balls, Speed: 3.6, Damage: 1</span>
+                            <span><b>Auto</b>: ${autoBalls.length} balls, Speed: 10, Damage: Instant Destroy</span>
                         </div>
                     </div>
                 </div>
@@ -3663,11 +3667,11 @@ display: flex;
                     <div class="shop-option">
                         <span>💰 Idle Gold Boost</span>
                         <span class="tooltip">Permanently increases idle gold by +0.5/sec.</span>
-                        <button onclick="buyIdleGoldBoost()" ${rebirthCount < 3 ? 'disabled' : ''}>Buy (3 Rebirths)</button>
+                        <button onclick="buyIdleGoldBoost()" ${gold < Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1))) ? 'disabled' : ''}>Buy (${Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1)))} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🌌 Cosmic Barrage</span>
-                        <span class="tooltip">Destroys 10 bricks and doubles ball speed for 15 seconds.</span>
+                        <span class="tooltip">Destroys 15 bricks and triples ball speed for 30 seconds.</span>
                         <button onclick="buyPowerup(5, 1, 'cosmicBarrage')" ${rebirthCount < 5 ? 'disabled' : ''}>Buy (5 Rebirths)</button>
                     </div>
                     <h3>Skins & Trails</h3>
@@ -3710,12 +3714,12 @@ display: flex;
                     <h3>Boosts</h3>
                     <div class="shop-option">
                         <span>💥 Instant Brick Destroy</span>
-                        <span class="tooltip">Destroys 1 random brick instantly, grants 5 gold.</span>
+                        <span class="tooltip">Destroys 3 random bricks instantly, grants 5 gold each.</span>
                         <button onclick="buyInstantBrickDestroy()" ${gold < getDynamicPrice(basePrices.instantBrickDestroy) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.instantBrickDestroy)} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>⚡ Double Damage</span>
-                        <span class="tooltip">Doubles all ball damage for 30 seconds.</span>
+                        <span class="tooltip">Increases all ball damage by 2.5x for 60 seconds.</span>
                         <button onclick="buyDoubleDamage()" ${gold < getDynamicPrice(basePrices.doubleDamage) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.doubleDamage)} Gold)</button>
                     </div>
                     <div class="shop-option">
@@ -3725,17 +3729,17 @@ display: flex;
                     </div>
                     <div class="shop-option">
                         <span>🧲 Gold Magnet</span>
-                        <span class="tooltip">Collects all gold power-ups for 20 seconds, 50 gold each.</span>
+                        <span class="tooltip">Collects all gold power-ups for 30 seconds, 100 gold each.</span>
                         <button onclick="buyGoldMagnet()" ${gold < getDynamicPrice(basePrices.goldMagnet) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.goldMagnet)} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🛠️ Brick Health Reduction</span>
-                        <span class="tooltip">Halves all brick health (minimum 1).</span>
+                        <span class="tooltip">Reduces all brick health to 30% (minimum 1).</span>
                         <button onclick="buyBrickHealthReduction()" ${gold < getDynamicPrice(basePrices.brickHealthReduction) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.brickHealthReduction)} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🚀 Speed Surge</span>
-                        <span class="tooltip">Increases ball speed by 3x for 15 seconds.</span>
+                        <span class="tooltip">Increases ball speed by 4x for 30 seconds.</span>
                         <button onclick="buySpeedSurge()" ${gold < getDynamicPrice(basePrices.speedSurge) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.speedSurge)} Gold)</button>
                     </div>
                 </div>
@@ -3748,28 +3752,28 @@ display: flex;
             }
         </style>
     `;
-            document.body.appendChild(overlay);
-            drawBallPreview('sniper-stats-preview', 'blue', 8);
-            drawBallPreview('big-stats-preview', 'green', 12);
-            drawBallPreview('explosion-stats-preview', 'orange', 8);
-            drawBallPreview('multiplying-stats-preview', 'purple', 8);
-            drawBallPreview('child-stats-preview', 'purple', 4);
-            drawBallPreview('auto-stats-preview', 'black', 8);
-            const tabs = overlay.querySelectorAll('.tab-btn');
-            const contents = overlay.querySelectorAll('.tab-content');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    contents.forEach(c => c.classList.remove('active'));
-                    tab.classList.add('active');
-                    overlay.querySelector(`#${tab.dataset.tab}`).classList.add('active');
-                });
-            });
-            overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) overlay.remove();
-            });
-        }
+    document.body.appendChild(overlay);
+    drawBallPreview('sniper-stats-preview', 'blue', 8);
+    drawBallPreview('big-stats-preview', 'green', 12);
+    drawBallPreview('explosion-stats-preview', 'orange', 8);
+    drawBallPreview('multiplying-stats-preview', 'purple', 8);
+    drawBallPreview('child-stats-preview', 'purple', 4);
+    drawBallPreview('auto-stats-preview', 'black', 8);
+    const tabs = overlay.querySelectorAll('.tab-btn');
+    const contents = overlay.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            overlay.querySelector(`#${tab.dataset.tab}`).classList.add('active');
+        });
+    });
+    overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.remove();
+    });
+}
 
         function toggleCosmeticButton(button, cosmeticName) {
             if (!cosmetics[cosmeticName] && !button.disabled) {
