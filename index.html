@@ -1238,10 +1238,65 @@
         .milestone:hover .tooltip {
             opacity: 1;
         }
+
+        #afkOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            opacity: 1;
+            transform: translateY(100%);
+            transform-origin: bottom center;
+            display: none;
+            z-index: 9998;
+            border-radius: 0;
+        }
+
+        /* Animation keyframes for sliding up */
+        @keyframes overlaySlideUp {
+            0% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Animation keyframes for sliding down */
+        @keyframes overlaySlideDown {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Active animation class for sliding up */
+        #afkOverlay.active {
+            display: block;
+            animation: overlaySlideUp 3s ease forwards;
+        }
+
+        /* Animation class for sliding down */
+        #afkOverlay.hiding {
+            display: block;
+            animation: overlaySlideDown 3s ease forwards;
+        }
     </style>
 </head>
 
 <body>
+    <!-- Overlay -->
+    <div id="afkOverlay">
+    </div>
+
     <div class="main-main-container">
         <div class="main-container">
             <div class="sidebar-container">
@@ -1462,6 +1517,94 @@
                 setTimeout(() => startTutorial(), 500); // Delay to ensure DOM is ready
             }
         }
+
+
+
+    let originalTitle = document.title;
+    let toastEl = null;
+
+    // Listen for overlay changes
+    database.ref('settings/overlay').on('value', snapshot => {
+        const isOverlay = snapshot.val();
+        const overlayEl = document.getElementById('afkOverlay');
+
+        if (isOverlay) {
+            // Show animated overlay
+            overlayEl.style.display = 'block';
+            if (!overlayEl.classList.contains('active')) {
+                overlayEl.classList.remove('hiding');
+                overlayEl.classList.add('active');
+            }
+
+            // Toast
+            if (!toastEl) {
+                toastEl = showTooast("Teacher alert! Please hold on for a while before your gameplay resumes. Don't worry your game is still running.");
+            }
+
+            // Title change
+            document.title = "Teacher alert — Game Paused!";
+        } else {
+            // Only trigger fade-out if overlay was previously active
+            if (overlayEl.classList.contains('active') && !overlayEl.classList.contains('hiding')) {
+                overlayEl.classList.remove('active');
+                overlayEl.classList.add('hiding');
+
+                // Listen for animation end to hide overlay
+                const hideOverlay = () => {
+                    if (!snapshot.val()) { // Check Firebase value again to avoid race conditions
+                        overlayEl.style.display = 'none';
+                        overlayEl.classList.remove('hiding');
+                    }
+                };
+                overlayEl.removeEventListener('animationend', hideOverlay); // Remove any existing listener
+                overlayEl.addEventListener('animationend', hideOverlay, { once: true });
+            } else {
+                // Ensure overlay is hidden without animation on load if false
+                overlayEl.style.display = 'none';
+                overlayEl.classList.remove('active', 'hiding');
+            }
+
+            // Remove toast
+            if (toastEl) {
+                toastEl.style.opacity = '0';
+                setTimeout(() => {
+                    if (toastEl && toastEl.parentNode) {
+                        toastEl.remove();
+                        toastEl = null;
+                    }
+                }, 500);
+            }
+
+            // Restore title
+            document.title = originalTitle;
+        }
+    });
+
+    function showTooast(message) {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.background = 'rgba(0, 0, 0, 0.85)';
+        toast.style.color = '#fff';
+        toast.style.padding = '12px 20px';
+        toast.style.borderRadius = '6px';
+        toast.style.fontSize = '14px';
+        toast.style.zIndex = '9999';
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.transition = 'opacity 0.5s';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }
+        }, 200000);
+
+        return toast;
+    }
 
         // Define Intro.js tutorial
         function startTutorial() {
