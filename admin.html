@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Control Panel</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <!-- Login form -->
+    <div id="loginForm" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Admin Login</h2>
+        <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <input type="password" id="password" placeholder="Password" class="w-full p-3 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <button onclick="login()" class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition">Login</button>
+    </div>
+
+    <!-- Admin content -->
+    <div id="adminPanel" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md hidden flex-col items-center">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Admin Control Panel</h2>
+        <p class="text-gray-600 mb-6">Logged in as admin</p>
+        <div class="flex items-center justify-center space-x-4">
+            <button id="overlayToggle" onclick="toggleOverlay()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-medium">Loading...</button>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCusXta6VD-G0zanUUPPMhs4Qc9aThb33Q",
+            authDomain: "bricker-by-zlabs.firebaseapp.com",
+            projectId: "bricker-by-zlabs",
+            storageBucket: "bricker-by-zlabs.firebasestorage.app",
+            messagingSenderId: "949608388167",
+            appId: "1:949608388167:web:beff34c82661cf69980362"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // Check auth state on load to keep user logged in
+        auth.onAuthStateChanged(user => {
+            if (user && user.email === "kohzanden@gmail.com") {
+                document.getElementById('loginForm').className = 'hidden';
+                document.getElementById('adminPanel').className = 'bg-white p-8 rounded-lg shadow-lg w-full max-w-md flex flex-col items-center';
+                // Sync button text with Firebase
+                db.ref('settings/overlay').on('value', snap => {
+                    const isOverlay = snap.val();
+                    const toggleButton = document.getElementById('overlayToggle');
+                    toggleButton.textContent = isOverlay ? 'Turn Off' : 'Turn On';
+                });
+            } else {
+                document.getElementById('loginForm').className = 'bg-white p-8 rounded-lg shadow-lg w-full max-w-md';
+                document.getElementById('adminPanel').className = 'bg-white p-8 rounded-lg shadow-lg w-full max-w-md hidden flex-col items-center';
+            }
+        });
+
+        // Login
+        function login() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(userCred => {
+                    if (userCred.user.email !== "kohzanden@gmail.com") {
+                        alert("Not authorized");
+                        auth.signOut();
+                    }
+                })
+                .catch(err => alert(err.message));
+        }
+
+        // Toggle overlay
+        function toggleOverlay() {
+            db.ref('settings/overlay').once('value').then(snap => {
+                const current = snap.val();
+                db.ref('settings/overlay').set(!current);
+            });
+        }
+    </script>
+</body>
+
+</html>
