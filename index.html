@@ -48,7 +48,7 @@
         }
 
         .sidebar-container {
-            width: 150px;
+            width: 160px;
             height: 100%;
             background: #e9dcaf;
             color: #000;
@@ -57,7 +57,9 @@
             overflow-x: hidden;
             margin-bottom: 0;
             box-sizing: border-box;
-            padding: 15px;
+            padding: 20px;
+            padding-top: 10px;
+            padding-right: 0;
         }
 
         .leaderboard-card .user-and-info {
@@ -166,8 +168,16 @@
             color: #000;
         }
 
+        .rebirth-count {
+            margin: 0 0;
+            margin-bottom: 5px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
         .level-count {
-            margin: 5px 0;
+            margin: 0 0;
+            margin-top: 5px;
             font-size: 18px;
             font-weight: 500;
         }
@@ -1094,6 +1104,140 @@
             justify-content: center;
             font-weight: bold;
         }
+
+        #milestones-container {
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        .milestone {
+            background: #f4eed6;
+            border: 1px solid #444;
+            margin-bottom: 6px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .milestone-title {
+            font-weight: bold;
+        }
+
+        .milestone-progress {
+            height: 6px;
+            background: #ccc;
+            margin-top: 4px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .milestone-progress-bar {
+            height: 100%;
+            background: #0053a6;
+        }
+
+        /* All Milestones modal styling */
+        .all-milestones-popup {
+            background: #e9dcaf;
+            padding: 25px;
+            border: 3px solid #444;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            color: #000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            font-family: Arial, sans-serif;
+        }
+
+        .all-milestones-popup h2 {
+            margin: 0 0 15px;
+            font-size: 22px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .all-milestones-list .milestone {
+            background: linear-gradient(145deg, #f4eed6, #e9dcaf);
+            border: 2px solid #444;
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .all-milestones-list .milestone:hover {
+            transform: scale(1.02);
+            background: #f1e4b6;
+        }
+
+        .all-milestones-list .milestone-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .all-milestones-list small {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .all-milestones-list .milestone-progress {
+            height: 8px;
+            background: #ccc;
+            margin-top: 6px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .all-milestones-list .milestone-progress-bar {
+            height: 100%;
+            background: #0053a6;
+        }
+
+        .milestone-complete {
+            border-color: #2e7d32;
+            background: linear-gradient(145deg, #d7f4d6, #bde9bc);
+        }
+
+        .milestone-complete .milestone-progress-bar {
+            background: #2e7d32;
+        }
+
+        .milestone {
+            position: relative;
+            cursor: normal;
+            padding: 10px;
+        }
+
+        .milestone .tooltip {
+            position: absolute;
+            background: #f4eed6;
+            border: 1px solid #444;
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            bottom: 100%;
+            /* show above title */
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 5px;
+        }
+
+        .milestone:hover .tooltip {
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -1102,10 +1246,17 @@
         <div class="main-container">
             <div class="sidebar-container">
                 <div class="info-container">
-                    <p class="gold-count">Gold: <span id="gold">20</span></p>
+                    <p class="gold-count">Gold: <br><span id="gold">20</span></p>
                     <p class="level-count">Level: <span id="level">1</span></p>
+                    <p class="rebirth-count">Rebirths: <span id="rebirth">1</span></p>
                     <button id="save-button">Save progress</button>
                 </div>
+                <div id="milestones-container">
+                    <h3>Milestones</h3>
+                    <div id="milestone-list"></div>
+                    <button id="all-milestones-btn">All Milestones</button>
+                </div>
+
             </div>
             <div class="together">
                 <!-- Replace the existing .ui div in the HTML body with this updated version -->
@@ -1483,6 +1634,7 @@
         // UI elements
         const goldDisplay = document.getElementById('gold');
         const levelDisplay = document.getElementById('level');
+        const rebirthDisplay = document.getElementById('rebirth');
         const saveButton = document.getElementById('save-button');
 
         // Authentication state
@@ -1739,6 +1891,173 @@
                 loadGameState(uid);
             }
         }
+
+        let milestoneDefinitions = [
+            // === Ball count milestones ===
+            { id: 'balls_basic_50', title: 'Basic Collector', description: 'Own 50 Basic Balls.', goal: 50, stat: 'basicBalls', benefit: '+5% basic ball speed' },
+            { id: 'balls_sniper_50', title: 'Sharpshooter', description: 'Own 50 Sniper Balls.', goal: 50, stat: 'sniperBalls', benefit: '+5% sniper accuracy' },
+            { id: 'balls_big_50', title: 'Big Time', description: 'Own 50 Big Balls.', goal: 50, stat: 'bigBalls', benefit: '+10% big ball size' },
+            { id: 'balls_explosion_50', title: 'Demolitionist', description: 'Own 50 Bomb Balls.', goal: 50, stat: 'explosionBalls', benefit: '+1 explosion radius' },
+            { id: 'balls_multiplying_50', title: 'Clone Commander', description: 'Own 50 Clones Balls.', goal: 50, stat: 'multiplyingBalls', benefit: '+5% clone spawn chance' },
+            { id: 'balls_cannonball_50', title: 'Siege Master', description: 'Own 50 Cannonballs.', goal: 50, stat: 'cannonballBalls', benefit: '+2 cannonball damage' },
+            { id: 'balls_poison_50', title: 'Toxic Avenger', description: 'Own 50 Poison Balls.', goal: 50, stat: 'poisonBalls', benefit: '+5% poison duration' },
+            { id: 'balls_snowball_50', title: 'Frost Lord', description: 'Own 50 Snowballs.', goal: 50, stat: 'snowballBalls', benefit: '+5% snowball speed growth' },
+
+            // === Upgrade milestones ===
+            { id: 'upgrade_basic_5', title: 'Basic Upgrade Adept', description: 'Upgrade Basic Ball to level 5.', goal: 5, stat: 'basicUpgrade', benefit: '+10% basic ball damage' },
+            { id: 'upgrade_sniper_5', title: 'Sniper Upgrade Adept', description: 'Upgrade Sniper Ball to level 5.', goal: 5, stat: 'sniperUpgrade', benefit: '+10% sniper ball damage' },
+            // Add similar ones for each ball type...
+
+            // === Donation milestones ===
+            { id: 'donate_1000', title: 'Benevolent Donor', description: 'Donate 1,000 gold to other players.', goal: 1000, stat: 'totalDonated', benefit: '+2% idle gold gain' },
+            { id: 'donate_10000', title: 'Philanthropist', description: 'Donate 10,000 gold to other players.', goal: 10000, stat: 'totalDonated', benefit: '+5% idle gold gain' },
+
+            // Keep your old ones
+            { id: 'balls_100', title: 'Ball Master', description: 'Own 100 balls.', goal: 100, stat: 'totalBalls', benefit: '+2% all ball speed' },
+            { id: 'balls_500', title: 'Ball Legend', description: 'Own 500 balls.', goal: 500, stat: 'totalBalls', benefit: '+5% all ball speed' },
+            { id: 'balls_1000', title: 'Ball God', description: 'Own 1,000 balls.', goal: 1000, stat: 'totalBalls', benefit: '+10% all ball speed' },
+            { id: 'upgrade_10', title: 'Upgrade Enthusiast', description: 'Buy 10 upgrades.', goal: 10, stat: 'totalUpgrades', benefit: '+2% damage' },
+            { id: 'upgrade_100', title: 'Upgrade Master', description: 'Buy 100 upgrades.', goal: 100, stat: 'totalUpgrades', benefit: '+10% damage' }
+        ];
+
+
+
+        document.getElementById('all-milestones-btn').addEventListener('click', () => {
+            const overlay = document.createElement('div');
+            overlay.className = 'login-overlay'; // we can reuse your existing dark overlay style
+
+            const popup = document.createElement('div');
+            popup.className = 'all-milestones-popup';
+            popup.style.maxHeight = '80vh';
+            popup.style.overflowY = 'auto';
+
+            popup.innerHTML = `
+        <button class="close-btn">&times;</button>
+        <h2>All Milestones</h2>
+        <div id="all-milestones-list"></div>
+    `;
+
+            overlay.appendChild(popup);
+            document.body.appendChild(overlay);
+
+            // Fill the milestone list with all milestones (sorted)
+            const listContainer = popup.querySelector('#all-milestones-list');
+            milestoneDefinitions
+                .sort((a, b) => a.goal - b.goal)
+                .forEach(m => {
+                    const current = getStatValue(m.stat);
+                    const progress = Math.min((current / m.goal) * 100, 100);
+                    const milestoneEl = document.createElement('div');
+                    milestoneEl.className = 'milestone';
+                    milestoneEl.innerHTML = `
+      <div class="tooltip">${m.benefit || 'No benefit'}</div>
+  <div class="milestone-title">
+      ${m.title}
+  </div>
+  <div>${m.description}</div>
+  <div class="milestone-progress">
+    <div class="milestone-progress-bar" style="width:${progress}%"></div>
+  </div>
+`;
+
+
+                    listContainer.appendChild(milestoneEl);
+                });
+
+            // Close events
+            popup.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        });
+
+
+        // Player's active milestones
+        let activeMilestones = [];
+
+        // Load milestones based on player progress
+        function loadMilestones() {
+            activeMilestones = milestoneDefinitions
+                .filter(m => getStatValue(m.stat) < m.goal) // Skip completed
+                .slice(0, 3); // Only easiest 3
+            renderMilestones();
+        }
+
+        function getStatValue(stat) {
+            if (stat === 'totalBalls') {
+                return Object.values(ballCounts).reduce((a, b) => a + b, 0);
+            }
+            if (stat.endsWith('Balls')) {
+                const type = stat.replace('Balls', '');
+                return ballCounts[type] || 0;
+            }
+            if (stat.endsWith('Upgrade')) {
+                const type = stat.replace('Upgrade', '');
+                return ballUpgrades[type]?.level || 0;
+            }
+            if (stat === 'totalDonated') {
+                return stats.totalDonated || 0;
+            }
+            return window[stat] || 0;
+        }
+
+
+        // Render milestones in sidebar
+        function renderMilestones() {
+            const container = document.getElementById('milestone-list');
+            container.innerHTML = '';
+            activeMilestones.forEach(m => {
+                const current = getStatValue(m.stat);
+                const progress = Math.min((current / m.goal) * 100, 100);
+                const milestoneEl = document.createElement('div');
+                milestoneEl.className = 'milestone';
+                milestoneEl.innerHTML = `
+  <div class="milestone-title" style="position:relative;">
+      ${m.title}
+      <div class="tooltip" style="top:-30px; left:50%; transform:translateX(-50%);">${m.benefit || 'No benefit'}</div>
+  </div>
+  <div>${m.description}</div>
+  <div class="milestone-progress">
+    <div class="milestone-progress-bar" style="width:${progress}%"></div>
+  </div>
+    `;
+                container.appendChild(milestoneEl);
+            });
+        }
+
+        // Check milestones in real-time
+        function updateMilestones() {
+            let changed = false;
+
+            // Loop over a copy so we can modify activeMilestones safely
+            [...activeMilestones].forEach(m => {
+                if (getStatValue(m.stat) >= m.goal) {
+                    // Show a toast notification (non-blocking)
+                    showToast(`Milestone Complete: ${m.title}!`);
+
+                    // Optionally find and visually update the milestone in the DOM
+                    const milestoneEls = document.querySelectorAll('.milestone');
+                    milestoneEls.forEach(el => {
+                        if (el.querySelector('.milestone-title')?.textContent.trim() === m.title) {
+                            el.classList.add('milestone-complete');
+                        }
+                    });
+
+                    // Remove from active list
+                    activeMilestones = activeMilestones.filter(x => x.id !== m.id);
+                    changed = true;
+                }
+            });
+
+            // Update the list without interrupting the game
+            if (changed) {
+                requestAnimationFrame(loadMilestones); // non-blocking refresh
+            } else {
+                requestAnimationFrame(renderMilestones);
+            }
+        }
+
+
 
         // Inject styles for leaderboard cards and user details popup
         const leaderboardStyle = document.createElement('style');
@@ -2096,6 +2415,9 @@ display: flex;
                     showToast(`Successfully donated ${amount} gold!`);
                     updateUI();
                     updateLeaderboard();
+                    stats.totalDonated = (stats.totalDonated || 0) + amount;
+                    updateMilestones();
+
                 }).catch(error => {
                     showToast('Failed to donate: ' + error.message);
                     gold += amount;
@@ -2186,105 +2508,108 @@ display: flex;
 
         // Load game state
         function loadGameState(uid) {
-            database.ref('users/' + uid + '/gameState').on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    gold = data.gold || 20;
-                    level = data.level || 1;
-                    ballPrices.basic = data.ballPrices?.basic || 25;
-                    ballPrices.sniper = data.ballPrices?.sniper || 50;
-                    ballPrices.big = data.ballPrices?.big || 75;
-                    ballPrices.explosion = data.ballPrices?.explosion || 100;
-                    ballPrices.multiplying = data.ballPrices?.multiplying || 125;
-                    ballPrices.cannonball = data.ballPrices?.cannonball || 150;
-                    ballPrices.poison = data.ballPrices?.poison || 175;
-                    ballPrices.snowball = data.ballPrices?.snowball || 200;
-                    autoBallPrice = data.autoBallPrice || 200;
-                    idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
-                    rebirthCount = data.rebirthCount || 0;
-                    ballUpgrades = data.ballUpgrades || {
-                        basic: { level: 1, speed: 3.5, damage: 1 },
-                        sniper: { level: 1, speed: 4.5, damage: 1 },
-                        big: { level: 1, speed: 2.7, damage: 1 },
-                        explosion: { level: 1, speed: 2.7, damage: 2 },
-                        multiplying: { level: 1, speed: 2.7, damage: 1 },
-                        child: { level: 1, speed: 3.6, damage: 1 },
-                        cannonball: { level: 1, speed: 3.0, damage: 3 },
-                        poison: { level: 1, speed: 3.5, damage: 1 },
-                        snowball: { level: 1, speed: 3.5, damage: 1 }
-                    };
-                    ballCounts = data.ballCounts || {
-                        basic: 0,
-                        sniper: 0,
-                        big: 0,
-                        explosion: 0,
-                        multiplying: 0,
-                        child: 0,
-                        cannonball: 0,
-                        poison: 0,
-                        snowball: 0
-                    };
-                    stats = data.stats || {
-                        totalPlayTime: 0,
-                        totalBallsPurchased: 0,
-                        totalUpgrades: 0,
-                        startTime: Date.now()
-                    };
-                    username = data.username || '';
-                    cosmetics = data.cosmetics || {
-                        nebulaSkin: false,
-                        fireTrail: false,
-                        iceTrail: false,
-                        rainbowSkin: false,
-                        bundleSilver: false,
-                        bundleGold: false,
-                        bundlePlatinum: false
-                    };
-                    syncBallsWithCounts();
-                    autoBalls = [];
-                    for (let i = 0; i < (data.autoBalls || 0); i++) {
-                        autoBalls.push(new AutoBall());
-                    }
-                    const now = Date.now();
-                    if (data.globalUpgrades) {
-                        if (data.globalUpgrades.speedBoost.active) {
-                            const elapsed = now - data.globalUpgrades.speedBoost.activationTime;
-                            if (elapsed < 60000) {
-                                globalUpgrades.speedBoost.active = true;
-                                setTimeout(() => {
+            database.ref('users/' + uid + '/gameState').once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        gold = data.gold || 20;
+                        level = data.level || 1;
+                        ballPrices.basic = data.ballPrices?.basic || 25;
+                        ballPrices.sniper = data.ballPrices?.sniper || 50;
+                        ballPrices.big = data.ballPrices?.big || 75;
+                        ballPrices.explosion = data.ballPrices?.explosion || 100;
+                        ballPrices.multiplying = data.ballPrices?.multiplying || 125;
+                        ballPrices.cannonball = data.ballPrices?.cannonball || 150;
+                        ballPrices.poison = data.ballPrices?.poison || 175;
+                        ballPrices.snowball = data.ballPrices?.snowball || 200;
+                        autoBallPrice = data.autoBallPrice || 200;
+                        idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
+                        rebirthCount = data.rebirthCount || 0;
+                        ballUpgrades = data.ballUpgrades || {
+                            basic: { level: 1, speed: 3.5, damage: 1 },
+                            sniper: { level: 1, speed: 4.5, damage: 1 },
+                            big: { level: 1, speed: 2.7, damage: 1 },
+                            explosion: { level: 1, speed: 2.7, damage: 2 },
+                            multiplying: { level: 1, speed: 2.7, damage: 1 },
+                            child: { level: 1, speed: 3.6, damage: 1 },
+                            cannonball: { level: 1, speed: 3.0, damage: 3 },
+                            poison: { level: 1, speed: 3.5, damage: 1 },
+                            snowball: { level: 1, speed: 3.5, damage: 1 }
+                        };
+                        ballCounts = data.ballCounts || {
+                            basic: 0,
+                            sniper: 0,
+                            big: 0,
+                            explosion: 0,
+                            multiplying: 0,
+                            child: 0,
+                            cannonball: 0,
+                            poison: 0,
+                            snowball: 0
+                        };
+                        stats = data.stats || {
+                            totalPlayTime: 0,
+                            totalBallsPurchased: 0,
+                            totalUpgrades: 0,
+                            startTime: Date.now()
+                        };
+                        username = data.username || '';
+                        cosmetics = data.cosmetics || {
+                            nebulaSkin: false,
+                            fireTrail: false,
+                            iceTrail: false,
+                            rainbowSkin: false,
+                            bundleSilver: false,
+                            bundleGold: false,
+                            bundlePlatinum: false
+                        };
+                        syncBallsWithCounts();
+                        autoBalls = [];
+                        for (let i = 0; i < (data.autoBalls || 0); i++) {
+                            autoBalls.push(new AutoBall());
+                        }
+                        const now = Date.now();
+                        if (data.globalUpgrades) {
+                            if (data.globalUpgrades.speedBoost.active) {
+                                const elapsed = now - data.globalUpgrades.speedBoost.activationTime;
+                                if (elapsed < 60000) {
+                                    globalUpgrades.speedBoost.active = true;
+                                    setTimeout(() => {
+                                        globalUpgrades.speedBoost.active = false;
+                                        showToast('Speed boost expired!');
+                                    }, 60000 - elapsed);
+                                } else {
                                     globalUpgrades.speedBoost.active = false;
-                                    showToast('Speed boost expired!');
-                                }, 60000 - elapsed);
-                            } else {
-                                globalUpgrades.speedBoost.active = false;
+                                }
                             }
-                        }
-                        if (data.globalUpgrades.goldBoost.active) {
-                            const elapsed = now - data.globalUpgrades.goldBoost.activationTime;
-                            if (elapsed < 60000) {
-                                globalUpgrades.goldBoost.active = true;
-                                setTimeout(() => {
+                            if (data.globalUpgrades.goldBoost.active) {
+                                const elapsed = now - data.globalUpgrades.goldBoost.activationTime;
+                                if (elapsed < 60000) {
+                                    globalUpgrades.goldBoost.active = true;
+                                    setTimeout(() => {
+                                        globalUpgrades.goldBoost.active = false;
+                                        showToast('Gold boost expired!');
+                                    }, 60000 - elapsed);
+                                } else {
                                     globalUpgrades.goldBoost.active = false;
-                                    showToast('Gold boost expired!');
-                                }, 60000 - elapsed);
-                            } else {
-                                globalUpgrades.goldBoost.active = false;
+                                }
                             }
                         }
-                    }
-                    updateUI();
-                    spawnBricks();
-                    if (!gameStarted) {
+                        updateUI();
+                        loadMilestones();
+                        spawnBricks();
+                        if (!gameStarted) {
+                            startGame();
+                            gameStarted = true;
+                        }
+                    } else {
                         startGame();
-                        gameStarted = true;
                     }
-                } else {
+                })
+                .catch((error) => {
+                    showToast('Failed to load game: ' + error.message);
                     startGame();
-                }
-            }, (error) => {
-                showToast('Failed to load game: ' + error.message);
-                startGame();
-            });
+                });
         }
 
         function syncBallsWithCounts() {
@@ -2378,6 +2703,7 @@ display: flex;
             const multiplier = globalUpgrades.goldBoost.active ? 2 : 1;
             gold += idleGoldPerSecond * multiplier;
             updateUI();
+            updateMilestones();
         }
         setInterval(generatePassiveGold, 1000);
 
@@ -2505,7 +2831,11 @@ display: flex;
             handleBrickCollision(brick) {
                 let damage = ballUpgrades[this.type].damage;
                 if (this.type === 'snowball') {
-                    damage += this.bounceCount * 0.2; // Increase damage per bounce
+                    // Increase damage by 1.5x
+                    ballUpgrades[this.type].damage *= 1.05;
+                    balls.push(
+                        // Keep existing snowball behavior
+                    );
                 }
                 if (this.type === 'cannonball') {
                     brick.health -= damage; // High damage
@@ -2516,12 +2846,6 @@ display: flex;
                         updateUI();
                     }
                     return; // Cannonball smashes through without bouncing
-                }
-                if (this.type === 'poison') {
-                    this.poisonedBricks.add(brick); // Mark brick as poisoned
-                }
-                if (this.poisonedBricks && this.poisonedBricks.has(brick)) {
-                    damage *= 2; // Double damage for poisoned bricks
                 }
                 if (this.type === 'explosion') {
                     brick.health -= damage;
@@ -2558,6 +2882,7 @@ display: flex;
                     balls = balls.filter(ball => ball !== this);
                 }
             }
+
             draw() {
                 drawTrail(this);
                 ctx.beginPath();
@@ -2851,6 +3176,7 @@ display: flex;
         function updateUI() {
             goldDisplay.textContent = Math.floor(gold);
             levelDisplay.textContent = level;
+            rebirthDisplay.textContent = rebirthCount;
             document.getElementById('basicPrice').textContent = ballPrices.basic;
             document.getElementById('sniperPrice').textContent = ballPrices.sniper;
             document.getElementById('bigPrice').textContent = ballPrices.big;
@@ -2914,6 +3240,7 @@ display: flex;
                 }[type];
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
+                updateMilestones();
             } else {
                 showToast(balls.length >= maxBalls ? 'Max balls reached!' : 'Not enough gold!');
             }
@@ -2927,6 +3254,7 @@ display: flex;
                 autoBalls.push(new AutoBall());
                 autoBallPrice = Math.floor(autoBallPrice * 1.3);
                 updateUI();
+                updateMilestones();
             } else {
                 showToast(autoBalls.length >= 10 ? 'Max auto-balls reached!' : 'Not enough gold!');
             }
@@ -3002,9 +3330,6 @@ display: flex;
                 globalUpgrades.goldBoost.active = false;
                 bricks = [];
                 powerUps = [];
-                spawnBricks();
-                updateUI();
-
                 // Increment local rebirth count
                 rebirthCount += 1;
 
@@ -3014,7 +3339,30 @@ display: flex;
 
                     database.ref(`users/${uid}/gameState`).update({
                         rebirthCount: rebirthCount,
-                        level: level
+                        level: level,
+                        ballCounts: {
+                            basic: 0,
+                            sniper: 0,
+                            big: 0,
+                            explosion: 0,
+                            multiplying: 0,
+                            child: 0,
+                            cannonball: 0,
+                            poison: 0,
+                            snowball: 0
+                        },
+                        ballPrices: {
+                            basic: 25,
+                            sniper: 50,
+                            big: 75,
+                            explosion: 100,
+                            multiplying: 125,
+                            cannonball: 150,
+                            poison: 175,
+                            snowball: 200
+                        },
+                        gold: gold
+
                     });
 
 
@@ -3028,6 +3376,9 @@ display: flex;
                         });
                     });
                 }
+                spawnBricks();
+                updateUI();
+                updateMilestones();
 
                 showToast('Rebirth successful! Starting from level 1 with retained ball upgrades.');
                 saveGameState();
@@ -4541,6 +4892,7 @@ display: flex;
                     });
                     bricks.forEach(brick => brick.draw());
                     nextLevel();
+                    updateMilestones();
                 }
                 requestAnimationFrame(loop);
             }
