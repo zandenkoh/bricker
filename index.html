@@ -96,6 +96,41 @@
             height: 100%;
         }
 
+        .leaderboard-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 5px;
+        }
+
+        .leaderboard-tabs button {
+            flex: 1;
+            padding: 8px;
+            font-weight: 600;
+            border: 1px solid #444;
+            cursor: pointer;
+            background: #f4eed6;
+            border-radius: 6px;
+        }
+
+        .leaderboard-tabs button.active {
+            background: #000;
+            color: #fff;
+        }
+
+        .team-card {
+            background: linear-gradient(145deg, #f4eed6, #e9dcaf);
+            border: 1px solid #444;
+            padding: 10px;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        .team-card:hover {
+            background: #e0d3a0;
+        }
+
+
         canvas {
             display: flex;
             align-self: center;
@@ -1045,6 +1080,17 @@
             background: #f4eed6;
             border-radius: 5px;
         }
+
+        .team-rank-circle {
+            width: 30px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -1167,7 +1213,19 @@
             </div>
             <div class="leaderboard-container">
                 <h2>Leaderboard</h2>
-                <div class="leaderboard-list"></div>
+                <div class="leaderboard-tabs">
+                    <button id="global-tab" class="active">Global</button>
+                    <button id="team-tab">Teams</button>
+                </div>
+                <div id="global-leaderboard" class="leaderboard-list"></div>
+                <div id="team-leaderboard" class="leaderboard-list" style="display:none;">
+                    <button id="create-team-btn"
+                        style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 0;">
+                        Create Team
+                    </button>
+                    <div id="team-list"></div>
+                </div>
+
             </div>
 
         </div>
@@ -3092,6 +3150,188 @@ display: flex;
                 powerups.forEach(powerup => applyPowerup(powerup));
             }, 5000);
         }
+
+        // Switch tabs
+        document.addEventListener("click", e => {
+            if (e.target.id === "global-tab") {
+                document.getElementById("global-tab").classList.add("active");
+                document.getElementById("team-tab").classList.remove("active");
+                document.getElementById("global-leaderboard").style.display = "block";
+                document.getElementById("team-leaderboard").style.display = "none";
+            }
+            if (e.target.id === "team-tab") {
+                document.getElementById("team-tab").classList.add("active");
+                document.getElementById("global-tab").classList.remove("active");
+                document.getElementById("global-leaderboard").style.display = "none";
+                document.getElementById("team-leaderboard").style.display = "block";
+                fetchTeams();
+            }
+        });
+
+        function fetchTeams() {
+            const teamList = document.getElementById("team-list");
+            teamList.innerHTML = "Loading teams...";
+            database.ref("teams").once("value").then(snapshot => {
+                const teams = [];
+                snapshot.forEach(teamSnap => {
+                    const team = teamSnap.val();
+                    const memberCount = team.members ? Object.keys(team.members).length : 0;
+                    const totalRebirths = Object.keys(team.members || {}).reduce((sum, uid) => {
+                        return sum + (team.memberRebirths?.[uid] || 0);
+                    }, 0);
+                    teams.push({
+                        id: teamSnap.key,
+                        name: team.name,
+                        members: memberCount,
+                        maxMembers: team.maxMembers || 15,
+                        rebirths: totalRebirths
+                    });
+                });
+                teams.sort((a, b) => b.rebirths - a.rebirths);
+                teamList.innerHTML = "";
+                teams.forEach((t, index) => {
+                    const div = document.createElement("div");
+                    div.className = "team-card";
+                    div.innerHTML = `
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="team-rank-circle">${index + 1}</div>
+                    <div>
+                        <b>${t.name}</b><br>
+                        Rebirths: ${t.rebirths} | Members: ${t.members}/${t.maxMembers}
+                    </div>
+                </div>
+            `;
+                    div.addEventListener("click", () => showTeamDetails(t.id, index + 1));
+                    teamList.appendChild(div);
+                });
+            });
+        }
+
+        // Show team details + member list with leaderboard style
+        function showTeamDetails(teamId, rank) {
+            database.ref("teams/" + teamId).once("value").then(snap => {
+                const team = snap.val();
+                const overlay = document.createElement("div");
+                overlay.className = "login-overlay";
+
+                // Sort members by rebirths
+                const memberEntries = Object.entries(team.members || {}).map(([uid, name]) => ({
+                    uid,
+                    name,
+                    rebirths: team.memberRebirths?.[uid] || 0
+                }));
+                memberEntries.sort((a, b) => b.rebirths - a.rebirths);
+
+                overlay.innerHTML = `
+            <div class="login-popup" style="width:400px;max-height:80vh;overflow-y:auto;">
+                <div style="display:flex;flex-direction:row;align-items:center;gap:10px;margin-bottom:10px;justify-content: left;">
+                    <div class="team-rank-circle">${rank}</div>
+                    <div style="display: flex; flex-direction: column; gap: 0; text-align: left;">
+                        <h2 style="margin:0;">${team.name}</h2>
+                        <p style="margin: 0;">Total Rebirths: ${memberEntries.reduce((sum, m) => sum + m.rebirths, 0)}</p>
+                    </div>
+                    
+                </div>
+                
+                <h3 style="text-align: left;">Members</h3>
+                <div id="team-members"></div>
+                <div style="margin-top:15px;">
+                    <button id="join-leave-btn"></button>
+                    <button id="close-team-btn">Close</button>
+                </div>
+            </div>
+        `;
+                document.body.appendChild(overlay);
+
+                // Populate members with leaderboard style
+                const memberList = overlay.querySelector("#team-members");
+                memberEntries.forEach((m, i) => {
+                    const card = document.createElement("div");
+                    card.className = `leaderboard-card rank-${i + 1}`;
+                    card.innerHTML = `
+                <span class="rank">${i + 1}</span>
+                <div class="user-and-info" style="text-align: left;">
+                    <span class="username">${m.name || "Anonymous"}</span>
+                    <span class="info">Rebirths: ${m.rebirths}</span>
+                </div>
+            `;
+                    memberList.appendChild(card);
+                });
+
+                // Determine if user is in this team
+                const user = auth.currentUser;
+                if (!user) {
+                    overlay.querySelector("#join-leave-btn").textContent = "Login to Join";
+                    overlay.querySelector("#join-leave-btn").onclick = () => showLoginPopup();
+                } else {
+                    database.ref("userTeams/" + user.uid).once("value").then(userSnap => {
+                        const currentTeamId = userSnap.val();
+                        if (currentTeamId === teamId) {
+                            overlay.querySelector("#join-leave-btn").textContent = "Leave Team";
+                            overlay.querySelector("#join-leave-btn").onclick = () => leaveTeam(teamId);
+                        } else if (currentTeamId) {
+                            overlay.querySelector("#join-leave-btn").textContent = "Already in a Team";
+                            overlay.querySelector("#join-leave-btn").disabled = true;
+                        } else {
+                            overlay.querySelector("#join-leave-btn").textContent = "Join Team";
+                            overlay.querySelector("#join-leave-btn").onclick = () => joinTeam(teamId);
+                        }
+                    });
+                }
+
+                overlay.querySelector("#close-team-btn").onclick = () => overlay.remove();
+            });
+        }
+
+        // Create Team (only if not in a team)
+        document.addEventListener("click", e => {
+            if (e.target.id === "create-team-btn") {
+                const user = auth.currentUser;
+                if (!user) return showToast("Login first!");
+                database.ref("userTeams/" + user.uid).once("value").then(snap => {
+                    if (snap.val()) return showToast("You already have or are in a team!");
+                    const teamName = prompt("Enter team name:");
+                    if (!teamName) return;
+                    const newTeamRef = database.ref("teams").push();
+                    newTeamRef.set({
+                        name: teamName,
+                        members: { [user.uid]: username },
+                        memberRebirths: { [user.uid]: rebirthCount },
+                        maxMembers: 15
+                    }).then(() => {
+                        database.ref("userTeams/" + user.uid).set(newTeamRef.key);
+                        showToast("Team created!");
+                        fetchTeams();
+                    });
+                });
+            }
+        });
+
+        function joinTeam(teamId) {
+            const user = auth.currentUser;
+            if (!user) return showToast("Login first!");
+            database.ref("userTeams/" + user.uid).once("value").then(snap => {
+                if (snap.val()) return showToast("You are already in a team!");
+                database.ref("teams/" + teamId + "/members/" + user.uid).set(username);
+                database.ref("teams/" + teamId + "/memberRebirths/" + user.uid).set(rebirthCount);
+                database.ref("userTeams/" + user.uid).set(teamId);
+                showToast("Joined team!");
+                document.querySelector(".login-overlay")?.remove();
+                fetchTeams();
+            });
+        }
+
+        function leaveTeam(teamId) {
+            const user = auth.currentUser;
+            if (!user) return showToast("Login first!");
+            database.ref("teams/" + teamId + "/members/" + user.uid).remove();
+            database.ref("teams/" + teamId + "/memberRebirths/" + user.uid).remove();
+            database.ref("userTeams/" + user.uid).remove();
+            showToast("Left team!");
+            document.querySelector(".login-overlay")?.remove();
+            fetchTeams();
+        }
+
 
 
         // New function to buy idle gold boost
