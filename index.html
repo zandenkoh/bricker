@@ -2983,34 +2983,57 @@ display: flex;
         }
 
         // Rebirth
-        function rebirth() {
-            if (level >= 100 && confirm('Are you sure you want to rebirth? You will lose all balls and gold but keep ball upgrades.')) {
-                gold = 20;
-                level = 1;
-                balls = [];
-                autoBalls = [];
-                ballPrices.sniper = 50;
-                ballPrices.big = 75;
-                ballPrices.explosion = 100;
-                ballPrices.multiplying = 125;
-                autoBallPrice = 200;
-                idleGoldPerSecond *= 1.2;
-                globalUpgrades.speedBoost.active = false;
-                globalUpgrades.goldBoost.active = false;
-                bricks = [];
-                powerUps = [];
-                spawnBricks();
-                updateUI();
-                rebirthCount += 1;
-                showToast('Rebirth successful! Starting from level 1 with retained ball upgrades.');
-                saveGameState();
-                // Refresh the My Balls popup to update rebirth info
-                document.querySelector('.login-overlay')?.remove();
-                showMyBallsPopup();
-            } else {
-                showToast(level < 100 ? 'You need to reach level 100 to rebirth!' : 'Rebirth cancelled.');
-            }
+function rebirth() {
+    if (level >= 100 && confirm('Are you sure you want to rebirth? You will lose all balls and gold but keep ball upgrades.')) {
+        gold = 20;
+        level = 1;
+        balls = [];
+        autoBalls = [];
+        ballPrices.sniper = 50;
+        ballPrices.big = 75;
+        ballPrices.explosion = 100;
+        ballPrices.multiplying = 125;
+        autoBallPrice = 200;
+        idleGoldPerSecond *= 1.2;
+        globalUpgrades.speedBoost.active = false;
+        globalUpgrades.goldBoost.active = false;
+        bricks = [];
+        powerUps = [];
+        spawnBricks();
+        updateUI();
+
+        // Increment local rebirth count
+        rebirthCount += 1;
+
+        const user = auth.currentUser;
+        if (user) {
+            const uid = user.uid;
+
+            // 1️⃣ Update user's own rebirth count in their game state
+            database.ref(`users/${uid}/gameState/rebirthCount`).set(rebirthCount);
+
+            // 2️⃣ Find the team containing this user and update their memberRebirths entry
+            database.ref('teams').once('value').then(snapshot => {
+                snapshot.forEach(teamSnap => {
+                    const members = teamSnap.child('members').val() || {};
+                    if (members.hasOwnProperty(uid)) {
+                        database.ref(`teams/${teamSnap.key}/memberRebirths/${uid}`).set(rebirthCount);
+                    }
+                });
+            });
         }
+
+        showToast('Rebirth successful! Starting from level 1 with retained ball upgrades.');
+        saveGameState();
+
+        // Refresh the My Balls popup to update rebirth info
+        document.querySelector('.login-overlay')?.remove();
+        showMyBallsPopup();
+    } else {
+        showToast(level < 100 ? 'You need to reach level 100 to rebirth!' : 'Rebirth cancelled.');
+    }
+}
+
 
         const powerUpsList = [{
             emoji: '⚡',
