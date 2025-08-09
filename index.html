@@ -80,6 +80,7 @@
             margin-bottom: 0;
             box-sizing: border-box;
             padding-bottom: 30px;
+            padding: 10px;
         }
 
         .leaderboard-container h2 {
@@ -124,6 +125,8 @@
             padding: 10px;
             margin-top: 8px;
             cursor: pointer;
+            border-radius: 6px;
+
         }
 
         .team-card:hover {
@@ -1220,7 +1223,7 @@
                 <div id="global-leaderboard" class="leaderboard-list"></div>
                 <div id="team-leaderboard" class="leaderboard-list" style="display:none;">
                     <button id="create-team-btn"
-                        style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 0;">
+                        style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 6px;font-weight: 600;">
                         Create Team
                     </button>
                     <div id="team-list"></div>
@@ -2983,56 +2986,59 @@ display: flex;
         }
 
         // Rebirth
-function rebirth() {
-    if (level >= 100 && confirm('Are you sure you want to rebirth? You will lose all balls and gold but keep ball upgrades.')) {
-        gold = 20;
-        level = 1;
-        balls = [];
-        autoBalls = [];
-        ballPrices.sniper = 50;
-        ballPrices.big = 75;
-        ballPrices.explosion = 100;
-        ballPrices.multiplying = 125;
-        autoBallPrice = 200;
-        idleGoldPerSecond *= 1.2;
-        globalUpgrades.speedBoost.active = false;
-        globalUpgrades.goldBoost.active = false;
-        bricks = [];
-        powerUps = [];
-        spawnBricks();
-        updateUI();
+        function rebirth() {
+            if (level >= 100 && confirm('Are you sure you want to rebirth? You will lose all balls and gold but keep ball upgrades.')) {
+                gold = 20;
+                level = 1;
+                balls = [];
+                autoBalls = [];
+                ballPrices.sniper = 50;
+                ballPrices.big = 75;
+                ballPrices.explosion = 100;
+                ballPrices.multiplying = 125;
+                autoBallPrice = 200;
+                idleGoldPerSecond *= 1.2;
+                globalUpgrades.speedBoost.active = false;
+                globalUpgrades.goldBoost.active = false;
+                bricks = [];
+                powerUps = [];
+                spawnBricks();
+                updateUI();
 
-        // Increment local rebirth count
-        rebirthCount += 1;
+                // Increment local rebirth count
+                rebirthCount += 1;
 
-        const user = auth.currentUser;
-        if (user) {
-            const uid = user.uid;
+                const user = auth.currentUser;
+                if (user) {
+                    const uid = user.uid;
 
-            // 1️⃣ Update user's own rebirth count in their game state
-            database.ref(`users/${uid}/gameState/rebirthCount`).set(rebirthCount);
+                    database.ref(`users/${uid}/gameState`).update({
+                        rebirthCount: rebirthCount,
+                        level: level
+                    });
 
-            // 2️⃣ Find the team containing this user and update their memberRebirths entry
-            database.ref('teams').once('value').then(snapshot => {
-                snapshot.forEach(teamSnap => {
-                    const members = teamSnap.child('members').val() || {};
-                    if (members.hasOwnProperty(uid)) {
-                        database.ref(`teams/${teamSnap.key}/memberRebirths/${uid}`).set(rebirthCount);
-                    }
-                });
-            });
+
+                    // 2️⃣ Find the team containing this user and update their memberRebirths entry
+                    database.ref('teams').once('value').then(snapshot => {
+                        snapshot.forEach(teamSnap => {
+                            const members = teamSnap.child('members').val() || {};
+                            if (members.hasOwnProperty(uid)) {
+                                database.ref(`teams/${teamSnap.key}/memberRebirths/${uid}`).set(rebirthCount);
+                            }
+                        });
+                    });
+                }
+
+                showToast('Rebirth successful! Starting from level 1 with retained ball upgrades.');
+                saveGameState();
+
+                // Refresh the My Balls popup to update rebirth info
+                document.querySelector('.login-overlay')?.remove();
+                showMyBallsPopup();
+            } else {
+                showToast(level < 100 ? 'You need to reach level 100 to rebirth!' : 'Rebirth cancelled.');
+            }
         }
-
-        showToast('Rebirth successful! Starting from level 1 with retained ball upgrades.');
-        saveGameState();
-
-        // Refresh the My Balls popup to update rebirth info
-        document.querySelector('.login-overlay')?.remove();
-        showMyBallsPopup();
-    } else {
-        showToast(level < 100 ? 'You need to reach level 100 to rebirth!' : 'Rebirth cancelled.');
-    }
-}
 
 
         const powerUpsList = [{
@@ -3218,7 +3224,7 @@ function rebirth() {
                     div.innerHTML = `
                 <div style="display:flex;align-items:center;gap:10px;">
                     <div class="team-rank-circle">${index + 1}</div>
-                    <div>
+                    <div style="font-size: 14px;">
                         <b>${t.name}</b><br>
                         Rebirths: ${t.rebirths} | Members: ${t.members}/${t.maxMembers}
                     </div>
@@ -3256,7 +3262,7 @@ function rebirth() {
                     
                 </div>
                 
-                <h3 style="text-align: left;">Members</h3>
+                <h3 style="text-align: left;font-weight: 600;font-size: 15px;margin-bottom: 10px;">Members:</h3>
                 <div id="team-members"></div>
                 <div style="margin-top:15px;">
                     <button id="join-leave-btn"></button>
