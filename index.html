@@ -1260,6 +1260,7 @@
                 transform: translateY(100%);
                 opacity: 0;
             }
+
             100% {
                 transform: translateY(0);
                 opacity: 1;
@@ -1272,6 +1273,7 @@
                 transform: translateY(0);
                 opacity: 1;
             }
+
             100% {
                 transform: translateY(100%);
                 opacity: 0;
@@ -1295,7 +1297,10 @@
 <body>
     <!-- Overlay -->
     <div id="afkOverlay">
+        <img id="gcImage" src="./classroom.png" alt="Google Classroom"
+            style="width:100%;height:100%;object-fit:cover;cursor:pointer;" title="Click to change image">
     </div>
+
 
     <div class="main-main-container">
         <div class="main-container">
@@ -1520,91 +1525,105 @@
 
 
 
-    let originalTitle = document.title;
-    let toastEl = null;
+        let originalTitle = document.title;
+        let toastEl = null;
 
-    // Listen for overlay changes
-    database.ref('settings/overlay').on('value', snapshot => {
-        const isOverlay = snapshot.val();
-        const overlayEl = document.getElementById('afkOverlay');
+        const gcImages = [
+            "./SLS.png",
+            "./classroom.png"
+        ];
+        let gcIndex = 0;
+        const gcImageEl = document.getElementById('gcImage');
 
-        if (isOverlay) {
-            // Show animated overlay
-            overlayEl.style.display = 'block';
-            if (!overlayEl.classList.contains('active')) {
-                overlayEl.classList.remove('hiding');
-                overlayEl.classList.add('active');
-            }
+        gcImageEl.addEventListener('click', () => {
+            gcIndex = (gcIndex + 1) % gcImages.length;
+            gcImageEl.src = gcImages[gcIndex];
+        });
 
-            // Toast
-            if (!toastEl) {
-                toastEl = showTooast("Teacher alert! Please hold on for a while before your gameplay resumes. Don't worry your game is still running.");
-            }
 
-            // Title change
-            document.title = "Teacher alert — Game Paused!";
-        } else {
-            // Only trigger fade-out if overlay was previously active
-            if (overlayEl.classList.contains('active') && !overlayEl.classList.contains('hiding')) {
-                overlayEl.classList.remove('active');
-                overlayEl.classList.add('hiding');
+        // Listen for overlay changes
+        database.ref('settings/overlay').on('value', snapshot => {
+            const isOverlay = snapshot.val();
+            const overlayEl = document.getElementById('afkOverlay');
 
-                // Listen for animation end to hide overlay
-                const hideOverlay = () => {
-                    if (!snapshot.val()) { // Check Firebase value again to avoid race conditions
-                        overlayEl.style.display = 'none';
-                        overlayEl.classList.remove('hiding');
-                    }
-                };
-                overlayEl.removeEventListener('animationend', hideOverlay); // Remove any existing listener
-                overlayEl.addEventListener('animationend', hideOverlay, { once: true });
+            if (isOverlay) {
+                // Show animated overlay
+                overlayEl.style.display = 'block';
+                if (!overlayEl.classList.contains('active')) {
+                    overlayEl.classList.remove('hiding');
+                    overlayEl.classList.add('active');
+                }
+
+
+                // Toast
+                if (!toastEl) {
+                    toastEl = showTooast("Do not worry! We will AFK for you!");
+                }
+
+                // Title change
+                document.title = "Teacher alert — Game Paused!";
             } else {
-                // Ensure overlay is hidden without animation on load if false
-                overlayEl.style.display = 'none';
-                overlayEl.classList.remove('active', 'hiding');
-            }
+                // Only trigger fade-out if overlay was previously active
+                if (overlayEl.classList.contains('active') && !overlayEl.classList.contains('hiding')) {
+                    overlayEl.classList.remove('active');
+                    overlayEl.classList.add('hiding');
 
-            // Remove toast
-            if (toastEl) {
-                toastEl.style.opacity = '0';
-                setTimeout(() => {
-                    if (toastEl && toastEl.parentNode) {
-                        toastEl.remove();
-                        toastEl = null;
-                    }
-                }, 500);
-            }
+                    // Listen for animation end to hide overlay
+                    const hideOverlay = () => {
+                        if (!snapshot.val()) { // Check Firebase value again to avoid race conditions
+                            overlayEl.style.display = 'none';
+                            overlayEl.classList.remove('hiding');
+                        }
+                    };
+                    overlayEl.removeEventListener('animationend', hideOverlay); // Remove any existing listener
+                    overlayEl.addEventListener('animationend', hideOverlay, { once: true });
+                } else {
+                    // Ensure overlay is hidden without animation on load if false
+                    overlayEl.style.display = 'none';
+                    overlayEl.classList.remove('active', 'hiding');
+                }
 
-            // Restore title
-            document.title = originalTitle;
+                // Remove toast
+                if (toastEl) {
+                    toastEl.style.opacity = '0';
+                    setTimeout(() => {
+                        if (toastEl && toastEl.parentNode) {
+                            toastEl.remove();
+                            toastEl = null;
+                        }
+                    }, 500);
+                }
+
+                // Restore title
+                document.title = originalTitle;
+            }
+        });
+
+        function showTooast(message) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.background = 'rgba(0, 0, 0, 0.85)';
+            toast.style.color = '#fff';
+            toast.style.padding = '12px 20px';
+            toast.style.borderRadius = '6px';
+            toast.style.fontSize = '14px';
+            toast.style.zIndex = '9999';
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.style.transition = 'opacity 0.5s';
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 500);
+                }
+            }, 6000);
+
+            return toast;
         }
-    });
-
-    function showTooast(message) {
-        const toast = document.createElement('div');
-        toast.textContent = message;
-        toast.style.position = 'fixed';
-        toast.style.bottom = '20px';
-        toast.style.left = '50%';
-        toast.style.transform = 'translateX(-50%)';
-        toast.style.background = 'rgba(0, 0, 0, 0.85)';
-        toast.style.color = '#fff';
-        toast.style.padding = '12px 20px';
-        toast.style.borderRadius = '6px';
-        toast.style.fontSize = '14px';
-        toast.style.zIndex = '9999';
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.style.transition = 'opacity 0.5s';
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 500);
-            }
-        }, 200000);
-
-        return toast;
-    }
 
         // Define Intro.js tutorial
         function startTutorial() {
@@ -1707,6 +1726,8 @@
         let autoBalls = [];
         let effects = [];
         let rebirthCount = 0;
+        let autoRebirthOwned = false;   // Permanently purchased in shop (saved to DB)
+        let autoRebirthEnabled = false;
         const brickWidth = 70;
         const brickHeight = 30;
         const maxBalls = 1000;
@@ -1844,7 +1865,58 @@
                     showLoginPopup();
                 }
             });
+            function buyAutoRebirth() {
+                const user = auth.currentUser;
+                if (!user || isGuest) {
+                    showLoginPopupForSave();
+                    return;
+                }
+                if (autoRebirthOwned) {
+                    showToast('Auto Rebirth already owned.');
+                    return;
+                }
+                if (rebirthCount < 10) {
+                    showToast('Not enough rebirths!');
+                    return;
+                }
+                if (!confirm('Spend 10 rebirths to permanently unlock Auto Rebirth?')) return;
+
+                rebirthCount -= 10;
+                autoRebirthOwned = true;
+                autoRebirthEnabled = true;
+                updateUI();
+
+                database.ref('users/' + user.uid + '/gameState').update({
+                    rebirthCount: rebirthCount,
+                    autoRebirthOwned: true,
+                    autoRebirthEnabled: true
+                }).then(() => {
+                    showToast('Auto Rebirth purchased!');
+                    updateLeaderboard?.();
+                }).catch(error => {
+                    // revert on failure
+                    rebirthCount += 10;
+                    autoRebirthOwned = false;
+                    autoRebirthEnabled = false;
+                    updateUI();
+                    showToast('Purchase failed: ' + error.message);
+                });
+            }
+
         };
+
+        // Buy handler (hook it up once DOM is ready)
+
+        document.getElementById('auto-rebirth-toggle')?.addEventListener('change', function (e) {
+            autoRebirthEnabled = !!e.target.checked;
+            const user = auth.currentUser;
+            if (user && !isGuest) {
+                database.ref('users/' + user.uid + '/gameState').update({ autoRebirthEnabled })
+                    .catch(() => { }); // don't block UI on failure
+            }
+            updateUI();
+        });
+
 
         // Login popup
         function showLoginPopup() {
@@ -1997,6 +2069,8 @@
                     username,
                     rebirthCount,
                     cosmetics,
+                    autoRebirthOwned,
+                    autoRebirthEnabled,
                     globalUpgrades: {
                         speedBoost: {
                             active: globalUpgrades.speedBoost.active,
@@ -2668,6 +2742,9 @@ display: flex;
                         autoBallPrice = data.autoBallPrice || 200;
                         idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
                         rebirthCount = data.rebirthCount || 0;
+                        autoRebirthOwned = data.autoRebirthOwned || false;
+                        autoRebirthEnabled = !!data.autoRebirthEnabled;
+
                         ballUpgrades = data.ballUpgrades || {
                             basic: { level: 1, speed: 3.5, damage: 1 },
                             sniper: { level: 1, speed: 4.5, damage: 1 },
@@ -3358,6 +3435,14 @@ display: flex;
                     tooltip.textContent = ballTooltips[id];
                 }
             });
+            const autoToggleContainer = document.getElementById('auto-rebirth-toggle-container');
+            const autoToggle = document.getElementById('auto-rebirth-toggle');
+            if (autoToggleContainer) autoToggleContainer.style.display = autoRebirthOwned ? 'block' : 'none';
+            if (autoToggle) {
+                autoToggle.checked = !!autoRebirthEnabled;
+                autoToggle.disabled = isGuest || !autoRebirthOwned;
+            }
+
         }
 
         // Buy ball
@@ -3457,8 +3542,8 @@ display: flex;
         }
 
         // Rebirth
-        function rebirth() {
-            if (level >= 100 && confirm('Are you sure you want to rebirth? You will lose all balls and gold but keep ball upgrades.')) {
+        function rebirth(skipConfirm = false) {
+            if (level >= 100 && (skipConfirm || confirm('Are you sure you want to rebirth? You will lose all balls and gold but keep ball upgrades.'))) {
                 gold = 20;
                 level = 1;
                 balls = [];
@@ -3508,7 +3593,9 @@ display: flex;
                             poison: 175,
                             snowball: 200
                         },
-                        gold: gold
+                        gold: gold,
+                        autoRebirthOwned: autoRebirthOwned,
+                        autoRebirthEnabled: autoRebirthEnabled
                     });
 
 
@@ -4591,6 +4678,16 @@ display: flex;
                 </div>
             </div>
             <div class="tab-content" id="shop">
+<div class="shop-option">
+    <span>Auto Rebirth (Cost: 10 rebirths)</span>
+    <button id="buy-auto-rebirth-btn">Buy</button>
+</div>
+<div id="auto-rebirth-toggle-container" style="display:none; margin-top:10px;">
+    <label>
+        <input type="checkbox" id="auto-rebirth-toggle">
+        Enable Auto Rebirth
+    </label>
+</div>
                 <div class="shop-options">
                     <h3>Powerups</h3>
                     <div class="shop-option">
@@ -4711,6 +4808,7 @@ display: flex;
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) overlay.remove();
             });
+            document.getElementById('buy-auto-rebirth-btn')?.addEventListener('click', buyAutoRebirth);
         }
 
         function toggleCosmeticButton(button, cosmeticName) {
@@ -4993,8 +5091,13 @@ display: flex;
         function nextLevel() {
             if (bricks.length === 0) {
                 level++;
-                spawnBricks();
                 updateUI();
+                if (level >= 100 && autoRebirthOwned && autoRebirthEnabled) {
+                    rebirth(true); // skipConfirm = true
+                } else {
+                    spawnBricks();
+                    updateUI();
+                }
             }
         }
 
