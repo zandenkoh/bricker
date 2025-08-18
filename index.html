@@ -1103,6 +1103,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            margin-right: 0;
         }
 
         #milestones-container {
@@ -1297,7 +1298,8 @@
 <body>
     <!-- Overlay -->
     <div id="afkOverlay">
-        <img id="gcImage" src="./classroom.png" alt="Google Classroom" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" title="Click to change image">
+        <img id="gcImage" src="./classroom.png" alt="Google Classroom"
+            style="width:100%;height:100%;object-fit:cover;cursor:pointer;" title="Click to change image">
     </div>
 
 
@@ -1432,7 +1434,8 @@
                 </div>
                 <div id="global-leaderboard" class="leaderboard-list"></div>
                 <div id="team-leaderboard" class="leaderboard-list" style="display:none;">
-                    <button id="create-team-btn" style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 6px;font-weight: 600;">
+                    <button id="create-team-btn"
+                        style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 6px;font-weight: 600;">
                         Create Team
                     </button>
                     <div id="team-list"></div>
@@ -1629,53 +1632,53 @@
         function startTutorial() {
             introJs().setOptions({
                 steps: [{
-                        intro: "Welcome to Bricker! Let's explore the game.",
-                        position: "center"
-                    },
-                    {
-                        element: document.querySelector('#gameCanvas'),
-                        intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
-                        position: "top"
-                    },
-                    {
-                        element: document.querySelector('.info-container'),
-                        intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
-                        position: "right"
-                    },
-                    {
-                        element: document.querySelector('#save-button'),
-                        intro: "Click here to save your progress to your account.",
-                        position: "right"
-                    },
-                    {
-                        element: document.querySelector('.ball-options'),
-                        intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
-                        position: "bottom"
-                    },
-                    {
-                        element: document.querySelector('#my-balls-btn'),
-                        intro: "View your balls and upgrade them.",
-                        position: "left"
-                    },
-                    {
-                        element: document.querySelector('#settings-btn'),
-                        intro: "Update your username or log out in the settings.",
-                        position: "left"
-                    },
-                    {
-                        element: document.querySelector('#weapons-btn'),
-                        intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
-                        position: "left"
-                    },
-                    {
-                        element: document.querySelector('.leaderboard-container'),
-                        intro: "Check the leaderboard to see top players' rankings and stats.",
-                        position: "left"
-                    },
-                    {
-                        intro: "You're all set! Start destroying bricks and earning gold!",
-                        position: "center"
-                    }
+                    intro: "Welcome to Bricker! Let's explore the game.",
+                    position: "center"
+                },
+                {
+                    element: document.querySelector('#gameCanvas'),
+                    intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
+                    position: "top"
+                },
+                {
+                    element: document.querySelector('.info-container'),
+                    intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
+                    position: "right"
+                },
+                {
+                    element: document.querySelector('#save-button'),
+                    intro: "Click here to save your progress to your account.",
+                    position: "right"
+                },
+                {
+                    element: document.querySelector('.ball-options'),
+                    intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
+                    position: "bottom"
+                },
+                {
+                    element: document.querySelector('#my-balls-btn'),
+                    intro: "View your balls and upgrade them.",
+                    position: "left"
+                },
+                {
+                    element: document.querySelector('#settings-btn'),
+                    intro: "Update your username or log out in the settings.",
+                    position: "left"
+                },
+                {
+                    element: document.querySelector('#weapons-btn'),
+                    intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
+                    position: "left"
+                },
+                {
+                    element: document.querySelector('.leaderboard-container'),
+                    intro: "Check the leaderboard to see top players' rankings and stats.",
+                    position: "left"
+                },
+                {
+                    intro: "You're all set! Start destroying bricks and earning gold!",
+                    position: "center"
+                }
                 ],
                 showProgress: true,
                 showBullets: false,
@@ -1888,7 +1891,7 @@
             }, 2000);
         }
 
-        window.onload = function() {
+        window.onload = function () {
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
                     // Load game state but don't save until user interaction
@@ -1896,12 +1899,135 @@
                     startTutorialIfNeeded(user.uid);
                     showSG60GiveawayPopup(user.uid);
                     migrateNewBalls();
+                    setupListeners();
 
                 } else {
                     showLoginPopup();
                 }
             });
         };
+
+        function setupListeners() {
+            const user = firebase.auth().currentUser;
+            if (user) {
+                const userId = user.uid;
+                const presenceRef = firebase.database().ref(`presence/${userId}`);
+                const reloadRef = firebase.database().ref(`reload/${userId}`);
+
+                // Set presence to true and ensure it persists
+                presenceRef.set(true)
+                    .then(() => {
+                        console.log(`Presence set to true for user ${userId}`);
+                        // Set up onDisconnect to handle tab close or disconnect
+                        presenceRef.onDisconnect().set(false)
+                            .then(() => {
+                                console.log(`onDisconnect set for presence/${userId}`);
+                            })
+                            .catch(err => {
+                                console.error(`Error setting onDisconnect for presence/${userId}:`, err);
+                            });
+                    })
+                    .catch(err => {
+                        console.error(`Error setting presence for user ${userId}:`, err);
+                    });
+
+                // Constantly listen for reload changes
+                reloadRef.on('value', snap => {
+                    if (snap.val() === true) {
+                        reloadRef.set(false)
+                            .then(() => {
+                                console.log(`Reload triggered for user ${userId}`);
+                                window.location.reload();
+                            })
+                            .catch(err => {
+                                console.error('Error resetting reload flag:', err);
+                            });
+                    }
+                }, err => {
+                    console.error('Error listening to reload:', err);
+                });
+
+                // Check for updates on load
+                checkForUpdates();
+            } else {
+                console.warn('No authenticated user found for setting up listeners');
+            }
+        }
+
+        function checkForUpdates() {
+            const userId = firebase.auth().currentUser?.uid;
+            if (!userId) return;
+
+            firebase.database().ref('updates').once('value')
+                .then(snap => {
+                    const updates = snap.val() || {};
+                    const dismissedUpdates = JSON.parse(localStorage.getItem('dismissedUpdates') || '[]');
+
+                    Object.entries(updates).forEach(([updateId, { id: elementId, content }]) => {
+                        if (!dismissedUpdates.includes(updateId)) {
+                            waitForElementToDisplay(elementId, () => {
+                                showUpdateTooltip(updateId, elementId, content);
+                            });
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.error('Error fetching updates:', err);
+                });
+        }
+
+        function waitForElementToDisplay(elementId, callback) {
+            const checkElement = () => {
+                const element = document.getElementById(elementId);
+                if (element && element.offsetParent !== null) {
+                    callback();
+                } else {
+                    setTimeout(checkElement, 100);
+                }
+            };
+            checkElement();
+        }
+
+
+        function showUpdateTooltip(updateId, elementId, content) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.warn(`Element with ID ${elementId} not found for update ${updateId}`);
+                return;
+            }
+
+            const tooltip = document.createElement('div');
+            tooltip.style.position = 'absolute';
+            tooltip.style.backgroundColor = '#333';
+            tooltip.style.color = '#fff';
+            tooltip.style.padding = '5px 10px';
+            tooltip.style.paddingRight = '5px';
+            tooltip.style.borderRadius = '5px';
+            tooltip.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+            tooltip.style.zIndex = '1000';
+            tooltip.style.maxWidth = '300px';
+            tooltip.style.fontSize = '14px';
+            tooltip.style.textAlign = 'center';
+            tooltip.innerHTML = `
+        <div style="display:flex;flex-direction:row;gap:0;align-items:center;">
+            <p style="margin: 0 5px 0 0;">${content}</p>
+            <button style="margin: 0; position: relative; background: red; margin-right: 0; border-radius: 50px; padding: 0; width: 20px; height: 20px; border: none; color: #fff; font-size: 16px; cursor: pointer; line-height: 1;">✕</button>
+        </div>
+        <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 10px solid #333;"></div>
+    `;
+            document.body.appendChild(tooltip);
+
+            const rect = element.getBoundingClientRect();
+            tooltip.style.left = `${rect.left + window.scrollX + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+            tooltip.style.top = `${rect.top + window.scrollY + rect.height + 10}px`;
+
+            tooltip.querySelector('button').addEventListener('click', () => {
+                const dismissedUpdates = JSON.parse(localStorage.getItem('dismissedUpdates') || '[]');
+                dismissedUpdates.push(updateId);
+                localStorage.setItem('dismissedUpdates', JSON.stringify(dismissedUpdates));
+                tooltip.remove();
+            });
+        }
 
         function buyAutoRebirth() {
             const user = auth.currentUser;
@@ -1944,14 +2070,14 @@
 
         // Buy handler (hook it up once DOM is ready)
 
-        document.getElementById('auto-rebirth-toggle')?.addEventListener('change', function(e) {
+        document.getElementById('auto-rebirth-toggle')?.addEventListener('change', function (e) {
             autoRebirthEnabled = !!e.target.checked;
             const user = auth.currentUser;
             if (user && !isGuest) {
                 database.ref('users/' + user.uid + '/gameState').update({
-                        autoRebirthEnabled
-                    })
-                    .catch(() => {}); // don't block UI on failure
+                    autoRebirthEnabled
+                })
+                    .catch(() => { }); // don't block UI on failure
             }
             updateUI();
         });
@@ -2781,30 +2907,28 @@ display: flex;
             database.ref('users/' + user.uid + '/gameState').update({
                 gold: gold
             }).then(() => {
-                database.ref('users/' + recipientUid + '/gameState').transaction(gameState => {
-                    if (gameState) {
-                        gameState.gold = (gameState.gold || 0) + amount;
-                    }
-                    return gameState;
-                }).then(() => {
-                    showToast(`Successfully donated ${amount} gold!`);
-                    updateUI();
-                    updateLeaderboard();
-                    stats.totalDonated = (stats.totalDonated || 0) + amount;
-                    updateMilestones();
-
-                }).catch(error => {
-                    showToast('Failed to donate: ' + error.message);
-                    gold += amount;
-                    updateUI();
-                });
+                const updates = {};
+                updates['users/' + recipientUid + '/gameState/gold'] = firebase.database.ServerValue.increment(amount);
+                updates['reload/' + recipientUid] = true;
+                database.ref().update(updates)
+                    .then(() => {
+                        showToast(`Successfully donated ${amount} gold!`);
+                        updateUI();
+                        updateLeaderboard();
+                        stats.totalDonated = (stats.totalDonated || 0) + amount;
+                        updateMilestones();
+                    })
+                    .catch(error => {
+                        showToast('Failed to donate: ' + error.message);
+                        gold += amount;
+                        updateUI();
+                    });
             }).catch(error => {
                 showToast('Failed to update your gold: ' + error.message);
                 gold += amount;
                 updateUI();
             });
         }
-
 
         // Show login popup when guest tries to save
         function showLoginPopupForSave() {
@@ -3061,7 +3185,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    } [type];
+                    }[type];
                     balls.push(new Ball(
                         canvas.width / 2,
                         canvas.height / 2,
@@ -3387,7 +3511,7 @@ display: flex;
                     gold: 'gold',
                     speed: 'cyan',
                     multiBall: 'magenta'
-                } [this.type];
+                }[this.type];
                 ctx.fillRect(this.x - (width - this.width) / 2, this.y - (height - this.height) / 2, width, height);
             }
 
@@ -3440,8 +3564,8 @@ display: flex;
 
             move() {
                 const isBoostTime = isAutoBallBoostTime();
-                const speedMultiplier = isBoostTime ? 10 : 5;
-                const damageMultiplier = isBoostTime ? 1000 : 1000;
+                const speedMultiplier = isBoostTime ? 7 : 5;
+                const damageMultiplier = isBoostTime ? 2000 : 1000;
                 this.y += this.dy * speedMultiplier;
                 if (this.y < 0) {
                     this.y = canvas.height - 30;
@@ -3659,7 +3783,7 @@ display: flex;
                     cannonball: 'darkgray',
                     poison: 'lime',
                     snowball: 'white'
-                } [type];
+                }[type];
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
                 updateMilestones();
@@ -3820,35 +3944,35 @@ display: flex;
 
 
         const powerUpsList = [{
-                emoji: '⚡',
-                name: 'Thunder Strike',
-                description: 'Destroys 5 random bricks instantly.'
-            },
-            {
-                emoji: '🛡️',
-                name: 'Shield Boost',
-                description: 'Protects balls from disappearing for 30 seconds.'
-            },
-            {
-                emoji: '💥',
-                name: 'Mega Explosion',
-                description: 'Doubles explosion ball damage for 20 seconds.'
-            },
-            {
-                emoji: '🌟',
-                name: 'Star Shower',
-                description: 'Spawns 3 auto balls for 15 seconds.'
-            },
-            {
-                emoji: '🕒',
-                name: 'Time Warp',
-                description: 'Slows down time for 10 seconds.'
-            },
-            {
-                emoji: '🌌',
-                name: 'Cosmic Barrage',
-                description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
-            }
+            emoji: '⚡',
+            name: 'Thunder Strike',
+            description: 'Destroys 5 random bricks instantly.'
+        },
+        {
+            emoji: '🛡️',
+            name: 'Shield Boost',
+            description: 'Protects balls from disappearing for 30 seconds.'
+        },
+        {
+            emoji: '💥',
+            name: 'Mega Explosion',
+            description: 'Doubles explosion ball damage for 20 seconds.'
+        },
+        {
+            emoji: '🌟',
+            name: 'Star Shower',
+            description: 'Spawns 3 auto balls for 15 seconds.'
+        },
+        {
+            emoji: '🕒',
+            name: 'Time Warp',
+            description: 'Slows down time for 10 seconds.'
+        },
+        {
+            emoji: '🌌',
+            name: 'Cosmic Barrage',
+            description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
+        }
         ];
 
         // Game state variables
@@ -4014,32 +4138,54 @@ display: flex;
             });
         }
 
-        // Show team details + member list with leaderboard style
         function showTeamDetails(teamId, rank) {
             database.ref("teams/" + teamId).once("value").then(snap => {
                 const team = snap.val();
                 const overlay = document.createElement("div");
                 overlay.className = "login-overlay";
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) overlay.remove();
+                });
 
                 // Sort members by rebirths
                 const memberEntries = Object.entries(team.members || {}).map(([uid, name]) => ({
                     uid,
                     name,
-                    rebirths: team.memberRebirths?.[uid] || 0
+                    rebirths: team.memberRebirths?.[uid] || 0,
+                    role: team.admins?.[uid] || 'member'
                 }));
                 memberEntries.sort((a, b) => b.rebirths - a.rebirths);
 
+                // Build settings menu for creator (delete team)
+                const user = auth.currentUser;
+                const isCreator = user && team.admins?.[user.uid] === 'creator';
+                const settingsMenuHTML = isCreator
+                    ? `
+                <div class="settings-container">
+                    <button class="settings-team-btn" style="background:transparent;padding:0;">⚙️</button>
+                    <div class="settings-menu" style="display: none;">
+                        <button id="delete-team-btn">Delete Team</button>
+                    </div>
+                </div>
+            `
+                    : '';
+
                 overlay.innerHTML = `
             <div class="login-popup" style="width:400px;max-height:80vh;overflow-y:auto;">
-                <div style="display:flex;flex-direction:row;align-items:center;gap:10px;margin-bottom:10px;justify-content: left;">
-                    <div class="team-rank-circle">${rank}</div>
-                    <div style="display: flex; flex-direction: column; gap: 0; text-align: left;">
-                        <h2 style="margin:0;">${team.name}</h2>
-                        <p style="margin: 0;">Total Rebirths: ${memberEntries.reduce((sum, m) => sum + m.rebirths, 0)}</p>
+                <div style="display:flex;flex-direction:row;align-items:center;gap:10px;margin-bottom:10px;justify-content: space-between;">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                        <div class="team-rank-circle">${rank}</div>
+                        <div style="display: flex; flex-direction: column; gap: 0; text-align: left;">
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <h2 id="team-name" style="margin:0;">${team.name}</h2>
+                                ${user && team.admins?.[user.uid] ? '<button id="edit-name-btn" style="background:transparent;padding:0;">✏️</button>' : ''}
+                            </div>
+                            <p style="margin: 0;">Total Rebirths: ${memberEntries.reduce((sum, m) => sum + m.rebirths, 0)}</p>
+                            <p style="margin: 0;">${team.isPrivate ? 'Private Team' : 'Public Team'}</p>
+                        </div>
                     </div>
-                    
+                    ${settingsMenuHTML}
                 </div>
-                
                 <h3 style="text-align: left;font-weight: 600;font-size: 15px;margin-bottom: 10px;">Members:</h3>
                 <div id="team-members"></div>
                 <div style="margin-top:15px;">
@@ -4047,26 +4193,127 @@ display: flex;
                     <button id="close-team-btn">Close</button>
                 </div>
             </div>
+            <style>
+                .settings-container {
+                    position: relative;
+                }
+                .settings-team-btn {
+                    background: none;
+                    border: none;
+                    font-size: 20px;
+                    cursor: pointer;
+                    background: transparent;
+                    padding: 0;
+                }
+                .settings-menu {
+                    position: absolute;
+                    top: 40px;
+                    right: 0;
+                    background: #fff;
+                    border: 1px solid #555;
+                    border-radius: 4px;
+                    padding: 5px;
+                    z-index: 1000;
+                    width: fit-content;
+                }
+                .settings-menu button {
+                    display: block;
+                    width: fit-content;
+                    padding: 0;
+                    background: none;
+                    border: none;
+                    color: #000;
+                    text-align: center;
+                    cursor: pointer;
+                    margin: 0;
+                    border-radius: 0;
+                    min-width: 90px;
+                }
+                .settings-menu button:hover {
+                    color: red;
+                    background: transparent;
+                }
+                .member-menu-container {
+                    position: relative;
+                }
+                .member-menu-btn {
+                    font-size: 16px;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: #000;
+                }
+                .member-menu {
+                    position: absolute;
+                    right: 0;
+                    background: #fff;
+                    border: 1px solid #555;
+                    border-radius: 4px;
+                    padding: 5px;
+                    z-index: 1000;
+                    width: fit-content;
+                }
+                .member-menu button {
+                    display: block;
+                    width: fit-content;
+                    padding: 0;
+                    background: none;
+                    border: none;
+                    color: #000;
+                    text-align: center;
+                    cursor: pointer;
+                    margin: 5px 0;
+                    border-radius: 0;
+                    min-width: 90px;
+                }
+                .member-menu button:hover {
+                    background: transparent;
+                    opacity: 0.5;
+                }
+                .edit-name-input {
+                    font-size: 18px;
+                    padding: 2px;
+                    border: 1px solid #555;
+                    border-radius: 4px;
+                    background: #222;
+                    color: white;
+                }
+            </style>
         `;
                 document.body.appendChild(overlay);
 
-                // Populate members with leaderboard style
+                // Populate members with leaderboard style and three-dot menu
                 const memberList = overlay.querySelector("#team-members");
                 memberEntries.forEach((m, i) => {
+                    const isAdmin = user && team.admins?.[user.uid];
+                    const canPromote = isCreator && m.role !== 'creator' && m.role !== 'admin';
+                    const canRemove = isAdmin && m.role !== 'creator' && m.uid !== user.uid;
+                    const showMenu = canPromote || canRemove;
+
                     const card = document.createElement("div");
                     card.className = `leaderboard-card rank-${i + 1}`;
                     card.innerHTML = `
                 <span class="rank">${i + 1}</span>
-                <div class="user-and-info" style="text-align: left;">
-                    <span class="username">${m.name || "Anonymous"}</span>
-                    <span class="info">Rebirths: ${m.rebirths}</span>
+                <div class="user-and-info" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; text-align: left;">
+                    <div>
+                        <span class="username">${m.name || "Anonymous"}${m.role !== 'member' ? ` (${m.role})` : ''}</span>
+                        <span class="info">Rebirths: ${m.rebirths}</span>
+                    </div>
+                    ${showMenu ? `
+                        <div class="member-menu-container">
+                            <button class="member-menu-btn" style="background:transparent;padding:0 10px;color:#000;">⋮</button>
+                            <div class="member-menu" style="display: none;">
+                                ${canPromote ? `<button class="promote-admin-btn" data-uid="${m.uid}">Make Admin</button>` : ''}
+                                ${canRemove ? `<button class="remove-member-btn" data-uid="${m.uid}" style="color:red;">Remove</button>` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
                     memberList.appendChild(card);
                 });
 
-                // Determine if user is in this team
-                const user = auth.currentUser;
+                // Handle join/leave button
                 if (!user) {
                     overlay.querySelector("#join-leave-btn").textContent = "Login to Join";
                     overlay.querySelector("#join-leave-btn").onclick = () => showLoginPopup();
@@ -4081,15 +4328,104 @@ display: flex;
                             overlay.querySelector("#join-leave-btn").disabled = true;
                         } else {
                             overlay.querySelector("#join-leave-btn").textContent = "Join Team";
-                            overlay.querySelector("#join-leave-btn").onclick = () => joinTeam(teamId);
+                            overlay.querySelector("#join-leave-btn").onclick = () => {
+                                if (team.isPrivate) {
+                                    const password = prompt("Enter team password:");
+                                    if (password === null) return;
+                                    joinTeam(teamId, password);
+                                } else {
+                                    joinTeam(teamId);
+                                }
+                            };
                         }
                     });
                 }
 
+                // Handle team name editing
+                const editNameBtn = overlay.querySelector("#edit-name-btn");
+                if (editNameBtn) {
+                    editNameBtn.onclick = () => {
+                        const teamNameEl = overlay.querySelector("#team-name");
+                        if (teamNameEl.tagName === 'H2') {
+                            const input = document.createElement("input");
+                            input.className = "edit-name-input";
+                            input.value = team.name;
+                            input.style.padding = '2px';
+                            teamNameEl.replaceWith(input);
+                            editNameBtn.textContent = "Save";
+                            editNameBtn.style.color = '#fff';
+                            editNameBtn.style.background = '#000';
+                            editNameBtn.style.padding = '5px';
+                            input.focus();
+                            editNameBtn.onclick = () => {
+                                const newName = input.value.trim();
+                                if (newName) {
+                                    updateTeamName(teamId, user.uid, newName).then(() => {
+                                        const newH2 = document.createElement("h2");
+                                        newH2.id = "team-name";
+                                        newH2.style.margin = "0";
+                                        newH2.textContent = newName;
+                                        input.replaceWith(newH2);
+                                        editNameBtn.textContent = "✏️";
+                                    });
+                                }
+                            };
+                        }
+                    };
+                }
+
+                // Handle settings menu toggle
+                const settingsBtn = overlay.querySelector(".settings-team-btn");
+                if (settingsBtn) {
+                    const settingsMenuEl = overlay.querySelector(".settings-menu");
+                    settingsBtn.onclick = () => {
+                        settingsMenuEl.style.display = settingsMenuEl.style.display === 'none' ? 'block' : 'none';
+                    };
+                    overlay.addEventListener("click", e => {
+                        if (!settingsBtn.contains(e.target) && !settingsMenuEl.contains(e.target)) {
+                            settingsMenuEl.style.display = 'none';
+                        }
+                    });
+                }
+
+                // Handle delete team
+                const deleteTeamBtn = overlay.querySelector("#delete-team-btn");
+                if (deleteTeamBtn) {
+                    deleteTeamBtn.onclick = () => {
+                        if (confirm("Are you sure you want to delete this team?")) {
+                            deleteTeam(teamId, user.uid);
+                        }
+                    };
+                }
+
+                // Handle member menu toggle and actions
+                overlay.querySelectorAll(".member-menu-btn").forEach(btn => {
+                    const menu = btn.nextElementSibling;
+                    btn.onclick = () => {
+                        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                    };
+                });
+                overlay.addEventListener("click", e => {
+                    overlay.querySelectorAll(".member-menu").forEach(menu => {
+                        if (!menu.contains(e.target) && !menu.previousElementSibling.contains(e.target)) {
+                            menu.style.display = 'none';
+                        }
+                    });
+                });
+                overlay.querySelectorAll(".promote-admin-btn").forEach(btn => {
+                    btn.onclick = () => {
+                        promoteToAdmin(teamId, user.uid, btn.dataset.uid);
+                    };
+                });
+                overlay.querySelectorAll(".remove-member-btn").forEach(btn => {
+                    btn.onclick = () => {
+                        removeTeamMember(teamId, user.uid, btn.dataset.uid);
+                    };
+                });
+
                 overlay.querySelector("#close-team-btn").onclick = () => overlay.remove();
             });
         }
-
         // Create Team (only if not in a team)
         document.addEventListener("click", e => {
             if (e.target.id === "create-team-btn") {
@@ -4099,6 +4435,12 @@ display: flex;
                     if (snap.val()) return showToast("You already have or are in a team!");
                     const teamName = prompt("Enter team name:");
                     if (!teamName) return;
+                    const isPrivate = confirm("Make this team password-protected?");
+                    let password = '';
+                    if (isPrivate) {
+                        password = prompt("Enter team password:");
+                        if (!password) return showToast("Password required for private team!");
+                    }
                     const newTeamRef = database.ref("teams").push();
                     newTeamRef.set({
                         name: teamName,
@@ -4108,41 +4450,145 @@ display: flex;
                         memberRebirths: {
                             [user.uid]: rebirthCount
                         },
-                        maxMembers: 15
+                        admins: {
+                            [user.uid]: 'creator'
+                        },
+                        maxMembers: 15,
+                        isPrivate: isPrivate,
+                        ...(isPrivate && { password: password })
                     }).then(() => {
                         database.ref("userTeams/" + user.uid).set(newTeamRef.key);
                         showToast("Team created!");
                         fetchTeams();
+                    }).catch(error => {
+                        showToast("Error creating team: " + error.message);
                     });
                 });
             }
         });
 
-        function joinTeam(teamId) {
+        function joinTeam(teamId, password = '') {
             const user = auth.currentUser;
             if (!user) return showToast("Login first!");
-            database.ref("userTeams/" + user.uid).once("value").then(snap => {
-                if (snap.val()) return showToast("You are already in a team!");
-                database.ref("teams/" + teamId + "/members/" + user.uid).set(username);
-                database.ref("teams/" + teamId + "/memberRebirths/" + user.uid).set(rebirthCount);
-                database.ref("userTeams/" + user.uid).set(teamId);
-                showToast("Joined team!");
-                document.querySelector(".login-overlay")?.remove();
-                fetchTeams();
+            database.ref("userTeams/" + user.uid).once("value").then(userSnap => {
+                if (userSnap.val()) return showToast("You are already in a team!");
+                database.ref("teams/" + teamId).once("value").then(teamSnap => {
+                    const team = teamSnap.val();
+                    if (!team) return showToast("Team does not exist!");
+                    if (team.isPrivate && team.password !== password) {
+                        return showToast("Incorrect password!");
+                    }
+                    const updates = {
+                        [`members/${user.uid}`]: username,
+                        [`memberRebirths/${user.uid}`]: rebirthCount
+                    };
+                    database.ref("teams/" + teamId).update(updates).then(() => {
+                        database.ref("userTeams/" + user.uid).set(teamId);
+                        showToast("Joined team!");
+                        document.querySelector(".login-overlay")?.remove();
+                        fetchTeams();
+                    }).catch(error => {
+                        showToast("Error joining team: " + error.message);
+                    });
+                });
             });
         }
 
         function leaveTeam(teamId) {
             const user = auth.currentUser;
             if (!user) return showToast("Login first!");
-            database.ref("teams/" + teamId + "/members/" + user.uid).remove();
-            database.ref("teams/" + teamId + "/memberRebirths/" + user.uid).remove();
-            database.ref("userTeams/" + user.uid).remove();
-            showToast("Left team!");
-            document.querySelector(".login-overlay")?.remove();
-            fetchTeams();
+            database.ref("teams/" + teamId + "/admins/" + user.uid).once("value").then(snap => {
+                if (snap.val() === 'creator') {
+                    return showToast("Creator cannot leave the team! Delete the team instead.");
+                }
+                const updates = {
+                    [`members/${user.uid}`]: null,
+                    [`memberRebirths/${user.uid}`]: null,
+                    [`admins/${user.uid}`]: null
+                };
+                database.ref("teams/" + teamId).update(updates).then(() => {
+                    database.ref("userTeams/" + user.uid).remove();
+                    showToast("Left team!");
+                    document.querySelector(".login-overlay")?.remove();
+                    fetchTeams();
+                }).catch(error => {
+                    showToast("Error leaving team: " + error.message);
+                });
+            });
         }
 
+        function updateTeamName(teamId, userId, newName) {
+            return database.ref("teams/" + teamId + "/admins/" + userId).once("value").then(snap => {
+                if (!snap.val()) return showToast("Only admins can change the team name!");
+                return database.ref("teams/" + teamId).update({ name: newName }).then(() => {
+                    showToast("Team name updated!");
+                    document.querySelector(".login-overlay")?.remove();
+                    fetchTeams();
+                }).catch(error => {
+                    showToast("Error updating team name: " + error.message);
+                });
+            });
+        }
+
+        function removeTeamMember(teamId, adminId, userId) {
+            database.ref("teams/" + teamId + "/admins/" + adminId).once("value").then(snap => {
+                if (!snap.val()) return showToast("Only admins can remove members!");
+                database.ref("teams/" + teamId + "/admins/" + userId).once("value").then(userSnap => {
+                    if (userSnap.val() === 'creator') return showToast("Cannot remove the team creator!");
+                    const updates = {
+                        [`members/${userId}`]: null,
+                        [`memberRebirths/${userId}`]: null,
+                        [`admins/${userId}`]: null
+                    };
+                    database.ref("teams/" + teamId).update(updates).then(() => {
+                        database.ref("userTeams/" + userId).remove();
+                        showToast("Member removed!");
+                        document.querySelector(".login-overlay")?.remove();
+                        fetchTeams();
+                    }).catch(error => {
+                        showToast("Error removing member: " + error.message);
+                    });
+                });
+            });
+        }
+
+        function deleteTeam(teamId, userId) {
+            database.ref("teams/" + teamId + "/admins/" + userId).once("value").then(snap => {
+                if (snap.val() !== 'creator') return showToast("Only the creator can delete the team!");
+                database.ref("teams/" + teamId + "/members").once("value").then(memberSnap => {
+                    const members = memberSnap.val() || {};
+                    const updates = {};
+                    Object.keys(members).forEach(uid => {
+                        updates[`userTeams/${uid}`] = null;
+                    });
+                    database.ref().update(updates).then(() => {
+                        database.ref("teams/" + teamId).remove().then(() => {
+                            showToast("Team deleted!");
+                            document.querySelector(".login-overlay")?.remove();
+                            fetchTeams();
+                        }).catch(error => {
+                            showToast("Error deleting team: " + error.message);
+                        });
+                    });
+                });
+            });
+        }
+
+        function promoteToAdmin(teamId, creatorId, userId) {
+            database.ref("teams/" + teamId + "/admins/" + creatorId).once("value").then(snap => {
+                if (snap.val() !== 'creator') return showToast("Only the creator can promote admins!");
+                database.ref("teams/" + teamId + "/members/" + userId).once("value").then(memberSnap => {
+                    if (!memberSnap.val()) return showToast("User is not a team member!");
+                    database.ref("teams/" + teamId + "/admins").update({ [userId]: 'admin' }).then(() => {
+                        showToast("Member promoted to admin!");
+                        document.querySelector(".login-overlay")?.remove();
+                        fetchTeams();
+                    }).catch(error => {
+                        showToast("Error promoting admin: " + error.message);
+                    });
+                });
+            });
+        }
 
 
         // New function to buy idle gold boost
@@ -4358,7 +4804,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    } [type];
+                    }[type];
                     balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                     ballCounts[type]++;
                     stats.totalBallsPurchased++;
@@ -4616,20 +5062,20 @@ display: flex;
             });
 
             const upgrades = [{
-                    name: 'Damage',
-                    key: 'damage',
-                    price: 100
-                },
-                {
-                    name: 'Speed',
-                    key: 'speed',
-                    price: 100
-                },
-                {
-                    name: 'Radius',
-                    key: 'radius',
-                    price: 100
-                }
+                name: 'Damage',
+                key: 'damage',
+                price: 100
+            },
+            {
+                name: 'Speed',
+                key: 'speed',
+                price: 100
+            },
+            {
+                name: 'Radius',
+                key: 'radius',
+                price: 100
+            }
             ];
             const upgradeShop = document.getElementById('upgrade-shop');
             upgradeShop.innerHTML = '';
@@ -4704,7 +5150,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    } [type],
+                    }[type],
                     type
                 ));
                 updateUI();
@@ -4767,7 +5213,7 @@ display: flex;
         }
 
 
-        Ball.prototype.draw = function() {
+        Ball.prototype.draw = function () {
             drawTrail(this);
             ctx.beginPath();
             if (cosmetics.rainbowSkin) {
@@ -5131,21 +5577,104 @@ display: flex;
             saveGameState();
         }
 
+        function saveUsername() {
+            const newUsername = document.getElementById('username-field').value;
+            if (!newUsername) {
+                showToast('Please enter a valid username.');
+                return;
+            }
+            const user = auth.currentUser;
+            if (!user) {
+                showToast('No user logged in.');
+                return;
+            }
+            username = newUsername;
+            document.getElementById('username-display').textContent = username;
+            document.getElementById('username-display').style.display = 'inline';
+            document.getElementById('username-input').style.display = 'none';
+            document.querySelector('.edit-icon').style.display = 'inline';
+
+            const updates = {
+                [`users/${user.uid}/gameState/username`]: username
+            };
+
+            // Update username in all teams the user is part of
+            database.ref('teams').orderByChild(`members/${user.uid}`).startAt('').once('value')
+                .then(snap => {
+                    const teams = snap.val() || {};
+                    Object.keys(teams).forEach(teamId => {
+                        updates[`teams/${teamId}/members/${user.uid}`] = username;
+                    });
+
+                    // Check if user is online and set reload flag
+                    database.ref(`presence/${user.uid}`).once('value').then(presenceSnap => {
+                        const isOnline = presenceSnap.val() === true;
+                        if (isOnline) {
+                            updates[`reload/${user.uid}`] = true;
+                        }
+                        database.ref().update(updates)
+                            .then(() => {
+                                showToast('Username updated successfully!');
+                                saveGameState();
+                            })
+                            .catch(error => {
+                                showToast(`Failed to update username: ${error.message}`);
+                            });
+                    }).catch(error => {
+                        showToast(`Error checking presence: ${error.message}`);
+                    });
+                })
+                .catch(error => {
+                    showToast(`Error fetching team data: ${error.message}`);
+                });
+            saveGameState();
+
+        }
+
         function deleteAccount() {
             const user = auth.currentUser;
-            if (user && confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                database.ref('users/' + user.uid).remove()
-                    .then(() => {
-                        user.delete()
-                            .then(() => {
-                                showToast('Account deleted successfully.');
-                                updateLeaderboard();
-                                location.reload();
-                            })
-                            .catch(error => showToast('Failed to delete account: ' + error.message));
-                    })
-                    .catch(error => showToast('Failed to delete game data: ' + error.message));
+            if (!user) {
+                showToast('No user logged in.');
+                return;
             }
+            if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                return;
+            }
+
+            const updates = {};
+
+            // Remove user from all teams
+            database.ref('teams').orderByChild(`members/${user.uid}`).startAt('').once('value')
+                .then(snap => {
+                    const teams = snap.val() || {};
+                    Object.keys(teams).forEach(teamId => {
+                        updates[`teams/${teamId}/members/${user.uid}`] = null;
+                    });
+
+                    // Remove user data 
+                    updates[`users/${user.uid}`] = null;
+                    updates[`presence/${user.uid}`] = null;
+                    updates[`reload/${user.uid}`] = null;
+
+                    database.ref().update(updates)
+                        .then(() => {
+                            user.delete()
+                                .then(() => {
+                                    showToast('Account deleted successfully.');
+                                    updateLeaderboard();
+                                    location.reload();
+                                })
+                                .catch(error => {
+                                    showToast(`Failed to delete account: ${error.message}`);
+                                });
+                        })
+                        .catch(error => {
+                            showToast(`Failed to delete game data or team membership: ${error.message}`);
+                        });
+                })
+                .catch(error => {
+                    showToast(`Error fetching team data: ${error.message}`);
+                });
         }
 
         const weaponCost = 1000;
