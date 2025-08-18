@@ -1297,8 +1297,7 @@
 <body>
     <!-- Overlay -->
     <div id="afkOverlay">
-        <img id="gcImage" src="./classroom.png" alt="Google Classroom"
-            style="width:100%;height:100%;object-fit:cover;cursor:pointer;" title="Click to change image">
+        <img id="gcImage" src="./classroom.png" alt="Google Classroom" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" title="Click to change image">
     </div>
 
 
@@ -1433,8 +1432,7 @@
                 </div>
                 <div id="global-leaderboard" class="leaderboard-list"></div>
                 <div id="team-leaderboard" class="leaderboard-list" style="display:none;">
-                    <button id="create-team-btn"
-                        style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 6px;font-weight: 600;">
+                    <button id="create-team-btn" style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 6px;font-weight: 600;">
                         Create Team
                     </button>
                     <div id="team-list"></div>
@@ -1576,7 +1574,9 @@
                         }
                     };
                     overlayEl.removeEventListener('animationend', hideOverlay); // Remove any existing listener
-                    overlayEl.addEventListener('animationend', hideOverlay, { once: true });
+                    overlayEl.addEventListener('animationend', hideOverlay, {
+                        once: true
+                    });
                 } else {
                     // Ensure overlay is hidden without animation on load if false
                     overlayEl.style.display = 'none';
@@ -1629,53 +1629,53 @@
         function startTutorial() {
             introJs().setOptions({
                 steps: [{
-                    intro: "Welcome to Bricker! Let's explore the game.",
-                    position: "center"
-                },
-                {
-                    element: document.querySelector('#gameCanvas'),
-                    intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
-                    position: "top"
-                },
-                {
-                    element: document.querySelector('.info-container'),
-                    intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
-                    position: "right"
-                },
-                {
-                    element: document.querySelector('#save-button'),
-                    intro: "Click here to save your progress to your account.",
-                    position: "right"
-                },
-                {
-                    element: document.querySelector('.ball-options'),
-                    intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
-                    position: "bottom"
-                },
-                {
-                    element: document.querySelector('#my-balls-btn'),
-                    intro: "View your balls and upgrade them.",
-                    position: "left"
-                },
-                {
-                    element: document.querySelector('#settings-btn'),
-                    intro: "Update your username or log out in the settings.",
-                    position: "left"
-                },
-                {
-                    element: document.querySelector('#weapons-btn'),
-                    intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
-                    position: "left"
-                },
-                {
-                    element: document.querySelector('.leaderboard-container'),
-                    intro: "Check the leaderboard to see top players' rankings and stats.",
-                    position: "left"
-                },
-                {
-                    intro: "You're all set! Start destroying bricks and earning gold!",
-                    position: "center"
-                }
+                        intro: "Welcome to Bricker! Let's explore the game.",
+                        position: "center"
+                    },
+                    {
+                        element: document.querySelector('#gameCanvas'),
+                        intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
+                        position: "top"
+                    },
+                    {
+                        element: document.querySelector('.info-container'),
+                        intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
+                        position: "right"
+                    },
+                    {
+                        element: document.querySelector('#save-button'),
+                        intro: "Click here to save your progress to your account.",
+                        position: "right"
+                    },
+                    {
+                        element: document.querySelector('.ball-options'),
+                        intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
+                        position: "bottom"
+                    },
+                    {
+                        element: document.querySelector('#my-balls-btn'),
+                        intro: "View your balls and upgrade them.",
+                        position: "left"
+                    },
+                    {
+                        element: document.querySelector('#settings-btn'),
+                        intro: "Update your username or log out in the settings.",
+                        position: "left"
+                    },
+                    {
+                        element: document.querySelector('#weapons-btn'),
+                        intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
+                        position: "left"
+                    },
+                    {
+                        element: document.querySelector('.leaderboard-container'),
+                        intro: "Check the leaderboard to see top players' rankings and stats.",
+                        position: "left"
+                    },
+                    {
+                        intro: "You're all set! Start destroying bricks and earning gold!",
+                        position: "center"
+                    }
                 ],
                 showProgress: true,
                 showBullets: false,
@@ -1726,7 +1726,7 @@
         let autoBalls = [];
         let effects = [];
         let rebirthCount = 0;
-        let autoRebirthOwned = false;   // Permanently purchased in shop (saved to DB)
+        let autoRebirthOwned = false; // Permanently purchased in shop (saved to DB)
         let autoRebirthEnabled = false;
         const brickWidth = 70;
         const brickHeight = 30;
@@ -1744,15 +1744,51 @@
             snowball: 200
         };
         let ballUpgrades = {
-            basic: { level: 1, speed: 3.5, damage: 1 },
-            sniper: { level: 1, speed: 4.5, damage: 1 },
-            big: { level: 1, speed: 2.7, damage: 1 },
-            explosion: { level: 1, speed: 2.7, damage: 2 },
-            multiplying: { level: 1, speed: 2.7, damage: 1 },
-            child: { level: 1, speed: 3.6, damage: 1 },
-            cannonball: { level: 1, speed: 3.0, damage: 3 },
-            poison: { level: 1, speed: 3.5, damage: 1 },
-            snowball: { level: 1, speed: 3.5, damage: 1 }
+            basic: {
+                level: 1,
+                speed: 3.5,
+                damage: 1
+            },
+            sniper: {
+                level: 1,
+                speed: 4.5,
+                damage: 1
+            },
+            big: {
+                level: 1,
+                speed: 2.7,
+                damage: 1
+            },
+            explosion: {
+                level: 1,
+                speed: 2.7,
+                damage: 2
+            },
+            multiplying: {
+                level: 1,
+                speed: 2.7,
+                damage: 1
+            },
+            child: {
+                level: 1,
+                speed: 3.6,
+                damage: 1
+            },
+            cannonball: {
+                level: 1,
+                speed: 3.0,
+                damage: 3
+            },
+            poison: {
+                level: 1,
+                speed: 3.5,
+                damage: 1
+            },
+            snowball: {
+                level: 1,
+                speed: 3.5,
+                damage: 1
+            }
         };
         let globalUpgrades = {
             speedBoost: {
@@ -1852,7 +1888,7 @@
             }, 2000);
         }
 
-        window.onload = function () {
+        window.onload = function() {
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
                     // Load game state but don't save until user interaction
@@ -1865,54 +1901,57 @@
                     showLoginPopup();
                 }
             });
-            function buyAutoRebirth() {
-                const user = auth.currentUser;
-                if (!user || isGuest) {
-                    showLoginPopupForSave();
-                    return;
-                }
-                if (autoRebirthOwned) {
-                    showToast('Auto Rebirth already owned.');
-                    return;
-                }
-                if (rebirthCount < 10) {
-                    showToast('Not enough rebirths!');
-                    return;
-                }
-                if (!confirm('Spend 10 rebirths to permanently unlock Auto Rebirth?')) return;
-
-                rebirthCount -= 10;
-                autoRebirthOwned = true;
-                autoRebirthEnabled = true;
-                updateUI();
-
-                database.ref('users/' + user.uid + '/gameState').update({
-                    rebirthCount: rebirthCount,
-                    autoRebirthOwned: true,
-                    autoRebirthEnabled: true
-                }).then(() => {
-                    showToast('Auto Rebirth purchased!');
-                    updateLeaderboard?.();
-                }).catch(error => {
-                    // revert on failure
-                    rebirthCount += 10;
-                    autoRebirthOwned = false;
-                    autoRebirthEnabled = false;
-                    updateUI();
-                    showToast('Purchase failed: ' + error.message);
-                });
-            }
-
         };
+
+        function buyAutoRebirth() {
+            const user = auth.currentUser;
+            if (!user || isGuest) {
+                showLoginPopupForSave();
+                return;
+            }
+            if (autoRebirthOwned) {
+                showToast('Auto Rebirth already owned.');
+                return;
+            }
+            if (rebirthCount < 10) {
+                showToast('Not enough rebirths!');
+                return;
+            }
+            if (!confirm('Spend 10 rebirths to permanently unlock Auto Rebirth?')) return;
+
+            rebirthCount -= 10;
+            autoRebirthOwned = true;
+            autoRebirthEnabled = true;
+            updateUI();
+
+            database.ref('users/' + user.uid + '/gameState').update({
+                rebirthCount: rebirthCount,
+                autoRebirthOwned: true,
+                autoRebirthEnabled: true
+            }).then(() => {
+                showToast('Auto Rebirth purchased!');
+                updateLeaderboard?.();
+            }).catch(error => {
+                // revert on failure
+                rebirthCount += 10;
+                autoRebirthOwned = false;
+                autoRebirthEnabled = false;
+                updateUI();
+                showToast('Purchase failed: ' + error.message);
+            });
+        }
+
 
         // Buy handler (hook it up once DOM is ready)
 
-        document.getElementById('auto-rebirth-toggle')?.addEventListener('change', function (e) {
+        document.getElementById('auto-rebirth-toggle')?.addEventListener('change', function(e) {
             autoRebirthEnabled = !!e.target.checked;
             const user = auth.currentUser;
             if (user && !isGuest) {
-                database.ref('users/' + user.uid + '/gameState').update({ autoRebirthEnabled })
-                    .catch(() => { }); // don't block UI on failure
+                database.ref('users/' + user.uid + '/gameState').update({
+                        autoRebirthEnabled
+                    })
+                    .catch(() => {}); // don't block UI on failure
             }
             updateUI();
         });
@@ -2111,30 +2150,149 @@
 
         let milestoneDefinitions = [
             // === Ball count milestones ===
-            { id: 'balls_basic_50', title: 'Basic Collector', description: 'Own 50 Basic Balls.', goal: 50, stat: 'basicBalls', benefit: '+5% basic ball speed' },
-            { id: 'balls_sniper_50', title: 'Sharpshooter', description: 'Own 50 Sniper Balls.', goal: 50, stat: 'sniperBalls', benefit: '+5% sniper accuracy' },
-            { id: 'balls_big_50', title: 'Big Time', description: 'Own 50 Big Balls.', goal: 50, stat: 'bigBalls', benefit: '+10% big ball size' },
-            { id: 'balls_explosion_50', title: 'Demolitionist', description: 'Own 50 Bomb Balls.', goal: 50, stat: 'explosionBalls', benefit: '+1 explosion radius' },
-            { id: 'balls_multiplying_50', title: 'Clone Commander', description: 'Own 50 Clones Balls.', goal: 50, stat: 'multiplyingBalls', benefit: '+5% clone spawn chance' },
-            { id: 'balls_cannonball_50', title: 'Siege Master', description: 'Own 50 Cannonballs.', goal: 50, stat: 'cannonballBalls', benefit: '+2 cannonball damage' },
-            { id: 'balls_poison_50', title: 'Toxic Avenger', description: 'Own 50 Poison Balls.', goal: 50, stat: 'poisonBalls', benefit: '+5% poison duration' },
-            { id: 'balls_snowball_50', title: 'Frost Lord', description: 'Own 50 Snowballs.', goal: 50, stat: 'snowballBalls', benefit: '+5% snowball speed growth' },
+            {
+                id: 'balls_basic_50',
+                title: 'Basic Collector',
+                description: 'Own 50 Basic Balls.',
+                goal: 50,
+                stat: 'basicBalls',
+                benefit: '+5% basic ball speed'
+            },
+            {
+                id: 'balls_sniper_50',
+                title: 'Sharpshooter',
+                description: 'Own 50 Sniper Balls.',
+                goal: 50,
+                stat: 'sniperBalls',
+                benefit: '+5% sniper accuracy'
+            },
+            {
+                id: 'balls_big_50',
+                title: 'Big Time',
+                description: 'Own 50 Big Balls.',
+                goal: 50,
+                stat: 'bigBalls',
+                benefit: '+10% big ball size'
+            },
+            {
+                id: 'balls_explosion_50',
+                title: 'Demolitionist',
+                description: 'Own 50 Bomb Balls.',
+                goal: 50,
+                stat: 'explosionBalls',
+                benefit: '+1 explosion radius'
+            },
+            {
+                id: 'balls_multiplying_50',
+                title: 'Clone Commander',
+                description: 'Own 50 Clones Balls.',
+                goal: 50,
+                stat: 'multiplyingBalls',
+                benefit: '+5% clone spawn chance'
+            },
+            {
+                id: 'balls_cannonball_50',
+                title: 'Siege Master',
+                description: 'Own 50 Cannonballs.',
+                goal: 50,
+                stat: 'cannonballBalls',
+                benefit: '+2 cannonball damage'
+            },
+            {
+                id: 'balls_poison_50',
+                title: 'Toxic Avenger',
+                description: 'Own 50 Poison Balls.',
+                goal: 50,
+                stat: 'poisonBalls',
+                benefit: '+5% poison duration'
+            },
+            {
+                id: 'balls_snowball_50',
+                title: 'Frost Lord',
+                description: 'Own 50 Snowballs.',
+                goal: 50,
+                stat: 'snowballBalls',
+                benefit: '+5% snowball speed growth'
+            },
 
             // === Upgrade milestones ===
-            { id: 'upgrade_basic_5', title: 'Basic Upgrade Adept', description: 'Upgrade Basic Ball to level 5.', goal: 5, stat: 'basicUpgrade', benefit: '+10% basic ball damage' },
-            { id: 'upgrade_sniper_5', title: 'Sniper Upgrade Adept', description: 'Upgrade Sniper Ball to level 5.', goal: 5, stat: 'sniperUpgrade', benefit: '+10% sniper ball damage' },
+            {
+                id: 'upgrade_basic_5',
+                title: 'Basic Upgrade Adept',
+                description: 'Upgrade Basic Ball to level 5.',
+                goal: 5,
+                stat: 'basicUpgrade',
+                benefit: '+10% basic ball damage'
+            },
+            {
+                id: 'upgrade_sniper_5',
+                title: 'Sniper Upgrade Adept',
+                description: 'Upgrade Sniper Ball to level 5.',
+                goal: 5,
+                stat: 'sniperUpgrade',
+                benefit: '+10% sniper ball damage'
+            },
             // Add similar ones for each ball type...
 
             // === Donation milestones ===
-            { id: 'donate_1000', title: 'Benevolent Donor', description: 'Donate 1,000 gold to other players.', goal: 1000, stat: 'totalDonated', benefit: '+2% idle gold gain' },
-            { id: 'donate_10000', title: 'Philanthropist', description: 'Donate 10,000 gold to other players.', goal: 10000, stat: 'totalDonated', benefit: '+5% idle gold gain' },
+            {
+                id: 'donate_1000',
+                title: 'Benevolent Donor',
+                description: 'Donate 1,000 gold to other players.',
+                goal: 1000,
+                stat: 'totalDonated',
+                benefit: '+2% idle gold gain'
+            },
+            {
+                id: 'donate_10000',
+                title: 'Philanthropist',
+                description: 'Donate 10,000 gold to other players.',
+                goal: 10000,
+                stat: 'totalDonated',
+                benefit: '+5% idle gold gain'
+            },
 
             // Keep your old ones
-            { id: 'balls_100', title: 'Ball Master', description: 'Own 100 balls.', goal: 100, stat: 'totalBalls', benefit: '+2% all ball speed' },
-            { id: 'balls_500', title: 'Ball Legend', description: 'Own 500 balls.', goal: 500, stat: 'totalBalls', benefit: '+5% all ball speed' },
-            { id: 'balls_1000', title: 'Ball God', description: 'Own 1,000 balls.', goal: 1000, stat: 'totalBalls', benefit: '+10% all ball speed' },
-            { id: 'upgrade_10', title: 'Upgrade Enthusiast', description: 'Buy 10 upgrades.', goal: 10, stat: 'totalUpgrades', benefit: '+2% damage' },
-            { id: 'upgrade_100', title: 'Upgrade Master', description: 'Buy 100 upgrades.', goal: 100, stat: 'totalUpgrades', benefit: '+10% damage' }
+            {
+                id: 'balls_100',
+                title: 'Ball Master',
+                description: 'Own 100 balls.',
+                goal: 100,
+                stat: 'totalBalls',
+                benefit: '+2% all ball speed'
+            },
+            {
+                id: 'balls_500',
+                title: 'Ball Legend',
+                description: 'Own 500 balls.',
+                goal: 500,
+                stat: 'totalBalls',
+                benefit: '+5% all ball speed'
+            },
+            {
+                id: 'balls_1000',
+                title: 'Ball God',
+                description: 'Own 1,000 balls.',
+                goal: 1000,
+                stat: 'totalBalls',
+                benefit: '+10% all ball speed'
+            },
+            {
+                id: 'upgrade_10',
+                title: 'Upgrade Enthusiast',
+                description: 'Buy 10 upgrades.',
+                goal: 10,
+                stat: 'totalUpgrades',
+                benefit: '+2% damage'
+            },
+            {
+                id: 'upgrade_100',
+                title: 'Upgrade Master',
+                description: 'Buy 100 upgrades.',
+                goal: 100,
+                stat: 'totalUpgrades',
+                benefit: '+10% damage'
+            }
         ];
 
 
@@ -2746,15 +2904,51 @@ display: flex;
                         autoRebirthEnabled = !!data.autoRebirthEnabled;
 
                         ballUpgrades = data.ballUpgrades || {
-                            basic: { level: 1, speed: 3.5, damage: 1 },
-                            sniper: { level: 1, speed: 4.5, damage: 1 },
-                            big: { level: 1, speed: 2.7, damage: 1 },
-                            explosion: { level: 1, speed: 2.7, damage: 2 },
-                            multiplying: { level: 1, speed: 2.7, damage: 1 },
-                            child: { level: 1, speed: 3.6, damage: 1 },
-                            cannonball: { level: 1, speed: 3.0, damage: 3 },
-                            poison: { level: 1, speed: 3.5, damage: 1 },
-                            snowball: { level: 1, speed: 3.5, damage: 1 }
+                            basic: {
+                                level: 1,
+                                speed: 3.5,
+                                damage: 1
+                            },
+                            sniper: {
+                                level: 1,
+                                speed: 4.5,
+                                damage: 1
+                            },
+                            big: {
+                                level: 1,
+                                speed: 2.7,
+                                damage: 1
+                            },
+                            explosion: {
+                                level: 1,
+                                speed: 2.7,
+                                damage: 2
+                            },
+                            multiplying: {
+                                level: 1,
+                                speed: 2.7,
+                                damage: 1
+                            },
+                            child: {
+                                level: 1,
+                                speed: 3.6,
+                                damage: 1
+                            },
+                            cannonball: {
+                                level: 1,
+                                speed: 3.0,
+                                damage: 3
+                            },
+                            poison: {
+                                level: 1,
+                                speed: 3.5,
+                                damage: 1
+                            },
+                            snowball: {
+                                level: 1,
+                                speed: 3.5,
+                                damage: 1
+                            }
                         };
                         ballCounts = data.ballCounts || {
                             basic: 0,
@@ -2867,7 +3061,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    }[type];
+                    } [type];
                     balls.push(new Ball(
                         canvas.width / 2,
                         canvas.height / 2,
@@ -3052,7 +3246,7 @@ display: flex;
                 let damage = ballUpgrades[this.type].damage;
                 if (this.type === 'snowball') {
                     // Increase damage by 1.5x
-                    ballUpgrades[this.type].damage *= 1.05;
+                    ballUpgrades[this.type].damage *= 1.0001;
                     balls.push(
                         // Keep existing snowball behavior
                     );
@@ -3193,7 +3387,7 @@ display: flex;
                     gold: 'gold',
                     speed: 'cyan',
                     multiBall: 'magenta'
-                }[this.type];
+                } [this.type];
                 ctx.fillRect(this.x - (width - this.width) / 2, this.y - (height - this.height) / 2, width, height);
             }
 
@@ -3465,7 +3659,7 @@ display: flex;
                     cannonball: 'darkgray',
                     poison: 'lime',
                     snowball: 'white'
-                }[type];
+                } [type];
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
                 updateMilestones();
@@ -3626,35 +3820,35 @@ display: flex;
 
 
         const powerUpsList = [{
-            emoji: '⚡',
-            name: 'Thunder Strike',
-            description: 'Destroys 5 random bricks instantly.'
-        },
-        {
-            emoji: '🛡️',
-            name: 'Shield Boost',
-            description: 'Protects balls from disappearing for 30 seconds.'
-        },
-        {
-            emoji: '💥',
-            name: 'Mega Explosion',
-            description: 'Doubles explosion ball damage for 20 seconds.'
-        },
-        {
-            emoji: '🌟',
-            name: 'Star Shower',
-            description: 'Spawns 3 auto balls for 15 seconds.'
-        },
-        {
-            emoji: '🕒',
-            name: 'Time Warp',
-            description: 'Slows down time for 10 seconds.'
-        },
-        {
-            emoji: '🌌',
-            name: 'Cosmic Barrage',
-            description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
-        }
+                emoji: '⚡',
+                name: 'Thunder Strike',
+                description: 'Destroys 5 random bricks instantly.'
+            },
+            {
+                emoji: '🛡️',
+                name: 'Shield Boost',
+                description: 'Protects balls from disappearing for 30 seconds.'
+            },
+            {
+                emoji: '💥',
+                name: 'Mega Explosion',
+                description: 'Doubles explosion ball damage for 20 seconds.'
+            },
+            {
+                emoji: '🌟',
+                name: 'Star Shower',
+                description: 'Spawns 3 auto balls for 15 seconds.'
+            },
+            {
+                emoji: '🕒',
+                name: 'Time Warp',
+                description: 'Slows down time for 10 seconds.'
+            },
+            {
+                emoji: '🌌',
+                name: 'Cosmic Barrage',
+                description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
+            }
         ];
 
         // Game state variables
@@ -3908,8 +4102,12 @@ display: flex;
                     const newTeamRef = database.ref("teams").push();
                     newTeamRef.set({
                         name: teamName,
-                        members: { [user.uid]: username },
-                        memberRebirths: { [user.uid]: rebirthCount },
+                        members: {
+                            [user.uid]: username
+                        },
+                        memberRebirths: {
+                            [user.uid]: rebirthCount
+                        },
                         maxMembers: 15
                     }).then(() => {
                         database.ref("userTeams/" + user.uid).set(newTeamRef.key);
@@ -3987,13 +4185,27 @@ display: flex;
         // New function to buy cosmetic
         function buyCosmetic(cosmeticName) {
             const costs = {
-                nebulaSkin: { rebirths: 10 },
-                fireTrail: { gold: 500 },
-                iceTrail: { gold: 500 },
-                rainbowSkin: { rebirths: 15 },
-                bundleSilver: { rebirths: 20 },
-                bundleGold: { rebirths: 30 },
-                bundlePlatinum: { rebirths: 50 }
+                nebulaSkin: {
+                    rebirths: 10
+                },
+                fireTrail: {
+                    gold: 500
+                },
+                iceTrail: {
+                    gold: 500
+                },
+                rainbowSkin: {
+                    rebirths: 15
+                },
+                bundleSilver: {
+                    rebirths: 20
+                },
+                bundleGold: {
+                    rebirths: 30
+                },
+                bundlePlatinum: {
+                    rebirths: 50
+                }
             };
             const cost = costs[cosmeticName];
             const user = auth.currentUser;
@@ -4146,7 +4358,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    }[type];
+                    } [type];
                     balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                     ballCounts[type]++;
                     stats.totalBallsPurchased++;
@@ -4403,10 +4615,21 @@ display: flex;
                 ballShop.appendChild(ballDiv);
             });
 
-            const upgrades = [
-                { name: 'Damage', key: 'damage', price: 100 },
-                { name: 'Speed', key: 'speed', price: 100 },
-                { name: 'Radius', key: 'radius', price: 100 }
+            const upgrades = [{
+                    name: 'Damage',
+                    key: 'damage',
+                    price: 100
+                },
+                {
+                    name: 'Speed',
+                    key: 'speed',
+                    price: 100
+                },
+                {
+                    name: 'Radius',
+                    key: 'radius',
+                    price: 100
+                }
             ];
             const upgradeShop = document.getElementById('upgrade-shop');
             upgradeShop.innerHTML = '';
@@ -4471,14 +4694,24 @@ display: flex;
                     canvas.height / 2,
                     type === 'big' ? 12 : type === 'child' ? 4 : 8,
                     ballUpgrades[type].speed * (Math.random() > 0.5 ? 1 : -1),
-                    ballUpgrades[type].speed * (Math.random() > 0.5 ? 1 : -1),
-                    { basic: 'gray', sniper: 'blue', big: 'green', explosion: 'orange', multiplying: 'purple', child: 'purple', cannonball: 'darkgray', poison: 'lime', snowball: 'white' }[type],
+                    ballUpgrades[type].speed * (Math.random() > 0.5 ? 1 : -1), {
+                        basic: 'gray',
+                        sniper: 'blue',
+                        big: 'green',
+                        explosion: 'orange',
+                        multiplying: 'purple',
+                        child: 'purple',
+                        cannonball: 'darkgray',
+                        poison: 'lime',
+                        snowball: 'white'
+                    } [type],
                     type
                 ));
                 updateUI();
                 updateShopUI();
             });
         }
+
         function removeUpgrade(key) {
             const user = auth.currentUser;
             if (!user || isGuest) {
@@ -4534,7 +4767,7 @@ display: flex;
         }
 
 
-        Ball.prototype.draw = function () {
+        Ball.prototype.draw = function() {
             drawTrail(this);
             ctx.beginPath();
             if (cosmetics.rainbowSkin) {
@@ -5280,10 +5513,26 @@ display: flex;
                     ballPrices.snowball = ballPrices.snowball || 200;
 
                     // Set default upgrades
-                    ballUpgrades.basic = ballUpgrades.basic || { level: 1, speed: 3.5, damage: 1 };
-                    ballUpgrades.cannonball = ballUpgrades.cannonball || { level: 1, speed: 3.0, damage: 3 };
-                    ballUpgrades.poison = ballUpgrades.poison || { level: 1, speed: 3.5, damage: 1 };
-                    ballUpgrades.snowball = ballUpgrades.snowball || { level: 1, speed: 3.5, damage: 1 };
+                    ballUpgrades.basic = ballUpgrades.basic || {
+                        level: 1,
+                        speed: 3.5,
+                        damage: 1
+                    };
+                    ballUpgrades.cannonball = ballUpgrades.cannonball || {
+                        level: 1,
+                        speed: 3.0,
+                        damage: 3
+                    };
+                    ballUpgrades.poison = ballUpgrades.poison || {
+                        level: 1,
+                        speed: 3.5,
+                        damage: 1
+                    };
+                    ballUpgrades.snowball = ballUpgrades.snowball || {
+                        level: 1,
+                        speed: 3.5,
+                        damage: 1
+                    };
 
                     // Update Firebase database
                     database.ref('users/' + user.uid + '/gameState').update({
