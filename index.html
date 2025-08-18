@@ -2096,7 +2096,7 @@
             tooltip.className = "invite-tooltip";
             tooltip.innerHTML = `
         <h3>Invite Accepted 🎉</h3>
-        <p>One of your friends joined! You earned 150,000 Gold.</p>
+        <p>One of your friends joined! You just earned 150,000 Gold. Reload quickly to view your prize!</p>
         <button id="reloadBtn">Reload</button>
     `;
             document.body.appendChild(tooltip);
@@ -2407,7 +2407,7 @@
             linkInput.select();
             linkInput.setSelectionRange(0, 99999);
             document.execCommand("copy");
-            alert("Invite link copied!");
+            alert("Invite link copied! Just send anyone this link and you will get more gold when they sign up!");
         }
         document.getElementById("copyInviteBtn").addEventListener("click", copyInviteLink);
 
