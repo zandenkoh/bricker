@@ -6,23 +6,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <!-- Login form -->
     <div id="loginForm" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Admin Login</h2>
-        <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        <input type="password" id="password" placeholder="Password" class="w-full p-3 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        <button onclick="login()" class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition">Login</button>
+        <input type="email" id="email" placeholder="Email"
+            class="w-full p-3 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <input type="password" id="password" placeholder="Password"
+            class="w-full p-3 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <button onclick="login()"
+            class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition">Login</button>
     </div>
 
     <!-- Admin content -->
-    <div id="adminPanel" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md hidden flex-col items-center">
+    <div id="adminPanel" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg hidden flex-col items-center">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Admin Control Panel</h2>
         <p class="text-gray-600 mb-6">Logged in as admin</p>
-        <div class="flex items-center justify-center space-x-4">
-            <button id="overlayToggle" onclick="toggleOverlay()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-medium">Loading...</button>
+        <div class="flex items-center justify-center space-x-4 mb-6">
+            <button id="overlayToggle" onclick="toggleOverlay()"
+                class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-medium">Loading...</button>
+        </div>
+        <div class="w-full mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Create Update</h3>
+            <div class="flex flex-col space-y-2 mb-4">
+                <input type="text" id="updateElementId" placeholder="Element ID for tooltip"
+                    class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <textarea id="updateContent" placeholder="Tooltip content"
+                    class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    rows="4"></textarea>
+                <button onclick="createUpdate()"
+                    class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">Create
+                    Update</button>
+            </div>
+        </div>
+        <div class="w-full">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">User Management</h3>
+            <div class="flex space-x-2 mb-4">
+                <input type="text" id="searchInput" placeholder="Search by username or userid"
+                    class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button onclick="searchUser()"
+                    class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">Search</button>
+            </div>
+            <div id="userResults" class="max-h-96 overflow-y-auto"></div>
         </div>
     </div>
 
@@ -44,12 +89,24 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
+        // Toast notification function
+        function showToast(message, duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
         // Check auth state on load to keep user logged in
         auth.onAuthStateChanged(user => {
             if (user && user.email === "kohzanden@gmail.com") {
                 document.getElementById('loginForm').className = 'hidden';
-                document.getElementById('adminPanel').className = 'bg-white p-8 rounded-lg shadow-lg w-full max-w-md flex flex-col items-center';
-                // Sync button text with Firebase
+                document.getElementById('adminPanel').className = 'bg-white p-8 rounded-lg shadow-lg w-full max-w-lg flex flex-col items-center';
                 db.ref('settings/overlay').on('value', snap => {
                     const isOverlay = snap.val();
                     const toggleButton = document.getElementById('overlayToggle');
@@ -57,7 +114,7 @@
                 });
             } else {
                 document.getElementById('loginForm').className = 'bg-white p-8 rounded-lg shadow-lg w-full max-w-md';
-                document.getElementById('adminPanel').className = 'bg-white p-8 rounded-lg shadow-lg w-full max-w-md hidden flex-col items-center';
+                document.getElementById('adminPanel').className = 'bg-white p-8 rounded-lg shadow-lg w-full max-w-lg hidden flex-col items-center';
             }
         });
 
@@ -65,15 +122,14 @@
         function login() {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
-
             auth.signInWithEmailAndPassword(email, pass)
                 .then(userCred => {
                     if (userCred.user.email !== "kohzanden@gmail.com") {
-                        alert("Not authorized");
+                        showToast("Not authorized");
                         auth.signOut();
                     }
                 })
-                .catch(err => alert(err.message));
+                .catch(err => showToast(`Login failed: ${err.message}`));
         }
 
         // Toggle overlay
@@ -81,6 +137,294 @@
             db.ref('settings/overlay').once('value').then(snap => {
                 const current = snap.val();
                 db.ref('settings/overlay').set(!current);
+            });
+        }
+
+        // Create update
+        function createUpdate() {
+            const elementId = document.getElementById('updateElementId').value.trim();
+            const content = document.getElementById('updateContent').value.trim();
+            if (!elementId || !content) {
+                showToast('Please enter both element ID and content.');
+                return;
+            }
+            const updateId = db.ref('updates').push().key;
+            db.ref(`updates/${updateId}`).set({
+                id: elementId,
+                content: content
+            })
+                .then(() => {
+                    showToast('Update created successfully!');
+                    document.getElementById('updateElementId').value = '';
+                    document.getElementById('updateContent').value = '';
+                })
+                .catch(err => showToast(`Error creating update: ${err.message}`));
+        }
+
+        // Search user by name or userid
+        function searchUser() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!query) {
+                document.getElementById('userResults').innerHTML = '<p class="text-gray-600">Please enter a username or userid.</p>';
+                return;
+            }
+            db.ref('users').once('value').then(snap => {
+                const users = snap.val() || {};
+                const results = Object.entries(users).filter(([uid, data]) =>
+                    data.gameState?.username?.toLowerCase().includes(query) || uid.toLowerCase().includes(query)
+                );
+                const resultsDiv = document.getElementById('userResults');
+                if (results.length === 0) {
+                    resultsDiv.innerHTML = '<p class="text-gray-600">No users found.</p>';
+                    return;
+                }
+                Promise.all(results.map(([uid]) =>
+                    db.ref(`presence/${uid}`).once('value').then(snap => ({ uid, isOnline: snap.val() === true }))
+                )).then(onlineStatuses => {
+                    const onlineStatusMap = Object.fromEntries(onlineStatuses.map(status => [status.uid, status.isOnline]));
+                    resultsDiv.innerHTML = results.map(([uid, data]) => {
+                        const gameState = data.gameState || {};
+                        return `
+                            <div class="border p-4 mb-2 rounded-lg bg-gray-50">
+                                <p><strong>Username:</strong> ${gameState.username || 'N/A'}</p>
+                                <p><strong>UserID:</strong> ${uid}</p>
+                                <p><strong>Online:</strong> <span class="${onlineStatusMap[uid] ? 'text-green-600' : 'text-red-600'}">${onlineStatusMap[uid] ? 'Online' : 'Offline'}</span></p>
+                                <p><strong>Gold:</strong> ${gameState.gold || 0}</p>
+                                <p><strong>Level:</strong> ${gameState.level || 1}</p>
+                                <p><strong>Rebirth Count:</strong> ${gameState.rebirthCount || 0}</p>
+                                <p><strong>Ball Counts:</strong> Basic: ${gameState.ballCounts?.basic || 0}, Sniper: ${gameState.ballCounts?.sniper || 0}, Big: ${gameState.ballCounts?.big || 0}, Explosion: ${gameState.ballCounts?.explosion || 0}, Multiplying: ${gameState.ballCounts?.multiplying || 0}, Child: ${gameState.ballCounts?.child || 0}, Cannonball: ${gameState.ballCounts?.cannonball || 0}, Poison: ${gameState.ballCounts?.poison || 0}, Snowball: ${gameState.ballCounts?.snowball || 0}</p>
+                                <p><strong>Auto Balls:</strong> ${gameState.autoBalls || 0}</p>
+                                <p><strong>Auto Ball Price:</strong> ${gameState.autoBallPrice || 0}</p>
+                                <p><strong>Idle Gold Per Second:</strong> ${gameState.idleGoldPerSecond || 0}</p>
+                                <div class="flex space-x-2 mt-2">
+                                    <button onclick="refreshUserScreen('${uid}', ${onlineStatusMap[uid]})" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 ${!onlineStatusMap[uid] ? 'opacity-50 cursor-not-allowed' : ''}" ${onlineStatusMap[uid] ? '' : 'disabled'}>Refresh Screen</button>
+                                    <button onclick="showModifyUser('${uid}', '${encodeURIComponent(JSON.stringify(gameState))}')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Modify User</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }).catch(err => {
+                    resultsDiv.innerHTML = `<p class="text-red-600">Error fetching online status: ${err.message}</p>`;
+                });
+            }).catch(err => {
+                document.getElementById('userResults').innerHTML = `<p class="text-red-600">Error: ${err.message}</p>`;
+            });
+        }
+
+        // Trigger screen refresh for a user
+        function refreshUserScreen(userId, isOnline) {
+            if (!isOnline) {
+                showToast('User is offline; refresh not applicable.');
+                return;
+            }
+            db.ref(`reload/${userId}`).set(true)
+                .then(() => {
+                    showToast(`Refresh triggered for user ${userId}`);
+                })
+                .catch(err => {
+                    showToast(`Error triggering refresh: ${err.message}`);
+                });
+        }
+
+        // Show modify user form
+        function showModifyUser(userId, gameStateStr) {
+            const gameState = JSON.parse(decodeURIComponent(gameStateStr));
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
+            overlay.innerHTML = `
+                <div class="bg-white p-6 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto">
+                    <h3 class="text-lg font-semibold mb-4">Modify User ${userId}</h3>
+                    <label class="block mb-2">Username:</label>
+                    <input type="text" id="modifyUsername" value="${gameState.username || ''}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Gold:</label>
+                    <input type="number" id="modifyGold" value="${gameState.gold || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Level:</label>
+                    <input type="number" id="modifyLevel" value="${gameState.level || 1}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Rebirth Count:</label>
+                    <input type="number" id="modifyRebirthCount" value="${gameState.rebirthCount || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Auto Balls:</label>
+                    <input type="number" id="modifyAutoBalls" value="${gameState.autoBalls || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Auto Ball Price:</label>
+                    <input type="number" id="modifyAutoBallPrice" value="${gameState.autoBallPrice || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Idle Gold Per Second:</label>
+                    <input type="number" id="modifyIdleGoldPerSecond" value="${gameState.idleGoldPerSecond || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Basic Balls:</label>
+                    <input type="number" id="modifyBasicBalls" value="${gameState.ballCounts?.basic || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Sniper Balls:</label>
+                    <input type="number" id="modifySniperBalls" value="${gameState.ballCounts?.sniper || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Big Balls:</label>
+                    <input type="number" id="modifyBigBalls" value="${gameState.ballCounts?.big || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Explosion Balls:</label>
+                    <input type="number" id="modifyExplosionBalls" value="${gameState.ballCounts?.explosion || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Multiplying Balls:</label>
+                    <input type="number" id="modifyMultiplyingBalls" value="${gameState.ballCounts?.multiplying || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Child Balls:</label>
+                    <input type="number" id="modifyChildBalls" value="${gameState.ballCounts?.child || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Cannonball Balls:</label>
+                    <input type="number" id="modifyCannonballBalls" value="${gameState.ballCounts?.cannonball || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Poison Balls:</label>
+                    <input type="number" id="modifyPoisonBalls" value="${gameState.ballCounts?.poison || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Snowball Balls:</label>
+                    <input type="number" id="modifySnowballBalls" value="${gameState.ballCounts?.snowball || 0}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Ball Prices (JSON):</label>
+                    <textarea id="modifyBallPrices" class="w-full p-2 border rounded mb-4" rows="4">${JSON.stringify(gameState.ballPrices || {}, null, 2)}</textarea>
+                    <label class="block mb-2">Ball Upgrades (JSON):</label>
+                    <textarea id="modifyBallUpgrades" class="w-full p-2 border rounded mb-4" rows="4">${JSON.stringify(gameState.ballUpgrades || {}, null, 2)}</textarea>
+                    <label class="block mb-2">Stats (JSON):</label>
+                    <textarea id="modifyStats" class="w-full p-2 border rounded mb-4" rows="4">${JSON.stringify(gameState.stats || {}, null, 2)}</textarea>
+                    <label class="block mb-2">Cosmetics (JSON):</label>
+                    <textarea id="modifyCosmetics" class="w-full p-2 border rounded mb-4" rows="4">${JSON.stringify(gameState.cosmetics || {}, null, 2)}</textarea>
+                    <label class="block mb-2">Auto Rebirth Owned:</label>
+                    <input type="checkbox" id="modifyAutoRebirthOwned" ${gameState.autoRebirthOwned ? 'checked' : ''} class="mb-4">
+                    <label class="block mb-2">Auto Rebirth Enabled:</label>
+                    <input type="checkbox" id="modifyAutoRebirthEnabled" ${gameState.autoRebirthEnabled ? 'checked' : ''} class="mb-4">
+                    <label class="block mb-2">Speed Boost Active:</label>
+                    <input type="checkbox" id="modifySpeedBoostActive" ${gameState.globalUpgrades?.speedBoost?.active ? 'checked' : ''} class="mb-4">
+                    <label class="block mb-2">Speed Boost Activation Time (Unix ms, null for none):</label>
+                    <input type="number" id="modifySpeedBoostTime" value="${gameState.globalUpgrades?.speedBoost?.activationTime || ''}" class="w-full p-2 border rounded mb-4">
+                    <label class="block mb-2">Gold Boost Active:</label>
+                    <input type="checkbox" id="modifyGoldBoostActive" ${gameState.globalUpgrades?.goldBoost?.active ? 'checked' : ''} class="mb-4">
+                    <label class="block mb-2">Gold Boost Activation Time (Unix ms, null for none):</label>
+                    <input type="number" id="modifyGoldBoostTime" value="${gameState.globalUpgrades?.goldBoost?.activationTime || ''}" class="w-full p-2 border rounded mb-4">
+                    <div class="flex space-x-2">
+                        <button onclick="saveUserChanges('${userId}', '${encodeURIComponent(JSON.stringify(gameState))}')" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save</button>
+                        <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        // Save user changes
+        function saveUserChanges(userId, originalGameStateStr) {
+            const originalGameState = JSON.parse(decodeURIComponent(originalGameStateStr));
+            const updates = {};
+
+            // Helper function to compare values and add to updates if changed
+            function addIfChanged(key, newValue, originalValue) {
+                if (JSON.stringify(newValue) !== JSON.stringify(originalValue)) {
+                    updates[`users/${userId}/gameState/${key}`] = newValue;
+                }
+            }
+
+            // Simple fields
+            const newUsername = document.getElementById('modifyUsername').value || '';
+            addIfChanged('username', newUsername, originalGameState.username || '');
+
+            const newGold = parseInt(document.getElementById('modifyGold').value) || 0;
+            addIfChanged('gold', newGold, originalGameState.gold || 0);
+
+            const newLevel = parseInt(document.getElementById('modifyLevel').value) || 1;
+            addIfChanged('level', newLevel, originalGameState.level || 1);
+
+            const newRebirthCount = parseInt(document.getElementById('modifyRebirthCount').value) || 0;
+            addIfChanged('rebirthCount', newRebirthCount, originalGameState.rebirthCount || 0);
+
+            const newAutoBalls = parseInt(document.getElementById('modifyAutoBalls').value) || 0;
+            addIfChanged('autoBalls', newAutoBalls, originalGameState.autoBalls || 0);
+
+            const newAutoBallPrice = parseInt(document.getElementById('modifyAutoBallPrice').value) || 0;
+            addIfChanged('autoBallPrice', newAutoBallPrice, originalGameState.autoBallPrice || 0);
+
+            const newIdleGoldPerSecond = parseInt(document.getElementById('modifyIdleGoldPerSecond').value) || 0;
+            addIfChanged('idleGoldPerSecond', newIdleGoldPerSecond, originalGameState.idleGoldPerSecond || 0);
+
+            // Ball counts
+            const newBallCounts = {
+                basic: parseInt(document.getElementById('modifyBasicBalls').value) || 0,
+                sniper: parseInt(document.getElementById('modifySniperBalls').value) || 0,
+                big: parseInt(document.getElementById('modifyBigBalls').value) || 0,
+                explosion: parseInt(document.getElementById('modifyExplosionBalls').value) || 0,
+                multiplying: parseInt(document.getElementById('modifyMultiplyingBalls').value) || 0,
+                child: parseInt(document.getElementById('modifyChildBalls').value) || 0,
+                cannonball: parseInt(document.getElementById('modifyCannonballBalls').value) || 0,
+                poison: parseInt(document.getElementById('modifyPoisonBalls').value) || 0,
+                snowball: parseInt(document.getElementById('modifySnowballBalls').value) || 0
+            };
+            addIfChanged('ballCounts', newBallCounts, originalGameState.ballCounts || {});
+
+            // JSON fields
+            let newBallPrices, newBallUpgrades, newStats, newCosmetics;
+            try {
+                newBallPrices = JSON.parse(document.getElementById('modifyBallPrices').value || '{}');
+                addIfChanged('ballPrices', newBallPrices, originalGameState.ballPrices || {});
+            } catch (e) {
+                showToast('Invalid JSON for Ball Prices');
+                return;
+            }
+
+            try {
+                newBallUpgrades = JSON.parse(document.getElementById('modifyBallUpgrades').value || '{}');
+                addIfChanged('ballUpgrades', newBallUpgrades, originalGameState.ballUpgrades || {});
+            } catch (e) {
+                showToast('Invalid JSON for Ball Upgrades');
+                return;
+            }
+
+            try {
+                newStats = JSON.parse(document.getElementById('modifyStats').value || '{}');
+                addIfChanged('stats', newStats, originalGameState.stats || {});
+            } catch (e) {
+                showToast('Invalid JSON for Stats');
+                return;
+            }
+
+            try {
+                newCosmetics = JSON.parse(document.getElementById('modifyCosmetics').value || '{}');
+                addIfChanged('cosmetics', newCosmetics, originalGameState.cosmetics || {});
+            } catch (e) {
+                showToast('Invalid JSON for Cosmetics');
+                return;
+            }
+
+            // Boolean fields
+            const newAutoRebirthOwned = document.getElementById('modifyAutoRebirthOwned').checked;
+            addIfChanged('autoRebirthOwned', newAutoRebirthOwned, originalGameState.autoRebirthOwned || false);
+
+            const newAutoRebirthEnabled = document.getElementById('modifyAutoRebirthEnabled').checked;
+            addIfChanged('autoRebirthEnabled', newAutoRebirthEnabled, originalGameState.autoRebirthEnabled || false);
+
+            // Global upgrades
+            const newSpeedBoostActive = document.getElementById('modifySpeedBoostActive').checked;
+            const newSpeedBoostTime = document.getElementById('modifySpeedBoostTime').value ? parseInt(document.getElementById('modifySpeedBoostTime').value) : null;
+            const newGoldBoostActive = document.getElementById('modifyGoldBoostActive').checked;
+            const newGoldBoostTime = document.getElementById('modifyGoldBoostTime').value ? parseInt(document.getElementById('modifyGoldBoostTime').value) : null;
+
+            const newGlobalUpgrades = {
+                speedBoost: {
+                    active: newSpeedBoostActive,
+                    activationTime: newSpeedBoostActive ? (newSpeedBoostTime || Date.now()) : null
+                },
+                goldBoost: {
+                    active: newGoldBoostActive,
+                    activationTime: newGoldBoostActive ? (newGoldBoostTime || Date.now()) : null
+                }
+            };
+            addIfChanged('globalUpgrades', newGlobalUpgrades, originalGameState.globalUpgrades || {});
+
+            if (Object.keys(updates).length === 0) {
+                showToast('No changes detected.');
+                document.querySelector('.fixed').remove();
+                return;
+            }
+
+            // Check if user is online
+            db.ref(`presence/${userId}`).once('value').then(snap => {
+                const isOnline = snap.val() === true;
+                if (isOnline) {
+                    updates[`reload/${userId}`] = true;
+                }
+                db.ref().update(updates)
+                    .then(() => {
+                        showToast('User data updated successfully!' + (isOnline ? ' Reload triggered.' : ''));
+                        document.querySelector('.fixed').remove();
+                        searchUser();
+                    })
+                    .catch(err => {
+                        showToast(`Error updating user data: ${err.message}`);
+                    });
+            }).catch(err => {
+                showToast(`Error checking presence: ${err.message}`);
             });
         }
     </script>
