@@ -977,7 +977,7 @@
             font-size: 14px;
             transition: opacity 0.5s ease-in-out;
             text-align: center;
-            margin: 20px;
+            margin: 10px;
             letter-spacing: 0.7px;
             font-weight: 600;
         }
@@ -1414,8 +1414,7 @@
 <body>
     <!-- Overlay -->
     <div id="afkOverlay">
-        <img id="gcImage" src="./classroom.png" alt="Google Classroom"
-            style="width:100%;height:100%;object-fit:cover;cursor:pointer;" title="Click to change image">
+        <img id="gcImage" src="./classroom.png" alt="Google Classroom" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" title="Click to change image">
     </div>
 
 
@@ -1561,8 +1560,7 @@
                 </div>
                 <div id="global-leaderboard" class="leaderboard-list"></div>
                 <div id="team-leaderboard" class="leaderboard-list" style="display:none;">
-                    <button id="create-team-btn"
-                        style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 6px;font-weight: 600;">
+                    <button id="create-team-btn" style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 6px;font-weight: 600;">
                         Create Team
                     </button>
                     <div id="team-list"></div>
@@ -1651,6 +1649,31 @@
             }
         }
 
+        function autoScaleMainContainer() {
+            const container = document.querySelector(".main-main-container");
+            if (!container) return;
+
+            // Reset scale first to measure natural size
+            container.style.transform = "scale(1)";
+            container.style.transformOrigin = "top center";
+
+            const containerRect = container.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            const scaleX = windowWidth / containerRect.width;
+            const scaleY = windowHeight / containerRect.height;
+
+            // Use the smaller scale so both width and height fit
+            const scale = Math.min(scaleX, scaleY);
+
+            container.style.transform = `scale(${scale})`;
+            container.style.transformOrigin = "top center"; // keep top centered
+        }
+
+        // Run on load and resize
+        window.addEventListener("load", autoScaleMainContainer);
+        window.addEventListener("resize", autoScaleMainContainer);
 
 
         let originalTitle = document.title;
@@ -1759,53 +1782,53 @@
         function startTutorial() {
             introJs().setOptions({
                 steps: [{
-                    intro: "Welcome to Bricker! Let's explore the game.",
-                    position: "center"
-                },
-                {
-                    element: document.querySelector('#gameCanvas'),
-                    intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
-                    position: "top"
-                },
-                {
-                    element: document.querySelector('.info-container'),
-                    intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
-                    position: "right"
-                },
-                {
-                    element: document.querySelector('#save-button'),
-                    intro: "Click here to save your progress to your account.",
-                    position: "right"
-                },
-                {
-                    element: document.querySelector('.ball-options'),
-                    intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
-                    position: "bottom"
-                },
-                {
-                    element: document.querySelector('#my-balls-btn'),
-                    intro: "View your balls and upgrade them.",
-                    position: "left"
-                },
-                {
-                    element: document.querySelector('#settings-btn'),
-                    intro: "Update your username or log out in the settings.",
-                    position: "left"
-                },
-                {
-                    element: document.querySelector('#weapons-btn'),
-                    intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
-                    position: "left"
-                },
-                {
-                    element: document.querySelector('.leaderboard-container'),
-                    intro: "Check the leaderboard to see top players' rankings and stats.",
-                    position: "left"
-                },
-                {
-                    intro: "You're all set! Start destroying bricks and earning gold!",
-                    position: "center"
-                }
+                        intro: "Welcome to Bricker! Let's explore the game.",
+                        position: "center"
+                    },
+                    {
+                        element: document.querySelector('#gameCanvas'),
+                        intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
+                        position: "top"
+                    },
+                    {
+                        element: document.querySelector('.info-container'),
+                        intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
+                        position: "right"
+                    },
+                    {
+                        element: document.querySelector('#save-button'),
+                        intro: "Click here to save your progress to your account.",
+                        position: "right"
+                    },
+                    {
+                        element: document.querySelector('.ball-options'),
+                        intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
+                        position: "bottom"
+                    },
+                    {
+                        element: document.querySelector('#my-balls-btn'),
+                        intro: "View your balls and upgrade them.",
+                        position: "left"
+                    },
+                    {
+                        element: document.querySelector('#settings-btn'),
+                        intro: "Update your username or log out in the settings.",
+                        position: "left"
+                    },
+                    {
+                        element: document.querySelector('#weapons-btn'),
+                        intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
+                        position: "left"
+                    },
+                    {
+                        element: document.querySelector('.leaderboard-container'),
+                        intro: "Check the leaderboard to see top players' rankings and stats.",
+                        position: "left"
+                    },
+                    {
+                        intro: "You're all set! Start destroying bricks and earning gold!",
+                        position: "center"
+                    }
                 ],
                 showProgress: true,
                 showBullets: false,
@@ -2023,7 +2046,7 @@
         const inviterId = urlParams.get("id");
 
 
-        window.onload = function () {
+        window.onload = function() {
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
                     // Logged in: ignore invite links
@@ -2172,7 +2195,10 @@
                     const updates = snap.val() || {};
                     const dismissedUpdates = JSON.parse(localStorage.getItem('dismissedUpdates') || '[]');
 
-                    Object.entries(updates).forEach(([updateId, { id: elementId, content }]) => {
+                    Object.entries(updates).forEach(([updateId, {
+                        id: elementId,
+                        content
+                    }]) => {
                         if (!dismissedUpdates.includes(updateId)) {
                             waitForElementToDisplay(elementId, () => {
                                 showUpdateTooltip(updateId, elementId, content);
@@ -2279,14 +2305,14 @@
 
         // Buy handler (hook it up once DOM is ready)
 
-        document.getElementById('auto-rebirth-toggle')?.addEventListener('change', function (e) {
+        document.getElementById('auto-rebirth-toggle')?.addEventListener('change', function(e) {
             autoRebirthEnabled = !!e.target.checked;
             const user = auth.currentUser;
             if (user && !isGuest) {
                 database.ref('users/' + user.uid + '/gameState').update({
-                    autoRebirthEnabled
-                })
-                    .catch(() => { }); // don't block UI on failure
+                        autoRebirthEnabled
+                    })
+                    .catch(() => {}); // don't block UI on failure
             }
             updateUI();
         });
@@ -3404,7 +3430,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    }[type];
+                    } [type];
                     balls.push(new Ball(
                         canvas.width / 2,
                         canvas.height / 2,
@@ -3730,7 +3756,7 @@ display: flex;
                     gold: 'gold',
                     speed: 'cyan',
                     multiBall: 'magenta'
-                }[this.type];
+                } [this.type];
                 ctx.fillRect(this.x - (width - this.width) / 2, this.y - (height - this.height) / 2, width, height);
             }
 
@@ -4002,7 +4028,7 @@ display: flex;
                     cannonball: 'darkgray',
                     poison: 'lime',
                     snowball: 'white'
-                }[type];
+                } [type];
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
                 updateMilestones();
@@ -4163,35 +4189,35 @@ display: flex;
 
 
         const powerUpsList = [{
-            emoji: '⚡',
-            name: 'Thunder Strike',
-            description: 'Destroys 5 random bricks instantly.'
-        },
-        {
-            emoji: '🛡️',
-            name: 'Shield Boost',
-            description: 'Protects balls from disappearing for 30 seconds.'
-        },
-        {
-            emoji: '💥',
-            name: 'Mega Explosion',
-            description: 'Doubles explosion ball damage for 20 seconds.'
-        },
-        {
-            emoji: '🌟',
-            name: 'Star Shower',
-            description: 'Spawns 3 auto balls for 15 seconds.'
-        },
-        {
-            emoji: '🕒',
-            name: 'Time Warp',
-            description: 'Slows down time for 10 seconds.'
-        },
-        {
-            emoji: '🌌',
-            name: 'Cosmic Barrage',
-            description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
-        }
+                emoji: '⚡',
+                name: 'Thunder Strike',
+                description: 'Destroys 5 random bricks instantly.'
+            },
+            {
+                emoji: '🛡️',
+                name: 'Shield Boost',
+                description: 'Protects balls from disappearing for 30 seconds.'
+            },
+            {
+                emoji: '💥',
+                name: 'Mega Explosion',
+                description: 'Doubles explosion ball damage for 20 seconds.'
+            },
+            {
+                emoji: '🌟',
+                name: 'Star Shower',
+                description: 'Spawns 3 auto balls for 15 seconds.'
+            },
+            {
+                emoji: '🕒',
+                name: 'Time Warp',
+                description: 'Slows down time for 10 seconds.'
+            },
+            {
+                emoji: '🌌',
+                name: 'Cosmic Barrage',
+                description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
+            }
         ];
 
         // Game state variables
@@ -4378,16 +4404,16 @@ display: flex;
                 // Build settings menu for creator (delete team)
                 const user = auth.currentUser;
                 const isCreator = user && team.admins?.[user.uid] === 'creator';
-                const settingsMenuHTML = isCreator
-                    ? `
+                const settingsMenuHTML = isCreator ?
+                    `
                 <div class="settings-container">
                     <button class="settings-team-btn" style="background:transparent;padding:0;">⚙️</button>
                     <div class="settings-menu" style="display: none;">
                         <button id="delete-team-btn">Delete Team</button>
                     </div>
                 </div>
-            `
-                    : '';
+            ` :
+                    '';
 
                 overlay.innerHTML = `
             <div class="login-popup" style="width:400px;max-height:80vh;overflow-y:auto;">
@@ -4674,7 +4700,9 @@ display: flex;
                         },
                         maxMembers: 15,
                         isPrivate: isPrivate,
-                        ...(isPrivate && { password: password })
+                        ...(isPrivate && {
+                            password: password
+                        })
                     }).then(() => {
                         database.ref("userTeams/" + user.uid).set(newTeamRef.key);
                         showToast("Team created!");
@@ -4739,7 +4767,9 @@ display: flex;
         function updateTeamName(teamId, userId, newName) {
             return database.ref("teams/" + teamId + "/admins/" + userId).once("value").then(snap => {
                 if (!snap.val()) return showToast("Only admins can change the team name!");
-                return database.ref("teams/" + teamId).update({ name: newName }).then(() => {
+                return database.ref("teams/" + teamId).update({
+                    name: newName
+                }).then(() => {
                     showToast("Team name updated!");
                     document.querySelector(".login-overlay")?.remove();
                     fetchTeams();
@@ -4798,7 +4828,9 @@ display: flex;
                 if (snap.val() !== 'creator') return showToast("Only the creator can promote admins!");
                 database.ref("teams/" + teamId + "/members/" + userId).once("value").then(memberSnap => {
                     if (!memberSnap.val()) return showToast("User is not a team member!");
-                    database.ref("teams/" + teamId + "/admins").update({ [userId]: 'admin' }).then(() => {
+                    database.ref("teams/" + teamId + "/admins").update({
+                        [userId]: 'admin'
+                    }).then(() => {
                         showToast("Member promoted to admin!");
                         document.querySelector(".login-overlay")?.remove();
                         fetchTeams();
@@ -5023,7 +5055,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    }[type];
+                    } [type];
                     balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                     ballCounts[type]++;
                     stats.totalBallsPurchased++;
@@ -5281,20 +5313,20 @@ display: flex;
             });
 
             const upgrades = [{
-                name: 'Damage',
-                key: 'damage',
-                price: 100
-            },
-            {
-                name: 'Speed',
-                key: 'speed',
-                price: 100
-            },
-            {
-                name: 'Radius',
-                key: 'radius',
-                price: 100
-            }
+                    name: 'Damage',
+                    key: 'damage',
+                    price: 100
+                },
+                {
+                    name: 'Speed',
+                    key: 'speed',
+                    price: 100
+                },
+                {
+                    name: 'Radius',
+                    key: 'radius',
+                    price: 100
+                }
             ];
             const upgradeShop = document.getElementById('upgrade-shop');
             upgradeShop.innerHTML = '';
@@ -5369,7 +5401,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    }[type],
+                    } [type],
                     type
                 ));
                 updateUI();
@@ -5432,7 +5464,7 @@ display: flex;
         }
 
 
-        Ball.prototype.draw = function () {
+        Ball.prototype.draw = function() {
             drawTrail(this);
             ctx.beginPath();
             if (cosmetics.rainbowSkin) {
