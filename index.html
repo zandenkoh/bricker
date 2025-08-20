@@ -96,6 +96,50 @@
             font-weight: 600;
             text-align: center;
             text-transform: uppercase;
+            align-items: center;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        #user-rank-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            border: 1px solid #444;
+            line-height: 1;
+            padding-top: 1px;
+            /* optical centring */
+        }
+
+        #user-rank-badge.gold {
+            background: #ffd700;
+            color: #000;
+            border-color: #b59b00;
+        }
+
+        #user-rank-badge.silver {
+            background: #c0c0c0;
+            color: #000;
+            border-color: #8d8d8d;
+        }
+
+        #user-rank-badge.bronze {
+            background: #cd7f32;
+            color: #fff;
+            border-color: #8b5221;
+        }
+
+        #user-rank-badge.black {
+            background: #000;
+            color: #fff;
+            border-color: #333;
         }
 
         .leaderboard-list {
@@ -154,7 +198,7 @@
 
         .ui {
             position: relative;
-            align-self: center;
+            align-self: flex-start;
             width: 950px;
             background: #e9dcaf;
             padding: 0;
@@ -230,19 +274,23 @@
         }
 
         #weapons-btn {
-            width: fit-content;
+            width: 150px;
             padding: 10px;
             border: 1px solid #444;
             background: #f4eed6;
             color: #000;
             font-weight: 600;
-            align-self: end;
+            align-self: flex-end;
             margin-left: 0px;
+            height: 85px;
+            box-sizing: border-box;
         }
 
         #weapons-btn p {
             margin-top: 10px;
             margin-bottom: 12px;
+            font-size: 15px;
+            white-space: nowrap
         }
 
         #weapons-btn:hover {
@@ -277,6 +325,7 @@
             width: 100%;
             color: #000;
             padding: 2px 0;
+            height: 16px;
         }
 
         #save-button {
@@ -371,7 +420,11 @@
             flex-direction: column;
             justify-content: flex-end;
             align-items: center;
+            align-self: flex-end;
             gap: 8px;
+            height: 85px;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         #my-balls-btn,
@@ -1408,13 +1461,178 @@
         .invite-tooltip button:hover {
             background: #0053a6;
         }
+
+        /*to be removed after countdown ends*/
+        .update-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+        }
+
+        .update-modal {
+            background: #e9dcaf;
+            border: 3px solid #444;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            width: 400px;
+            max-width: 90%;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            animation: popIn 0.6s ease;
+            color: #000;
+        }
+
+        .update-modal h2 {
+            margin: 0 0 10px;
+            font-size: 22px;
+            text-transform: uppercase;
+        }
+
+        .update-modal p {
+            margin: 0 0 20px;
+            font-size: 16px;
+        }
+
+        .countdown {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .time-box {
+            flex: 1;
+            background: #f4eed6;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-family: monospace;
+            color: #000;
+        }
+
+        .time-box div {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+
+        .time-box span {
+            display: block;
+            font-size: 28px;
+            font-weight: bold;
+            animation: flip 1s infinite;
+        }
+
+        .time-box small {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .close-update-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes flip {
+            0% {
+                transform: rotateX(0);
+            }
+
+            50% {
+                transform: rotateX(180deg);
+            }
+
+            100% {
+                transform: rotateX(360deg);
+            }
+        }
+
+        .mini-countdown {
+            margin-top: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #000;
+            background: #f4eed6;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .mini-countdown:hover {
+            background: #e0d3a0;
+        }
+
+        .hints {
+            margin-top: 15px;
+            text-align: left;
+            font-size: 14px;
+            color: #222;
+        }
+
+        #user-rank-circle {
+            margin-left: 10px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        #user-rank-circle.gold {
+            background: gold;
+            color: #000;
+        }
+
+        #user-rank-circle.silver {
+            background: silver;
+            color: #000;
+        }
+
+        #user-rank-circle.bronze {
+            background: #cd7f32;
+            color: #fff;
+        }
+
+        #user-rank-circle.black {
+            background: #000;
+            color: #fff;
+        }
     </style>
 </head>
 
 <body>
     <!-- Overlay -->
     <div id="afkOverlay">
-        <img id="gcImage" src="./classroom.png" alt="Google Classroom" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" title="Click to change image">
+        <img id="gcImage" src="./classroom.png" alt="Google Classroom"
+            style="width:100%;height:100%;object-fit:cover;cursor:pointer;" title="Click to change image">
     </div>
 
 
@@ -1548,19 +1766,26 @@
                         </div>
                     </div>
 
-                    <h1>Bricker</h1>
+                    <div class="bricker-title"
+                        style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:85px;align-self:flex-end;width:fit-content;white-space: nowrap;flex:1;box-sizing:border-box;padding:10px;">
+                        <h1>Bricker</h1>
+                        <div id="miniCountdown" class="mini-countdown" title="Click to see what's coming!"></div>
+                    </div>
                 </div>
                 <canvas id="gameCanvas" width="1000" height="520"></canvas>
             </div>
             <div class="leaderboard-container">
-                <h2>Leaderboard</h2>
+                <h2>
+                    Leaderboard
+                </h2>
                 <div class="leaderboard-tabs">
                     <button id="global-tab" class="active">Global</button>
                     <button id="team-tab">Teams</button>
                 </div>
                 <div id="global-leaderboard" class="leaderboard-list"></div>
                 <div id="team-leaderboard" class="leaderboard-list" style="display:none;">
-                    <button id="create-team-btn" style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 6px;font-weight: 600;">
+                    <button id="create-team-btn"
+                        style="width:100%;padding:10px;background:#000;color:#fff;border:none;cursor:pointer;border-radius: 6px;font-weight: 600;">
                         Create Team
                     </button>
                     <div id="team-list"></div>
@@ -1572,6 +1797,46 @@
         <div id="tips-text"></div>
 
     </div>
+
+    <!-- Update Countdown Modal -->
+    <div id="updateModal" class="update-modal-overlay" style="display:none;">
+        <div class="update-modal">
+            <button class="close-update-btn" id="closeUpdateModal">&times;</button>
+            <h2>Next Big Update Coming Soon!</h2>
+            <div class="countdown" id="countdown">
+                <div class="time-box">
+                    <div id="days">00</div><small>Days</small>
+                </div>
+                <div class="time-box">
+                    <div id="hours">00</div><small>Hours</small>
+                </div>
+                <div class="time-box">
+                    <div id="minutes">00</div><small>Minutes</small>
+                </div>
+                <div class="time-box">
+                    <div id="seconds">00</div><small>Seconds</small>
+                </div>
+            </div>
+            <hr>
+            <div class="hints">
+                <p>✨ Expect game-changing features...</p>
+                <p>⚡ Faster, smoother, more powerful gameplay awaits.</p>
+                <p>🎁 New surprises will be unlocked at launch!</p>
+                <p>🏆 Compete in fresh challenges with massive rewards.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="updateOverlay" class="update-overlay" style="display:none;">
+        <div class="update-overlay-content">
+            <h1>🚧 Update in Progress 🚧</h1>
+            <p>The game is currently being upgraded.</p>
+            <p>This overlay will disappear once the new version is live.</p>
+        </div>
+    </div>
+
+
+
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -1782,53 +2047,53 @@
         function startTutorial() {
             introJs().setOptions({
                 steps: [{
-                        intro: "Welcome to Bricker! Let's explore the game.",
-                        position: "center"
-                    },
-                    {
-                        element: document.querySelector('#gameCanvas'),
-                        intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
-                        position: "top"
-                    },
-                    {
-                        element: document.querySelector('.info-container'),
-                        intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
-                        position: "right"
-                    },
-                    {
-                        element: document.querySelector('#save-button'),
-                        intro: "Click here to save your progress to your account.",
-                        position: "right"
-                    },
-                    {
-                        element: document.querySelector('.ball-options'),
-                        intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
-                        position: "bottom"
-                    },
-                    {
-                        element: document.querySelector('#my-balls-btn'),
-                        intro: "View your balls and upgrade them.",
-                        position: "left"
-                    },
-                    {
-                        element: document.querySelector('#settings-btn'),
-                        intro: "Update your username or log out in the settings.",
-                        position: "left"
-                    },
-                    {
-                        element: document.querySelector('#weapons-btn'),
-                        intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
-                        position: "left"
-                    },
-                    {
-                        element: document.querySelector('.leaderboard-container'),
-                        intro: "Check the leaderboard to see top players' rankings and stats.",
-                        position: "left"
-                    },
-                    {
-                        intro: "You're all set! Start destroying bricks and earning gold!",
-                        position: "center"
-                    }
+                    intro: "Welcome to Bricker! Let's explore the game.",
+                    position: "center"
+                },
+                {
+                    element: document.querySelector('#gameCanvas'),
+                    intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
+                    position: "top"
+                },
+                {
+                    element: document.querySelector('.info-container'),
+                    intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
+                    position: "right"
+                },
+                {
+                    element: document.querySelector('#save-button'),
+                    intro: "Click here to save your progress to your account.",
+                    position: "right"
+                },
+                {
+                    element: document.querySelector('.ball-options'),
+                    intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
+                    position: "bottom"
+                },
+                {
+                    element: document.querySelector('#my-balls-btn'),
+                    intro: "View your balls and upgrade them.",
+                    position: "left"
+                },
+                {
+                    element: document.querySelector('#settings-btn'),
+                    intro: "Update your username or log out in the settings.",
+                    position: "left"
+                },
+                {
+                    element: document.querySelector('#weapons-btn'),
+                    intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
+                    position: "left"
+                },
+                {
+                    element: document.querySelector('.leaderboard-container'),
+                    intro: "Check the leaderboard to see top players' rankings and stats.",
+                    position: "left"
+                },
+                {
+                    intro: "You're all set! Start destroying bricks and earning gold!",
+                    position: "center"
+                }
                 ],
                 showProgress: true,
                 showBullets: false,
@@ -2046,7 +2311,7 @@
         const inviterId = urlParams.get("id");
 
 
-        window.onload = function() {
+        window.onload = function () {
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
                     // Logged in: ignore invite links
@@ -2056,17 +2321,23 @@
                     migrateNewBalls();
                     setupListeners();
 
+                    // Only show modal if not previously closed
+                    if (localStorage.getItem('updateModalClosed') !== 'true') {
+                        setTimeout(() => {
+                            document.getElementById("updateModal").style.display = "flex";
+                        }, 1500);
+                    }
+
                     // Set invite link for this user
                     const inviteLinkEl = document.getElementById("inviteLink");
                     if (inviteLinkEl) {
                         inviteLinkEl.value = "zandenkoh.github.io/bricker/" + "?id=" + user.uid;
                     }
 
-                    // ✅ Replace your old "once" logic with this:
+                    // Setup invite container
                     setupInviteContainer(user.uid);
-
                 } else {
-                    // 👇 Suppress normal login popup if this is an invite link
+                    // Suppress normal login popup if this is an invite link
                     if (inviterId) {
                         showInviteSignupPopup(inviterId);
                     } else {
@@ -2075,6 +2346,52 @@
                 }
             });
         };
+
+        const sgTarget = new Date("2025-10-02T00:00:00+08:00").getTime();
+
+        function updateCountdownDisplays() {
+            const now = new Date().getTime();
+            const diff = sgTarget - now;
+
+            const days = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+            const hours = Math.max(0, Math.floor((diff / (1000 * 60 * 60)) % 24));
+            const minutes = Math.max(0, Math.floor((diff / (1000 * 60)) % 60));
+            const seconds = Math.max(0, Math.floor((diff / 1000) % 60));
+
+            // Update modal
+            document.getElementById("days").textContent = String(days).padStart(2, "0");
+            document.getElementById("hours").textContent = String(hours).padStart(2, "0");
+            document.getElementById("minutes").textContent = String(minutes).padStart(2, "0");
+            document.getElementById("seconds").textContent = String(seconds).padStart(2, "0");
+
+            // Update mini countdown
+            const mini = document.getElementById("miniCountdown");
+            if (diff > 0) {
+                mini.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            } else {
+                mini.textContent = "Update in progress!";
+            }
+
+            // Show overlay if time is up
+            if (diff <= 0) {
+                document.getElementById("updateOverlay").style.display = "flex";
+                clearInterval(timer);
+            }
+        }
+
+        // Show modal on miniCountdown click
+        document.getElementById("miniCountdown").addEventListener("click", () => {
+            document.getElementById("updateModal").style.display = "flex";
+        });
+
+        // Store closed state in localStorage when closing modal
+        document.getElementById("closeUpdateModal").addEventListener("click", () => {
+            document.getElementById("updateModal").style.display = "none";
+            localStorage.setItem('updateModalClosed', 'true');
+        });
+
+        const timer = setInterval(updateCountdownDisplays, 1000);
+        updateCountdownDisplays();
 
         function setupInviteContainer(userId) {
             const inviteContainer = document.querySelector(".invite-container");
@@ -2305,14 +2622,14 @@
 
         // Buy handler (hook it up once DOM is ready)
 
-        document.getElementById('auto-rebirth-toggle')?.addEventListener('change', function(e) {
+        document.getElementById('auto-rebirth-toggle')?.addEventListener('change', function (e) {
             autoRebirthEnabled = !!e.target.checked;
             const user = auth.currentUser;
             if (user && !isGuest) {
                 database.ref('users/' + user.uid + '/gameState').update({
-                        autoRebirthEnabled
-                    })
-                    .catch(() => {}); // don't block UI on failure
+                    autoRebirthEnabled
+                })
+                    .catch(() => { }); // don't block UI on failure
             }
             updateUI();
         });
@@ -2984,6 +3301,12 @@ display: flex;
                         entry.addEventListener('click', () => showUserDetails(leader));
                         leaderboardList.appendChild(entry);
                     });
+                    let userRank = null;
+                    if (currentUser) {
+                        const idx = leaders.findIndex(l => l.uid === currentUser.uid);
+                        if (idx !== -1) userRank = idx + 1;
+                    }
+                    setUserRankBadge(userRank);
                 })
                 .catch(error => {
                     console.error('Failed to fetch leaderboard:', error);
@@ -2991,15 +3314,52 @@ display: flex;
                 });
         }
 
+        function ensureUserRankBadge() {
+            const header = document.querySelector('.leaderboard-container h2');
+            if (!header) return null;
+
+            let badge = document.getElementById('user-rank-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.id = 'user-rank-badge';
+                badge.textContent = '#--';
+                badge.title = 'Your current rank';
+                header.appendChild(badge);
+            }
+            return badge;
+        }
+
+        function setUserRankBadge(rank) {
+            const badge = ensureUserRankBadge();
+            if (!badge) return;
+
+            // Hide if unknown / no logged-in user
+            if (rank == null || Number.isNaN(rank)) {
+                badge.style.display = 'none';
+                return;
+            } else {
+                badge.style.display = 'inline-flex';
+            }
+
+            badge.textContent = `#${rank}`;
+            badge.classList.remove('gold', 'silver', 'bronze', 'black');
+
+            if (rank === 1) badge.classList.add('gold');
+            else if (rank === 2) badge.classList.add('silver');
+            else if (rank === 3) badge.classList.add('bronze');
+            else badge.classList.add('black');
+        }
+
+
         let currentLeaders = [];
+        let previousRanks = {};
 
         function updateLeaderboard() {
             console.log('Updating leaderboard from users/...');
+
             const leaderboardList = document.querySelector('.leaderboard-container .leaderboard-list');
-            if (!leaderboardList) {
-                console.error('Leaderboard list element not found');
-                return;
-            }
+            if (!leaderboardList) return;
+
             database.ref('users').once('value')
                 .then(snapshot => {
                     const newLeaders = [];
@@ -3017,39 +3377,150 @@ display: flex;
                             });
                         }
                     });
+
                     newLeaders.sort((a, b) => b.rebirthCount - a.rebirthCount || b.gold - a.gold);
 
-                    // Clear existing entries
                     leaderboardList.innerHTML = '';
-
-                    // Update entries with correct ranks
                     const currentUser = auth.currentUser;
+
                     newLeaders.forEach((leader, index) => {
+                        const newRank = index + 1;
+                        const oldRank = previousRanks[leader.uid];
+
+                        // 🔥 Detect rank improvement
+                        if (oldRank && newRank < oldRank) {
+                            showNewRankToast(leader.username, newRank);
+                        }
+
+                        previousRanks[leader.uid] = newRank;
+
                         const entry = document.createElement('div');
                         entry.setAttribute('data-uid', leader.uid);
-                        entry.className = `leaderboard-card rank-${index + 1}${currentUser && leader.uid === currentUser.uid ? ' current-user' : ''}`;
+                        entry.className = `leaderboard-card rank-${newRank}${currentUser && leader.uid === currentUser.uid ? ' current-user' : ''}`;
                         entry.innerHTML = `
-                    <span class="rank">${index + 1}</span>
-                    <div class="user-and-info">
-                        <span class="username">${leader.username}</span>
-                        <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
-                    </div>
-                `;
+          <span class="rank">${newRank}</span>
+          <div class="user-and-info">
+            <span class="username">${leader.username}</span>
+            <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
+          </div>
+        `;
                         entry.addEventListener('click', () => showUserDetails(leader));
                         leaderboardList.appendChild(entry);
                     });
 
-                    currentLeaders = newLeaders;
-
-                    if (newLeaders.length === 0) {
-                        console.log('No user data available');
-                        leaderboardList.innerHTML = '<p>No leaderboard data available.</p>';
+                    let userRank = null;
+                    if (currentUser) {
+                        const idx = newLeaders.findIndex(l => l.uid === currentUser.uid);
+                        if (idx !== -1) userRank = idx + 1;
                     }
+                    setUserRankBadge(userRank);
+
+                    currentLeaders = newLeaders;
                 })
                 .catch(error => {
                     console.error('Failed to fetch leaderboard:', error);
                     leaderboardList.innerHTML = '<p>Failed to load leaderboard.</p>';
                 });
+        }
+
+        const newRankToastStyle = document.createElement('style');
+        newRankToastStyle.innerHTML = `
+#newranktoast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.newranktoast {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 2px solid #444;
+  padding: 12px 16px;
+  margin-top: 10px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  min-width: 300px;
+  animation: slideInRight 0.5s ease forwards;
+}
+
+.newranktoast-rank-circle {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #4caf50;
+  color: #fff;
+  font-weight: bold;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.newranktoast-rank-circle img {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+}
+
+.newranktoast-content h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #222;
+}
+
+.newranktoast-content p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: #555;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(120%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+`;
+        document.head.appendChild(newRankToastStyle);
+
+        function showNewRankToast(userName, newRank) {
+            const container = document.getElementById("newranktoast-container") || createNewRankToastContainer();
+
+            const toast = document.createElement("div");
+            toast.classList.add("newranktoast");
+
+            toast.innerHTML = `
+    <div class="newranktoast-rank-circle">
+      ${newRank}
+      <img src="https://freesvg.org/img/pitr_green_arrows_set_1.png" alt="Rank Up">
+    </div>
+    <div class="newranktoast-content">
+      <h4>${userName} just climbed the leaderboard!</h4>
+      <p>They’re now ranked <b>#${newRank}</b>. Who can stop them?</p>
+    </div>
+  `;
+
+            container.appendChild(toast);
+
+            // Auto-remove after 5s
+            setTimeout(() => {
+                toast.style.transition = "opacity 0.5s, transform 0.5s";
+                toast.style.opacity = "0";
+                toast.style.transform = "translateX(120%)";
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+
+        function createNewRankToastContainer() {
+            const container = document.createElement("div");
+            container.id = "newranktoast-container";
+            document.body.appendChild(container);
+            return container;
         }
 
         function showUserDetails(leader) {
@@ -3430,7 +3901,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    } [type];
+                    }[type];
                     balls.push(new Ball(
                         canvas.width / 2,
                         canvas.height / 2,
@@ -3756,7 +4227,7 @@ display: flex;
                     gold: 'gold',
                     speed: 'cyan',
                     multiBall: 'magenta'
-                } [this.type];
+                }[this.type];
                 ctx.fillRect(this.x - (width - this.width) / 2, this.y - (height - this.height) / 2, width, height);
             }
 
@@ -4028,7 +4499,7 @@ display: flex;
                     cannonball: 'darkgray',
                     poison: 'lime',
                     snowball: 'white'
-                } [type];
+                }[type];
                 balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                 updateUI();
                 updateMilestones();
@@ -4189,35 +4660,35 @@ display: flex;
 
 
         const powerUpsList = [{
-                emoji: '⚡',
-                name: 'Thunder Strike',
-                description: 'Destroys 5 random bricks instantly.'
-            },
-            {
-                emoji: '🛡️',
-                name: 'Shield Boost',
-                description: 'Protects balls from disappearing for 30 seconds.'
-            },
-            {
-                emoji: '💥',
-                name: 'Mega Explosion',
-                description: 'Doubles explosion ball damage for 20 seconds.'
-            },
-            {
-                emoji: '🌟',
-                name: 'Star Shower',
-                description: 'Spawns 3 auto balls for 15 seconds.'
-            },
-            {
-                emoji: '🕒',
-                name: 'Time Warp',
-                description: 'Slows down time for 10 seconds.'
-            },
-            {
-                emoji: '🌌',
-                name: 'Cosmic Barrage',
-                description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
-            }
+            emoji: '⚡',
+            name: 'Thunder Strike',
+            description: 'Destroys 5 random bricks instantly.'
+        },
+        {
+            emoji: '🛡️',
+            name: 'Shield Boost',
+            description: 'Protects balls from disappearing for 30 seconds.'
+        },
+        {
+            emoji: '💥',
+            name: 'Mega Explosion',
+            description: 'Doubles explosion ball damage for 20 seconds.'
+        },
+        {
+            emoji: '🌟',
+            name: 'Star Shower',
+            description: 'Spawns 3 auto balls for 15 seconds.'
+        },
+        {
+            emoji: '🕒',
+            name: 'Time Warp',
+            description: 'Slows down time for 10 seconds.'
+        },
+        {
+            emoji: '🌌',
+            name: 'Cosmic Barrage',
+            description: 'Unleashes a wave of energy, destroying 10 bricks and doubling ball speed for 15 seconds.'
+        }
         ];
 
         // Game state variables
@@ -5055,7 +5526,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    } [type];
+                    }[type];
                     balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
                     ballCounts[type]++;
                     stats.totalBallsPurchased++;
@@ -5313,20 +5784,20 @@ display: flex;
             });
 
             const upgrades = [{
-                    name: 'Damage',
-                    key: 'damage',
-                    price: 100
-                },
-                {
-                    name: 'Speed',
-                    key: 'speed',
-                    price: 100
-                },
-                {
-                    name: 'Radius',
-                    key: 'radius',
-                    price: 100
-                }
+                name: 'Damage',
+                key: 'damage',
+                price: 100
+            },
+            {
+                name: 'Speed',
+                key: 'speed',
+                price: 100
+            },
+            {
+                name: 'Radius',
+                key: 'radius',
+                price: 100
+            }
             ];
             const upgradeShop = document.getElementById('upgrade-shop');
             upgradeShop.innerHTML = '';
@@ -5401,7 +5872,7 @@ display: flex;
                         cannonball: 'darkgray',
                         poison: 'lime',
                         snowball: 'white'
-                    } [type],
+                    }[type],
                     type
                 ));
                 updateUI();
@@ -5464,7 +5935,7 @@ display: flex;
         }
 
 
-        Ball.prototype.draw = function() {
+        Ball.prototype.draw = function () {
             drawTrail(this);
             ctx.beginPath();
             if (cosmetics.rainbowSkin) {
@@ -5740,6 +6211,8 @@ display: flex;
             });
             document.getElementById('buy-auto-rebirth-btn')?.addEventListener('click', buyAutoRebirth);
         }
+
+
 
         function toggleCosmeticButton(button, cosmeticName) {
             if (!cosmetics[cosmeticName] && !button.disabled) {
