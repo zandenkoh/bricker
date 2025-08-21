@@ -1625,6 +1625,61 @@
             background: #000;
             color: #fff;
         }
+
+
+
+
+
+
+
+
+
+
+        .profile-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            border: 2px solid #444;
+        }
+
+        .rank-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            border: 1px solid #444;
+        }
+
+        .rank-circle.gold {
+            background: #000;
+            color: #ffd700;
+        }
+
+        .rank-circle.silver {
+            background: #000;
+            color: #c0c0c0;
+        }
+
+        .rank-circle.bronze {
+            background: #000;
+            color: #cd7f32;
+        }
+
+        .rank-circle.black {
+            background: #000;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -3157,6 +3212,8 @@ display: flex;
         background: #000;
         color: #fff;
         border: 1px solid #fff;
+        position: sticky;
+        bottom: 0;
     }
 
     .leaderboard-card.current-user .info,
@@ -3211,7 +3268,7 @@ display: flex;
     border: 1px solid #444;
     border-radius: 8px;
     padding: 15px;
-    max-width: 300px;
+    width: 300px;
     position: fixed;
     top: 50%;
     left: 50%;
@@ -3289,18 +3346,19 @@ display: flex;
                     const currentUser = auth.currentUser;
                     leaders.forEach((leader, index) => {
                         const entry = document.createElement('div');
-                        entry.className = `leaderboard-card rank-${index + 1}${currentUser && leader.uid === currentUser.uid ? ' current-user' : ''}`;
+                        const rank = index + 1;
+                        entry.className = `leaderboard-card rank-${rank}`;
                         entry.innerHTML = `
-                    <span class="rank">${index + 1}</span>
-                    <div class="user-and-info" style="display: flex; flex-direction: column;">
-                        <span class="username">${leader.username}</span>
-                        <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
-                    </div>
-                    
-                `;
-                        entry.addEventListener('click', () => showUserDetails(leader));
+        <span class="rank">${rank}</span>
+        <div class="user-and-info">
+            <span class="username">${leader.username}</span>
+            <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
+        </div>
+    `;
+                        entry.addEventListener('click', () => showUserDetails({ ...leader, rank }));
                         leaderboardList.appendChild(entry);
                     });
+
                     let userRank = null;
                     if (currentUser) {
                         const idx = leaders.findIndex(l => l.uid === currentUser.uid);
@@ -3398,15 +3456,16 @@ display: flex;
                         entry.setAttribute('data-uid', leader.uid);
                         entry.className = `leaderboard-card rank-${newRank}${currentUser && leader.uid === currentUser.uid ? ' current-user' : ''}`;
                         entry.innerHTML = `
-          <span class="rank">${newRank}</span>
-          <div class="user-and-info">
+        <span class="rank">${newRank}</span>
+        <div class="user-and-info">
             <span class="username">${leader.username}</span>
             <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
-          </div>
-        `;
-                        entry.addEventListener('click', () => showUserDetails(leader));
+        </div>
+    `;
+                        entry.addEventListener('click', () => showUserDetails({ ...leader, rank: newRank }));
                         leaderboardList.appendChild(entry);
                     });
+
 
                     let userRank = null;
                     if (currentUser) {
@@ -3497,7 +3556,7 @@ display: flex;
             toast.innerHTML = `
     <div class="newranktoast-rank-circle">
       ${newRank}
-      <img src="https://freesvg.org/img/pitr_green_arrows_set_1.png" alt="Rank Up">
+      <img src="./green.png" alt="Rank Up">
     </div>
     <div class="newranktoast-content">
       <h4>${userName} just climbed the leaderboard!</h4>
@@ -3523,38 +3582,207 @@ display: flex;
             return container;
         }
 
+        function getRankName(rebirths) {
+            if (rebirths <= 5) return { name: "Noob", color: "#4A4A4A" }; // Dark Gray
+            if (rebirths <= 10) return { name: "Beginner", color: "#008080" }; // Teal
+            if (rebirths <= 20) return { name: "Amateur", color: "#808000" }; // Olive
+            if (rebirths <= 50) return { name: "Skilled", color: "#000080" }; // Navy
+            if (rebirths <= 100) return { name: "Pro", color: "#DC143C" }; // Crimson
+            if (rebirths <= 200) return { name: "Master", color: "#4B0082" }; // Indigo
+            if (rebirths <= 500) return { name: "Grandmaster", color: "#006400" }; // Dark Green
+            if (rebirths <= 1000) return { name: "Legend", color: "#800080" }; // Purple
+            return { name: "Immortal", color: "#1E90FF" }; // Deep Blue
+        }
+
+        function getRankClass(rank) {
+            if (rank === 1) return "gold";
+            if (rank === 2) return "silver";
+            if (rank === 3) return "bronze";
+            return "black";
+        }
+
+
+        function getRankDetails(rankName) {
+            const rankDetails = {
+                Noob: { range: "0–5 rebirths", description: "Starting your journey, learning the ropes!" },
+                Beginner: { range: "6–10 rebirths", description: "Gaining confidence, finding your style." },
+                Amateur: { range: "11–20 rebirths", description: "Showing promise, ready for bigger challenges." },
+                Skilled: { range: "21–50 rebirths", description: "Honed skills, a force to be reckoned with." },
+                Pro: { range: "51–100 rebirths", description: "Professional prowess, dominating the game." },
+                Master: { range: "101–200 rebirths", description: "Mastery achieved, a true expert." },
+                Grandmaster: { range: "201–500 rebirths", description: "Legendary skill, revered by all." },
+                Legend: { range: "501–1000 rebirths", description: "A living legend, etched in history." },
+                Immortal: { range: "1001+ rebirths", description: "Beyond mortal limits, an eternal icon." }
+            };
+            return rankDetails[rankName] || { range: "Unknown", description: "No details available." };
+        }
+
+        function showRankTooltip(rankName, rankColor) {
+            const overlay = document.createElement('div');
+            overlay.className = 'rank-tooltip-overlay';
+            const details = getRankDetails(rankName);
+
+            overlay.innerHTML = `
+        <div style="background:#fff; border:2px solid #444; border-radius:10px; padding:20px; max-width:300px; text-align:center; position:relative;">
+            <button class="close-btn" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:18px; cursor:pointer;">✖</button>
+            <h3 style="margin:0 0 10px; font-size:20px; font-weight:700; color:${rankColor};">${rankName}</h3>
+            <p style="margin:0 0 10px; font-size:16px; font-weight:600; color:#000;">${details.range}</p>
+            <p style="margin:0; font-size:14px; color:#000;">${details.description}</p>
+        </div>
+    `;
+
+            document.body.appendChild(overlay);
+
+            // Close behavior
+            overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }
+
+        function getRankDetails(rankName) {
+            const rankDetails = {
+                Noob: { range: "0–5 rebirths", description: "Starting your journey, learning the ropes!" },
+                Beginner: { range: "6–10 rebirths", description: "Gaining confidence, finding your style." },
+                Amateur: { range: "11–20 rebirths", description: "Showing promise, ready for bigger challenges." },
+                Skilled: { range: "21–50 rebirths", description: "Honed skills, a force to be reckoned with." },
+                Pro: { range: "51–100 rebirths", description: "Professional prowess, dominating the game." },
+                Master: { range: "101–200 rebirths", description: "Mastery achieved, a true expert." },
+                Grandmaster: { range: "201–500 rebirths", description: "Legendary skill, revered by all." },
+                Legend: { range: "501–1000 rebirths", description: "A living legend, etched in history." },
+                Immortal: { range: "1001+ rebirths", description: "Beyond mortal limits, an eternal icon." }
+            };
+            return rankDetails[rankName] || { range: "Unknown", description: "No details available." };
+        }
+
+        function showRankTooltip(rankName, rankColor, rankElement) {
+            // Remove existing tooltip if any
+            const existingTooltip = document.querySelector('.rank-tooltip-overlay');
+            if (existingTooltip) existingTooltip.remove();
+
+            const overlay = document.createElement('div');
+            overlay.className = 'rank-tooltip-overlay';
+            const details = getRankDetails(rankName);
+
+            // Get rank element's position
+            const rect = rankElement.getBoundingClientRect();
+            const topPosition = rect.top - 120; // Position above rank (adjust as needed)
+            const leftPosition = rect.left + (rect.width / 2) - 150; // Center horizontally (half of tooltip width)
+
+            overlay.innerHTML = `
+        <div style="background:#fff; border:2px solid #444; border-radius:10px; padding:20px; max-width:300px; text-align:center; position:absolute; top:${topPosition}px; left:${leftPosition}px; box-shadow:0 4px 8px rgba(0,0,0,0.2); z-index:1000;">
+            <h3 style="margin:0 0 10px; font-size:20px; font-weight:700; color:${rankColor};">${rankName}</h3>
+            <p style="margin:0 0 10px; font-size:16px; font-weight:600; color:#000;">${details.range}</p>
+            <p style="margin:0; font-size:14px; color:#000;">${details.description}</p>
+        </div>
+    `;
+
+            document.body.appendChild(overlay);
+
+            // Hide tooltip on mouseleave
+            rankElement.addEventListener('mouseleave', () => overlay.remove());
+        }
+
+
         function showUserDetails(leader) {
             const overlay = document.createElement('div');
             overlay.className = 'user-details-overlay';
+
+            const rank = getRankName(leader.rebirthCount);
+            const rankName = rank.name;
+            const rankColor = rank.color;
+            const rankClass = getRankClass(leader.rank);
+
+            // Favourite balls
+            const ballEntries = Object.entries(leader.ballCounts || {});
+            const topBalls = ballEntries
+                .sort((a, b) => (b[1] || 0) - (a[1] || 0))
+                .slice(0, 4);
+
             overlay.innerHTML = `
         <div class="user-details-popup">
-            <button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /> </svg></button>
-            <h3>${leader.username}</h3>
-            <p>Rebirths: ${leader.rebirthCount}</p>
-            <p>Gold: ${Math.floor(leader.gold)}</p>
-            <p>Total Balls: ${(leader.ballCounts.basic || 0) +
-                (leader.ballCounts.sniper || 0) +
-                (leader.ballCounts.big || 0) +
-                (leader.ballCounts.explosion || 0) +
-                (leader.ballCounts.multiplying || 0) +
-                (leader.ballCounts.child || 0) +
-                (leader.ballCounts.cannonball || 0) +
-                (leader.ballCounts.poison || 0) +
-                (leader.ballCounts.snowball || 0)}</p>
-            <p>Total Upgrades: ${leader.totalUpgrades}</p>
-            <p>Idle Gold Per Second: ${leader.idleGoldPerSecond.toFixed(2)}</p>
-            <div id="donation-container" style="display: none; margin-top: 10px;">
-                <input type="number" id="donation-amount" placeholder="Enter gold to donate" min="1" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #444; border-radius: 5px; background: #e9dcaf; color: #000; box-sizing: border-box;">
+            <button class="close-btn">✖</button>
+
+            <!-- Top Section -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;color:#000;">
+                <div class="rank-circle ${rankClass}" style="font-size:25px;">#${leader.rank}</div>
+
+                <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;align-items:center;gap:0;">
+                        <span class="username" style="font-size:26px; margin:0; font-weight:900; display:inline-block; width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${leader.username}</span>
+                    </div>
+
+                    <!-- Rebirths + Rank side by side -->
+                    <div style="display:flex;gap:20px;margin:0 5px;">
+                        <div style="display:flex;flex-direction:column;align-items:center;">
+                            <span class="rebirth-count" style="font-size:22px;font-weight:900;margin:0;">${leader.rebirthCount}</span>
+                            <span class="rebirth-label" style="font-size:15px;font-weight:400;margin:0;">Rebirths</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:center;">
+                            <span class="rebirth-count rank-tooltip-trigger" style="font-size:22px;font-weight:900;margin:0;color:${rankColor};cursor:pointer;" onmouseenter="showRankTooltip('${rankName}', '${rankColor}', this)">${rankName}</span>
+                            <span class="rebirth-label" style="font-size:15px;font-weight:400;margin:0;">Rank</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button id="donate-btn" onclick="toggleDonationInput('${leader.uid}')">Donate Gold</button>
+
+            <hr style="border:1px solid #444; opacity:0.3; margin:15px 0;">
+
+            <!-- Favourite Balls -->
+            <div style="margin-top:10px;">
+                <h4 style="margin:0 0 8px;font-size:15px;font-weight:600;color:#000;">Favourite Balls</h4>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+                    ${topBalls.map(([ball]) => `
+                        <div style="text-align:center;">
+                            <canvas id="fav-${ball}-canvas" width="60" height="60" style="border:2px solid #444;"></canvas>
+                            <div style="font-size:15px;margin-top:4px;color:#000;font-weight:700;">${formatBallText(ball)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div id="donation-container" style="display:none; margin-top:10px;">
+                <input type="number" id="donation-amount" placeholder="Enter gold to donate" min="1" style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #444; border-radius:5px; background:#e9dcaf; color:#000; box-sizing:border-box;">
+            </div>
+            <button id="donate-btn" onclick="toggleDonationInput('${leader.uid}')" style="margin-top:15px;">Donate Gold</button>
         </div>
     `;
+
             document.body.appendChild(overlay);
+
+            // Close behavior for user details
             overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) overlay.remove();
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+            // Draw ball previews
+            topBalls.forEach(([ball]) => {
+                const canvasId = `fav-${ball}-canvas`;
+                switch (ball) {
+                    case 'basic': drawBallPreview(canvasId, 'gray', 8); break;
+                    case 'sniper': drawBallPreview(canvasId, 'blue', 8); break;
+                    case 'big': drawBallPreview(canvasId, 'green', 12); break;
+                    case 'explosion': drawBallPreview(canvasId, 'orange', 8); break;
+                    case 'multiplying': drawBallPreview(canvasId, 'purple', 8); break;
+                    case 'auto': drawBallPreview(canvasId, 'black', 8); break;
+                    case 'cannonball': drawBallPreview(canvasId, 'darkgray', 8); break;
+                    case 'poison': drawBallPreview(canvasId, 'lime', 8); break;
+                    case 'snowball': drawBallPreview(canvasId, 'white', 8); break;
+                    case 'child': drawBallPreview(canvasId, 'purple', 4); break;
+                }
             });
         }
+
+        function formatBallText(ball) {
+            // Define translations
+            const translations = {
+                cannonball: 'Cannon',
+                explosion: 'Bomb'
+            };
+
+            // Check if the word needs translation, otherwise use the original
+            const translated = translations[ball.toLowerCase()] || ball;
+
+            // Capitalize the first letter
+            return translated.charAt(0).toUpperCase() + translated.slice(1);
+        }
+
 
         function toggleDonationInput(recipientUid) {
             const donationContainer = document.getElementById('donation-container');
