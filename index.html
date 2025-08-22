@@ -8,6 +8,30 @@
     <link rel="icon" type="image/x-icon" href="./bricker.png">
     <link href="https://unpkg.com/intro.js@7.0.1/introjs.min.css" rel="stylesheet">
     <style>
+        html,
+        * {}
+
+        .cursor-trail {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            /* change colour here */
+            pointer-events: none;
+            /* so it doesn't block clicks */
+            transform: translate(-50%, -50%);
+            opacity: 0.8;
+            animation: fadeOut 0.6s forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                transform: translate(-50%, -50%) scale(0.2);
+                opacity: 0;
+            }
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -1662,18 +1686,18 @@
         }
 
         .rank-circle.gold {
-            background: #000;
-            color: #ffd700;
+            background: #ffd700;
+            color: #000;
         }
 
         .rank-circle.silver {
-            background: #000;
-            color: #c0c0c0;
+            background: #c0c0c0;
+            color: #000;
         }
 
         .rank-circle.bronze {
-            background: #000;
-            color: #cd7f32;
+            background: #cd7f32;
+            color: #000;
         }
 
         .rank-circle.black {
@@ -1900,6 +1924,18 @@
     <script src="https://unpkg.com/intro.js@7.0.1/intro.min.js"></script>
 
     <script>
+
+        document.addEventListener("mousemove", e => {
+            const trail = document.createElement("div");
+            trail.className = "cursor-trail";
+            trail.style.left = e.clientX + "px";
+            trail.style.top = e.clientY + "px";
+            document.body.appendChild(trail);
+
+            // Remove after animation ends
+            setTimeout(() => trail.remove(), 600);
+        });
+
         // Inject tooltip and toast styles
         const style = document.createElement('style');
         style.innerHTML = `
@@ -4750,9 +4786,39 @@ display: flex;
             }
         }
 
+        /*      function upgradeBall(type) {
+                  const cost = getUpgradeCost(type);
+                  const maxUpgradeLevel = rebirthCount; // Max level increases by 5 per rebirth
+                  if (ballUpgrades[type].level >= maxUpgradeLevel) {
+                      showToast(`Max upgrade level (${maxUpgradeLevel}) reached for ${type} ball!`);
+                      return;
+                  }
+                  if (gold >= cost) {
+                      gold -= cost;
+                      ballUpgrades[type].level++;
+                      ballUpgrades[type].speed += 0.5;
+                      ballUpgrades[type].damage += type === 'explosion' ? 0.5 : 0.2;
+                      stats.totalUpgrades++;
+                      balls.forEach(ball => {
+                          if (ball.type === type) {
+                              ball.dx = (ball.dx / Math.abs(ball.dx)) * ballUpgrades[type].speed;
+                              ball.dy = (ball.dy / Math.abs(ball.dy)) * ballUpgrades[type].speed;
+                          }
+                      });
+                      updateUI();
+                      showToast(`Upgraded ${type} ball to level ${ballUpgrades[type].level}!`);
+                      // Refresh the My Balls popup to update costs and stats
+                      document.querySelector('.login-overlay')?.remove();
+                      showMyBallsPopup();
+                  } else {
+                      showToast('Not enough gold!');
+                  }
+              }
+      */
+
         function upgradeBall(type) {
             const cost = getUpgradeCost(type);
-            const maxUpgradeLevel = 10 + rebirthCount * 5; // Max level increases by 5 per rebirth
+            const maxUpgradeLevel = rebirthCount; // Max level increases by 5 per rebirth
             if (ballUpgrades[type].level >= maxUpgradeLevel) {
                 showToast(`Max upgrade level (${maxUpgradeLevel}) reached for ${type} ball!`);
                 return;
@@ -4760,17 +4826,35 @@ display: flex;
             if (gold >= cost) {
                 gold -= cost;
                 ballUpgrades[type].level++;
-                ballUpgrades[type].speed += 0.5;
-                ballUpgrades[type].damage += type === 'explosion' ? 0.5 : 0.2;
+
+                // Speed increase: Diminishing returns after speed 10
+                const currentSpeed = ballUpgrades[type].speed;
+                let speedIncrease = 0;
+                if (currentSpeed < 10) {
+                    speedIncrease = 0.5; // Normal speed increase below 10
+                } else {
+                    // Logarithmic tapering: smaller increases as speed grows
+                    speedIncrease = 0.5 / (1 + (currentSpeed - 10) * 0.1);
+                }
+                ballUpgrades[type].speed += speedIncrease;
+
+                // Damage increase: Slow exponential growth, inversely proportional to speed reduction
+                const speedReductionFactor = currentSpeed < 10 ? 1 : (1 + (currentSpeed - 10) * 0.1);
+                const damageBase = type === 'explosion' ? 0.5 : 0.2;
+                const damageIncrease = damageBase * Math.pow(1.05, ballUpgrades[type].level) / speedReductionFactor;
+                ballUpgrades[type].damage += damageIncrease;
+
                 stats.totalUpgrades++;
                 balls.forEach(ball => {
                     if (ball.type === type) {
+                        // Update ball movement while preserving direction
                         ball.dx = (ball.dx / Math.abs(ball.dx)) * ballUpgrades[type].speed;
                         ball.dy = (ball.dy / Math.abs(ball.dy)) * ballUpgrades[type].speed;
                     }
                 });
+
                 updateUI();
-                showToast(`Upgraded ${type} ball to level ${ballUpgrades[type].level}!`);
+                showToast(`Upgraded ${type} ball to level ${ballUpgrades[type].level}! Speed +${speedIncrease.toFixed(2)}, Damage +${damageIncrease.toFixed(2)}`);
                 // Refresh the My Balls popup to update costs and stats
                 document.querySelector('.login-overlay')?.remove();
                 showMyBallsPopup();
@@ -6189,7 +6273,7 @@ display: flex;
         };
 
         function showMyBallsPopup() {
-            const maxUpgradeLevel = 10 + rebirthCount * 5;
+            const maxUpgradeLevel = rebirthCount;
             const overlay = document.createElement('div');
             overlay.className = 'login-overlay';
             const basicCost = getUpgradeCost('basic');
