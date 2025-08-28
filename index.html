@@ -1704,6 +1704,189 @@
             background: #000;
             color: #fff;
         }
+
+
+
+        .chat-button {
+            margin-top: 6px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            position: relative;
+            width: 100%;
+        }
+
+        .chat-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: red;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 50%;
+        }
+
+        .chat-popup {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 300px;
+            max-height: 400px;
+            background: #e9dcaf;
+            border: 2px solid #444;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            z-index: 10000;
+        }
+
+        .chat-header {
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .chat-header h3 {
+            flex: 1;
+            margin: 0;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .chat-arrow {
+            margin-right: 6px;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: #fff;
+            fill: #fff;
+        }
+
+        .chat-popup.collapsed .chat-arrow {
+            transform: rotate(180deg);
+        }
+
+        #closeChatBtn {
+            background: transparent;
+            color: #fff;
+            fill: #fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+
+        #closeChatBtn:hover {
+            font-weight: 900;
+        }
+
+        /* Smooth collapse animation */
+        .chat-popup {
+            transition: max-height 0.3s ease;
+            overflow: hidden;
+        }
+
+        .chat-popup.expanded {
+            max-height: 400px;
+            /* normal height */
+        }
+
+        .chat-popup.collapsed {
+            max-height: 40px;
+            /* only header visible */
+        }
+
+
+        .chat-messages {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+            background: #f4eed6;
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        /* Message wrappers */
+        .chat-message {
+            max-width: 80%;
+            display: flex;
+            flex-direction: column;
+            word-wrap: break-word;
+            padding: 4px;
+        }
+
+        .chat-message.me {
+            align-self: flex-end;
+            text-align: right;
+            margin: 0;
+        }
+
+        .chat-message.them {
+            align-self: flex-start;
+            text-align: left;
+        }
+
+        /* Message bubbles */
+        .bubble {
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            display: inline-block;
+        }
+
+        .chat-message.me .bubble {
+            background: #000;
+            color: #fff;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-message.them .bubble {
+            background: #fff;
+            color: #000;
+            border: 1px solid #444;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* Sender name */
+        .sender-name {
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 2px;
+            color: #333;
+        }
+
+
+        .chat-input {
+            display: flex;
+            border-top: 1px solid #444;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            outline: none;
+        }
+
+        .chat-input button {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -1730,8 +1913,8 @@
                     <button id="all-milestones-btn">All Milestones</button>
                 </div>
                 <div class="invite-container">
-                    <h2>💰 Free Gold!</h2>
-                    <p><strong>Earn 150K Gold</strong> for every friend who joins.</p>
+                    <h2>💰 Free Rebirths!</h2>
+                    <p><strong>Earn 1 Rebirth</strong> for every friend who joins.</p>
                     <p>Your friend also starts with <strong>50K</strong>! 🎁</p>
                     <p><span id="invites-left">5</span> invitations left</p>
 
@@ -1849,6 +2032,12 @@
                         style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:85px;align-self:flex-end;width:fit-content;white-space: nowrap;flex:1;box-sizing:border-box;padding:10px;">
                         <h1>Bricker</h1>
                         <div id="miniCountdown" class="mini-countdown" title="Click to see what's coming!"></div>
+                        <!-- Chat Button -->
+                        <button id="chatBtn" class="chat-button">
+                            Global Chat
+                            <span id="chatBadge" class="chat-badge" style="display:none;">0</span>
+                        </button>
+
                     </div>
                 </div>
                 <canvas id="gameCanvas" width="1000" height="520"></canvas>
@@ -1881,7 +2070,7 @@
     <div id="updateModal" class="update-modal-overlay" style="display:none;">
         <div class="update-modal">
             <button class="close-update-btn" id="closeUpdateModal">&times;</button>
-            <h2>Next Big Update Coming Soon!</h2>
+            <h2>Season 2 Coming Soon!</h2>
             <div class="countdown" id="countdown">
                 <div class="time-box">
                     <div id="days">00</div><small>Days</small>
@@ -1905,6 +2094,29 @@
             </div>
         </div>
     </div>
+
+    <!-- Chat Popup -->
+    <div id="chatPopup" class="chat-popup" style="display:none;">
+        <div class="chat-header" id="chatHeader">
+            <span class="chat-arrow" id="chatArrow">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="#FFFFFF" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5" />
+                </svg>
+            </span>
+            <span id="chatBadgeLeft" class="chat-badge"></span>
+            <h3>Global Chat</h3>
+            <button id="closeChatBtn">✕</button>
+        </div>
+
+        <div id="chatMessages" class="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type a message..." />
+            <button id="sendChatBtn">Send</button>
+        </div>
+    </div>
+
 
     <div id="updateOverlay" class="update-overlay" style="display:none;">
         <div class="update-overlay-content">
@@ -2240,6 +2452,7 @@
         const brickWidth = 70;
         const brickHeight = 30;
         const maxBalls = 1000;
+        const MAX_BALL_SPEED = 35;
         const maxPowerUps = 10;
         const maxBricks = 66;
         const ballPrices = {
@@ -2483,6 +2696,214 @@
 
         const timer = setInterval(updateCountdownDisplays, 1000);
         updateCountdownDisplays();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Elements
+        const chatBtn = document.getElementById("chatBtn");
+        const chatPopup = document.getElementById("chatPopup");
+        const closeChatBtn = document.getElementById("closeChatBtn");
+        const chatMessages = document.getElementById("chatMessages");
+        const chatInput = document.getElementById("chatInput");
+        const sendChatBtn = document.getElementById("sendChatBtn");
+        const chatBadge = document.getElementById("chatBadge");
+        const chatHeader = document.getElementById("chatHeader");
+        const chatArrow = document.getElementById("chatArrow");
+        const chatBadgeLeft = document.getElementById("chatBadgeLeft");
+
+
+        // Default state
+        chatPopup.classList.add("expanded");
+        chatHeader.addEventListener("click", (e) => {
+            // Prevent close button clicks from triggering collapse
+            if (e.target.id === "closeChatBtn") return;
+
+            chatPopup.classList.toggle("collapsed");
+            chatPopup.classList.toggle("expanded");
+        });
+
+        let unreadCount = 0;
+        let chatOpen = false;
+        let userCache = {}; // cache usernames
+
+        chatBtn.addEventListener("click", () => {
+            chatPopup.style.display = "flex";
+            chatOpen = true;
+            markChatAsRead();
+        });
+
+
+        closeChatBtn.addEventListener("click", () => {
+            chatPopup.style.display = "none";
+            chatOpen = false;
+        });
+
+        // Send message function
+        function sendMessage() {
+            const msg = chatInput.value.trim();
+            if (msg) {
+                const user = auth.currentUser;
+                const newMsgRef = database.ref("globalChat").push();
+                newMsgRef.set({
+                    id: newMsgRef.key,  // ✅ include message ID in DB
+                    user: user ? user.uid : "guest",
+                    message: msg,
+                    timestamp: Date.now()
+                });
+                chatInput.value = "";
+            }
+        }
+
+        function updateUnreadBadge() {
+            if (unreadCount > 0) {
+                chatBadge.textContent = unreadCount;
+                chatBadge.style.display = "inline-block";
+
+                chatBadgeLeft.textContent = unreadCount;
+                chatBadgeLeft.style.display = "inline-block";
+            } else {
+                chatBadge.style.display = "none";
+                chatBadgeLeft.style.display = "none";
+            }
+        }
+
+
+        sendChatBtn.addEventListener("click", sendMessage);
+
+        // Enter key support
+        chatInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Helpers for localStorage
+        function getReadMessages() {
+            try {
+                return JSON.parse(localStorage.getItem("readMessages")) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function markMessageAsRead(id) {
+            const read = new Set(getReadMessages());
+            read.add(id);
+            localStorage.setItem("readMessages", JSON.stringify([...read]));
+        }
+
+
+        function markChatAsRead() {
+            const now = Date.now();
+            localStorage.setItem("lastChatRead", now.toString());
+            unreadCount = 0;
+            updateUnreadBadge();
+        }
+
+
+        function isMessageUnread(msgTimestamp) {
+            const lastRead = parseInt(localStorage.getItem("lastChatRead") || "0", 10);
+            return msgTimestamp > lastRead;
+        }
+
+
+
+
+        const lastRead = parseInt(localStorage.getItem("lastChatRead") || "0", 10);
+
+        // Fetch username once & cache
+        function getUsername(uid, callback) {
+            if (!uid || uid === "guest") {
+                callback("Guest");
+                return;
+            }
+            if (userCache[uid]) {
+                callback(userCache[uid]);
+            } else {
+                // ✅ Corrected Firebase path
+                database.ref("users/" + uid + "/gameState/username").once("value").then(snap => {
+                    const name = snap.val() || "Guest";
+                    userCache[uid] = name;
+                    callback(name);
+                });
+            }
+        }
+
+        database.ref("globalChat").limitToLast(50).on("child_added", snapshot => {
+            const data = snapshot.val();
+            const currentUser = auth.currentUser ? auth.currentUser.uid : null;
+
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("chat-message");
+            wrapper.dataset.id = data.id || snapshot.key;
+
+            if (currentUser && data.user === currentUser) {
+                wrapper.classList.add("me");
+                wrapper.innerHTML = `<div class="bubble">${data.message}</div>`;
+            } else {
+                wrapper.classList.add("them");
+                getUsername(data.user, name => {
+                    wrapper.innerHTML = `
+                <div class="bubble">${data.message}</div>
+                <div class="sender-name">${name}</div>
+            `;
+                });
+            }
+
+            chatMessages.appendChild(wrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // ✅ Robust unread logic
+            if (!chatOpen && isMessageUnread(data.timestamp)) {
+                unreadCount++;
+                updateUnreadBadge();
+            } else if (chatOpen) {
+                markChatAsRead();
+            }
+
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         function setupInviteContainer(userId) {
             const inviteContainer = document.querySelector(".invite-container");
@@ -2841,7 +3262,7 @@
             linkInput.select();
             linkInput.setSelectionRange(0, 99999);
             document.execCommand("copy");
-            alert("Invite link copied! Just send anyone this link and you will get more gold when they sign up!");
+            alert("Invite link copied! Just send anyone this link and you will get 1 rebirth when they sign up!");
         }
         document.getElementById("copyInviteBtn").addEventListener("click", copyInviteLink);
 
@@ -3346,6 +3767,18 @@ display: flex;
 `;
         document.head.appendChild(leaderboardStyle);
 
+        function formatNumber(num) {
+            if (num < 1000) return Math.floor(num).toString();
+
+            const units = ['K', 'M', 'B', 'T', 'Q'];
+            const unitIndex = Math.floor(Math.log10(Math.abs(num)) / 3) - 1;
+            const scaledNum = num / Math.pow(1000, unitIndex + 1);
+
+            // Round to 1 decimal place if not a whole number
+            const formattedNum = scaledNum % 1 === 0 ? Math.floor(scaledNum) : scaledNum.toFixed(1);
+            return `${formattedNum}${units[unitIndex]}`;
+        }
+
         function fetchLeaderboard() {
             console.log('Fetching leaderboard from users/...');
             const leaderboardList = document.querySelector('.leaderboard-container .leaderboard-list');
@@ -3385,12 +3818,12 @@ display: flex;
                         const rank = index + 1;
                         entry.className = `leaderboard-card rank-${rank}`;
                         entry.innerHTML = `
-        <span class="rank">${rank}</span>
-        <div class="user-and-info">
-            <span class="username">${leader.username}</span>
-            <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
-        </div>
-    `;
+                    <span class="rank">${rank}</span>
+                    <div class="user-and-info">
+                        <span class="username">${leader.username}</span>
+                        <span class="info">${leader.rebirthCount} Rebirths | ${formatNumber(leader.gold)} Gold</span>
+                    </div>
+                `;
                         entry.addEventListener('click', () => showUserDetails({ ...leader, rank }));
                         leaderboardList.appendChild(entry);
                     });
@@ -3495,7 +3928,7 @@ display: flex;
         <span class="rank">${newRank}</span>
         <div class="user-and-info">
             <span class="username">${leader.username}</span>
-            <span class="info">Rebirths: ${leader.rebirthCount}, Gold: ${Math.floor(leader.gold)}</span>
+                        <span class="info">${leader.rebirthCount} Rebirths | ${formatNumber(leader.gold)} Gold</span>
         </div>
     `;
                         entry.addEventListener('click', () => showUserDetails({ ...leader, rank: newRank }));
@@ -4350,7 +4783,7 @@ display: flex;
                 let damage = ballUpgrades[this.type].damage;
                 if (this.type === 'snowball') {
                     // Increase damage by 1.5x
-                    ballUpgrades[this.type].damage *= 1.0001;
+                    ballUpgrades[this.type].damage *= 1.0000000001;
                     balls.push(
                         // Keep existing snowball behavior
                     );
@@ -4751,7 +5184,7 @@ display: flex;
                 stats.totalBallsPurchased++;
                 ballCounts[type]++;
                 const radius = type === 'big' ? 12 : type === 'child' ? 4 : 8;
-                const speed = ballUpgrades[type].speed;
+                const speed = Math.min(ballUpgrades[type].speed, MAX_BALL_SPEED);
                 const dx = speed * (Math.random() > 0.5 ? 1 : -1);
                 const dy = speed * (Math.random() > 0.5 ? 1 : -1);
                 const color = {
@@ -4837,6 +5270,7 @@ display: flex;
                     speedIncrease = 0.5 / (1 + (currentSpeed - 10) * 0.1);
                 }
                 ballUpgrades[type].speed += speedIncrease;
+                ballUpgrades[type].speed = Math.min(ballUpgrades[type].speed, MAX_BALL_SPEED);
 
                 // Damage increase: Slow exponential growth, inversely proportional to speed reduction
                 const speedReductionFactor = currentSpeed < 10 ? 1 : (1 + (currentSpeed - 10) * 0.1);
@@ -4869,6 +5303,7 @@ display: flex;
                 gold -= globalUpgrades[type].cost;
                 globalUpgrades[type].active = true;
                 globalUpgrades[type].activationTime = Date.now();
+                ballUpgrades[type].speed = Math.min(ballUpgrades[type].speed, MAX_BALL_SPEED);
                 stats.totalUpgrades++;
                 setTimeout(() => {
                     globalUpgrades[type].active = false;
@@ -5156,7 +5591,7 @@ display: flex;
                     <div class="team-rank-circle">${index + 1}</div>
                     <div style="font-size: 14px;">
                         <b>${t.name}</b><br>
-                        Rebirths: ${t.rebirths} | Members: ${t.members}/${t.maxMembers}
+                        ${t.rebirths} Rebirths | Members: ${t.members}/${t.maxMembers}
                     </div>
                 </div>
             `;
@@ -7204,11 +7639,12 @@ display: flex;
                                     const inviterData = snap.val();
                                     if (!inviterData) return;
 
-                                    const currentGold = inviterData.gameState?.gold || 0;
+                                    //const currentGold = inviterData.gameState?.gold || 0;
+                                    const currentRebirth = inviterData.gameState?.rebirthCount || 0;
                                     const invitesLeft = inviterData.invitesLeft || 0;
 
                                     inviterRef.child("gameState").update({
-                                        gold: currentGold + 150000
+                                        rebirthCount: currentRebirth + 1
                                     });
 
                                     inviterRef.update({
