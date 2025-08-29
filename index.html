@@ -509,6 +509,10 @@
             text-align: center;
         }
 
+        #bg-music-toggle {
+            display: block;
+        }
+
         .nav-tabs {
             display: flex;
             justify-content: center;
@@ -1887,6 +1891,10 @@
             padding: 8px 12px;
             cursor: pointer;
         }
+
+        #bg-music-toggle {
+            width: 30px;
+        }
     </style>
 </head>
 
@@ -2619,7 +2627,7 @@
             auth.onAuthStateChanged(user => {
                 if (user && !isGuest) {
                     // Logged in: ignore invite links
-                    loadGameState(user.uid);
+                    loadGameState(user.uid);   // <-- this will trigger bgMusic if enabled
                     startTutorialIfNeeded(user.uid);
                     showSG60GiveawayPopup(user.uid);
                     migrateNewBalls();
@@ -2640,13 +2648,28 @@
 
                     // Setup invite container
                     setupInviteContainer(user.uid);
+
                 } else {
-                    // Suppress normal login popup if this is an invite link
+                    // Guest case
+                    // Guest case
                     if (inviterId) {
                         showInviteSignupPopup(inviterId);
                     } else {
                         showLoginPopup();
                     }
+
+                    // Load local settings for guests and apply once
+                    const localData = JSON.parse(localStorage.getItem("brickerGameState"));
+                    if (localData?.settings) {
+                        if (typeof localData.settings.backgroundMusic !== 'undefined') {
+                            settings.backgroundMusic = !!localData.settings.backgroundMusic;
+                        }
+                        if (typeof localData.settings.backgroundMusicVolume === 'number') {
+                            settings.backgroundMusicVolume = localData.settings.backgroundMusicVolume;
+                        }
+                    }
+                    applyMusicSettings();
+
                 }
             });
         };
@@ -3310,6 +3333,10 @@
                     cosmetics,
                     autoRebirthOwned,
                     autoRebirthEnabled,
+                    settings: {
+                        backgroundMusic: settings.backgroundMusic,
+                        backgroundMusicVolume: settings.backgroundMusicVolume
+                    },
                     globalUpgrades: {
                         speedBoost: {
                             active: globalUpgrades.speedBoost.active,
@@ -3767,58 +3794,58 @@ display: flex;
 `;
         document.head.appendChild(leaderboardStyle);
 
-function formatNumber(num) {
-    if (num === 0) return "0";
-    if (Math.abs(num) < 1000) return Math.floor(num).toString();
+        function formatNumber(num) {
+            if (num === 0) return "0";
+            if (Math.abs(num) < 1000) return Math.floor(num).toString();
 
-    const units = [
-        'K',    // Thousand (10^3)
-        'M',    // Million (10^6)
-        'B',    // Billion (10^9)
-        'T',    // Trillion (10^12)
-        'Q',    // Quadrillion (10^15)
-        'QT',   // Quintillion (10^18)
-        'SX',   // Sextillion (10^21)
-        'SP',   // Septillion (10^24)
-        'OC',   // Octillion (10^27)
-        'NO',   // Nonillion (10^30)
-        'DC',   // Decillion (10^33)
-        'UD',   // Undecillion (10^36)
-        'DD',   // Duodecillion (10^39)
-        'TD',   // Tredecillion (10^42)
-        'QTD',  // Quattuordecillion (10^45)
-        'QID',  // Quindecillion (10^48)
-        'SXD',  // Sexdecillion (10^51)
-        'SPD',  // Septendecillion (10^54)
-        'OD',   // Octodecillion (10^57)
-        'ND',   // Novemdecillion (10^60)
-        'VG',   // Vigintillion (10^63)
-        'UVG',  // Unvigintillion (10^66)
-        'DVG',  // Duovigintillion (10^69)
-        'TVG',  // Trevigintillion (10^72)
-        'QTVG', // Quattuorvigintillion (10^75)
-        'QIVG', // Quinvigintillion (10^78)
-        'SXVG', // Sexvigintillion (10^81)
-        'SPVG', // Septenvigintillion (10^84)
-        'OVG',  // Octovigintillion (10^87)
-        'NVG',  // Novemvigintillion (10^90)
-        'TG',   // Trigintillion (10^93)
-        'UTG',  // Untrigintillion (10^96)
-        'DTG',  // Duotrigintillion (10^99)
-        'GGL'   // Googol (10^100)
-    ];
+            const units = [
+                'K',    // Thousand (10^3)
+                'M',    // Million (10^6)
+                'B',    // Billion (10^9)
+                'T',    // Trillion (10^12)
+                'Q',    // Quadrillion (10^15)
+                'QT',   // Quintillion (10^18)
+                'SX',   // Sextillion (10^21)
+                'SP',   // Septillion (10^24)
+                'OC',   // Octillion (10^27)
+                'NO',   // Nonillion (10^30)
+                'DC',   // Decillion (10^33)
+                'UD',   // Undecillion (10^36)
+                'DD',   // Duodecillion (10^39)
+                'TD',   // Tredecillion (10^42)
+                'QTD',  // Quattuordecillion (10^45)
+                'QID',  // Quindecillion (10^48)
+                'SXD',  // Sexdecillion (10^51)
+                'SPD',  // Septendecillion (10^54)
+                'OD',   // Octodecillion (10^57)
+                'ND',   // Novemdecillion (10^60)
+                'VG',   // Vigintillion (10^63)
+                'UVG',  // Unvigintillion (10^66)
+                'DVG',  // Duovigintillion (10^69)
+                'TVG',  // Trevigintillion (10^72)
+                'QTVG', // Quattuorvigintillion (10^75)
+                'QIVG', // Quinvigintillion (10^78)
+                'SXVG', // Sexvigintillion (10^81)
+                'SPVG', // Septenvigintillion (10^84)
+                'OVG',  // Octovigintillion (10^87)
+                'NVG',  // Novemvigintillion (10^90)
+                'TG',   // Trigintillion (10^93)
+                'UTG',  // Untrigintillion (10^96)
+                'DTG',  // Duotrigintillion (10^99)
+                'GGL'   // Googol (10^100)
+            ];
 
-    const unitIndex = Math.min(
-        Math.floor(Math.log10(Math.abs(num)) / 3) - 1,
-        units.length - 1
-    );
+            const unitIndex = Math.min(
+                Math.floor(Math.log10(Math.abs(num)) / 3) - 1,
+                units.length - 1
+            );
 
-    if (unitIndex < 0) return Math.floor(num).toString();
+            if (unitIndex < 0) return Math.floor(num).toString();
 
-    const scaledNum = num / Math.pow(1000, unitIndex + 1);
-    const formattedNum = scaledNum % 1 === 0 ? Math.floor(scaledNum) : scaledNum.toFixed(1);
-    return `${formattedNum}${units[unitIndex]}`;
-}
+            const scaledNum = num / Math.pow(1000, unitIndex + 1);
+            const formattedNum = scaledNum % 1 === 0 ? Math.floor(scaledNum) : scaledNum.toFixed(1);
+            return `${formattedNum}${units[unitIndex]}`;
+        }
 
         function fetchLeaderboard() {
             console.log('Fetching leaderboard from users/...');
@@ -4445,6 +4472,11 @@ function formatNumber(num) {
                 username,
                 rebirthCount,
                 cosmetics,
+                settings: {
+                    backgroundMusic: settings.backgroundMusic,
+                    backgroundMusicVolume: settings.backgroundMusicVolume
+                },
+
                 globalUpgrades: {
                     speedBoost: {
                         active: globalUpgrades.speedBoost.active,
@@ -4587,6 +4619,31 @@ function formatNumber(num) {
                                 }
                             }
                         }
+                        // ---- SETTINGS: hydrate from DB, then fallback to local, then apply ----
+                        if (data.settings) {
+                            if (typeof data.settings.backgroundMusic !== 'undefined') {
+                                settings.backgroundMusic = !!data.settings.backgroundMusic;
+                            }
+                            if (typeof data.settings.backgroundMusicVolume === 'number') {
+                                settings.backgroundMusicVolume = data.settings.backgroundMusicVolume;
+                            }
+                        } else {
+                            // Fallback to local
+                            const localData = JSON.parse(localStorage.getItem("brickerGameState"));
+                            if (localData?.settings) {
+                                if (typeof localData.settings.backgroundMusic !== 'undefined') {
+                                    settings.backgroundMusic = !!localData.settings.backgroundMusic;
+                                }
+                                if (typeof localData.settings.backgroundMusicVolume === 'number') {
+                                    settings.backgroundMusicVolume = localData.settings.backgroundMusicVolume;
+                                }
+                            }
+                        }
+
+                        // Play/pause exactly once here
+                        applyMusicSettings();
+
+
                         updateUI();
                         loadMilestones();
                         spawnBricks();
@@ -4895,6 +4952,7 @@ function formatNumber(num) {
                 // Adjust health based on idleGoldPerSecond and totalUpgrades
                 const difficultyFactor = 1 + (idleGoldPerSecond * 0.5) + (stats.totalUpgrades * 0.05);
                 this.health = Math.floor((health + Math.floor(level / 2)) * difficultyFactor);
+                this.formatHealth = formatNumber(health);
                 this.hover = false;
             }
 
@@ -4911,15 +4969,20 @@ function formatNumber(num) {
             draw() {
                 ctx.fillStyle = `rgba(255, 0, 0, ${this.health / (3 + level / 2)})`;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
+
                 ctx.fillStyle = '#fff';
                 ctx.font = '18px Arial';
-                ctx.textAlign = 'center'; // Center text horizontally
-                ctx.textBaseline = 'middle'; // Center text vertically
-                ctx.fillText(Math.floor(this.health), this.x + this.width / 2, this.y + this.height / 2);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Use formatted number for display only
+                ctx.fillText(formatNumber(this.health), this.x + this.width / 2, this.y + this.height / 2);
+
                 ctx.strokeStyle = '#333';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(this.x, this.y, this.width, this.height);
             }
+
         }
 
         // BossBrick class
@@ -5065,6 +5128,7 @@ function formatNumber(num) {
 
 
         const tips = [
+            "Listen to the new sound track by Modric! More in settings!",
             "Click bricks to reduce their health by 1!",
             "Basic balls are standard balls that bounce off walls and break bricks.",
             "Sniper balls target the nearest brick on wall hits.",
@@ -7037,41 +7101,230 @@ function formatNumber(num) {
             return Math.max(basePrice, dynamicPrice); // Ensure price doesn't go below base
         }
 
+        let settings = {
+            backgroundMusic: true,
+            backgroundMusicVolume: 1.0
+        };
+
+        const bgMusic = new Audio("LevelWave.m4a");
+        bgMusic.loop = true;
+        bgMusic.volume = settings.backgroundMusicVolume;
+
+        function applyMusicSettings() {
+            bgMusic.volume = settings.backgroundMusicVolume;
+            if (settings.backgroundMusic) {
+                bgMusic.play().catch(() => {
+                    // Autoplay blocked: unlock on first user gesture
+                    document.addEventListener("pointerdown", resumeAudioOnce, { once: true, passive: true });
+                });
+            } else {
+                bgMusic.pause();
+            }
+        }
+
+        function resumeAudioOnce() {
+            bgMusic.play().catch(() => { });
+        }
+
+        function persistSettings() {
+            // Local
+            const local = JSON.parse(localStorage.getItem("brickerGameState")) || {};
+            local.settings = {
+                ...(local.settings || {}),
+                backgroundMusic: settings.backgroundMusic,
+                backgroundMusicVolume: settings.backgroundMusicVolume
+            };
+            localStorage.setItem("brickerGameState", JSON.stringify(local));
+
+            // DB (if logged in)
+            const user = auth.currentUser;
+            if (user && !isGuest) {
+                database.ref("users/" + user.uid + "/gameState/settings").update({
+                    backgroundMusic: settings.backgroundMusic,
+                    backgroundMusicVolume: settings.backgroundMusicVolume
+                });
+            }
+        }
+
+        function setBackgroundMusicEnabled(enabled) {
+            settings.backgroundMusic = !!enabled;
+            persistSettings();
+            applyMusicSettings();
+        }
+
+        function setBackgroundMusicVolume(vol) {
+            const v = Math.max(0, Math.min(1, Number(vol)));
+            settings.backgroundMusicVolume = isNaN(v) ? 1 : v;
+            persistSettings();
+            applyMusicSettings();
+        }
+
         // Show settings popup
         function showSettingsPopup() {
             const user = auth.currentUser;
             const email = user ? user.email : 'Guest';
+            const rankSettings = getRankName(rebirthCount);
+            const rankNameSettings = rankSettings.name;
+
             const overlay = document.createElement('div');
             overlay.className = 'login-overlay';
             overlay.innerHTML = `
         <div class="settings-popup">
             <h2>Settings</h2>
-            <button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /> </svg></button>
-            <div class="settings-info">
-                <p>Email: ${email}</p>
-                <p>Username: <span id="username-display">${username || 'Not set'}</span>
-                    <span class="edit-icon" onclick="editUsername()">✏️</span>
-                </p>
-                <div id="username-input" style="display: none;">
-                    <input type="text" id="username-field" value="${username || ''}" placeholder="Enter username">
-                    <button onclick="saveUsername()">Save</button>
+            <button class="close-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" 
+                        d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div style="display:flex; gap:15px;">
+                <!-- Sidebar -->
+                <div class="nav-tabs" style="flex-direction:column; min-width:120px;">
+                    <button class="active" data-tab="profile-tab">Profile</button>
+                    <button data-tab="stats-tab">Stats</button>
+                    <button data-tab="theme-tab">Theme</button>
+                    <button data-tab="danger-tab">Danger</button>
                 </div>
-                <p>Total Play Time: ${(stats.totalPlayTime / 3600).toFixed(2)} hours</p>
-                <p>Total Balls Purchased: ${stats.totalBallsPurchased}</p>
-                <p>Total Upgrades Purchased: ${stats.totalUpgrades}</p>
-                ${user ? `
-                    <button onclick="auth.signOut().then(() => location.reload())">Log Out</button>
-                    <button onclick="deleteAccount()">Delete Account</button>
-                ` : ''}
+
+                <!-- Tab Content -->
+                <div style="flex:1;">
+                    <div id="profile-tab" class="tab-content active">
+                        <div class="settings-info">
+                            <p>Email: ${email}</p>
+                            <p>Username: <span id="username-display">${username || 'Not set'}</span>
+                                <span class="edit-icon" onclick="editUsername()">✏️</span>
+                            </p>
+                            <div id="username-input" style="display:none;">
+                                <input type="text" id="username-field" value="${username || ''}" placeholder="Enter username">
+                                <button onclick="saveUsername()">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="stats-tab" class="tab-content">
+                        <div class="settings-info">
+                            <p>Total Play Time: ${(stats.totalPlayTime / 3600).toFixed(2)} hours</p>
+                            <p>Total Balls Purchased: ${stats.totalBallsPurchased}</p>
+                            <p>Total Upgrades Purchased: ${stats.totalUpgrades}</p>
+                            <p>Total Rebirths: ${rebirthCount || 0}</p>
+                            <p>Donated: ${formatNumber(stats.totalDonated || 0)} Gold</p>
+                            <p>Rank: ${rankNameSettings}</p>
+                        </div>
+                    </div>
+
+<div id="theme-tab" class="tab-content"> 
+    <div class="settings-info" style="display:flex; flex-direction:column; gap:12px;"> 
+        <!-- Background music toggle --> 
+        <label style="display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:8px;"> 
+            <input type="checkbox" id="bg-music-toggle"> 
+            Toggle Modric track 
+            
+        </label> 
+            
+            <!-- Volume control --> 
+            <label style="display:flex; align-items:center; gap:8px;"> 
+                Volume: <input type="range" id="bg-music-volume" min="0" max="1" step="0.01" style="flex:1;"> 
+                <span id="bg-music-volume-display">100%</span> 
+            </label>
+
+        <!-- Credits -->
+        <p style="margin-top:10px; font-size:14px; font-weight:500;">
+            Song by 
+            <a href="https://whatsapp.com/channel/0029VbBPOpPEFeXouOvHCY1D" 
+               target="_blank" 
+               style="color:#0053a6; font-weight:700; text-decoration:none;">
+               Modric
+            </a>
+        </p>
+    </div>
+</div>
+
+
+
+                    <div id="danger-tab" class="tab-content">
+                        <div class="settings-info">
+                            ${user ? `
+                                <button onclick="auth.signOut().then(() => location.reload())">Log Out</button>
+                                <button onclick="deleteAccount()">Delete Account</button>
+                            ` : `<p>You must be logged in to manage account.</p>`}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
+
             document.body.appendChild(overlay);
+
+            // Music toggle
+            const toggle = overlay.querySelector('#bg-music-toggle');
+            toggle.checked = !!settings.backgroundMusic;
+            toggle.addEventListener('change', (e) => {
+                setBackgroundMusicEnabled(e.target.checked);
+            });
+
+            // Volume control
+            const volumeSlider = overlay.querySelector('#bg-music-volume');
+            const volumeDisplay = overlay.querySelector('#bg-music-volume-display');
+
+            volumeSlider.value = settings.backgroundMusicVolume;
+            volumeDisplay.textContent = Math.round(settings.backgroundMusicVolume * 100) + "%";
+
+            volumeSlider.addEventListener('input', (e) => {
+                const vol = parseFloat(e.target.value);
+                setBackgroundMusicVolume(vol);
+                volumeDisplay.textContent = Math.round(settings.backgroundMusicVolume * 100) + "%";
+            });
+
+
+
+            // Close functionality
             overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) overlay.remove();
             });
+
+            // Tab switching
+            overlay.querySelectorAll('.nav-tabs button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active from all
+                    overlay.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+                    overlay.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+
+                    // Activate this
+                    btn.classList.add('active');
+                    overlay.querySelector(`#${btn.dataset.tab}`).classList.add('active');
+                });
+            });
         }
+
+        /*function toggleBackgroundMusic(enabled) {
+            bgMusicEnabled = enabled;
+
+            if (enabled) {
+                bgMusic.play().catch(() => { }); // browsers may block until user interacts
+            } else {
+                bgMusic.pause();
+            }
+
+            // Save instantly to localStorage
+            const currentState = JSON.parse(localStorage.getItem("brickerGameState")) || {};
+            currentState.settings = currentState.settings || {};
+            currentState.settings.backgroundMusic = enabled;
+            localStorage.setItem("brickerGameState", JSON.stringify(currentState));
+
+            // If logged in, update DB
+            const user = auth.currentUser;
+            if (user && !isGuest) {
+                database.ref("users/" + user.uid + "/gameState/settings").update({
+                    backgroundMusic: enabled
+                });
+            }
+        }*/
+
+
 
         // Edit username
         function editUsername() {
