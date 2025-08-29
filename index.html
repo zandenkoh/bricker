@@ -3767,17 +3767,58 @@ display: flex;
 `;
         document.head.appendChild(leaderboardStyle);
 
-        function formatNumber(num) {
-            if (num < 1000) return Math.floor(num).toString();
+function formatNumber(num) {
+    if (num === 0) return "0";
+    if (Math.abs(num) < 1000) return Math.floor(num).toString();
 
-            const units = ['K', 'M', 'B', 'T', 'Q'];
-            const unitIndex = Math.floor(Math.log10(Math.abs(num)) / 3) - 1;
-            const scaledNum = num / Math.pow(1000, unitIndex + 1);
+    const units = [
+        'K',    // Thousand (10^3)
+        'M',    // Million (10^6)
+        'B',    // Billion (10^9)
+        'T',    // Trillion (10^12)
+        'Q',    // Quadrillion (10^15)
+        'QT',   // Quintillion (10^18)
+        'SX',   // Sextillion (10^21)
+        'SP',   // Septillion (10^24)
+        'OC',   // Octillion (10^27)
+        'NO',   // Nonillion (10^30)
+        'DC',   // Decillion (10^33)
+        'UD',   // Undecillion (10^36)
+        'DD',   // Duodecillion (10^39)
+        'TD',   // Tredecillion (10^42)
+        'QTD',  // Quattuordecillion (10^45)
+        'QID',  // Quindecillion (10^48)
+        'SXD',  // Sexdecillion (10^51)
+        'SPD',  // Septendecillion (10^54)
+        'OD',   // Octodecillion (10^57)
+        'ND',   // Novemdecillion (10^60)
+        'VG',   // Vigintillion (10^63)
+        'UVG',  // Unvigintillion (10^66)
+        'DVG',  // Duovigintillion (10^69)
+        'TVG',  // Trevigintillion (10^72)
+        'QTVG', // Quattuorvigintillion (10^75)
+        'QIVG', // Quinvigintillion (10^78)
+        'SXVG', // Sexvigintillion (10^81)
+        'SPVG', // Septenvigintillion (10^84)
+        'OVG',  // Octovigintillion (10^87)
+        'NVG',  // Novemvigintillion (10^90)
+        'TG',   // Trigintillion (10^93)
+        'UTG',  // Untrigintillion (10^96)
+        'DTG',  // Duotrigintillion (10^99)
+        'GGL'   // Googol (10^100)
+    ];
 
-            // Round to 1 decimal place if not a whole number
-            const formattedNum = scaledNum % 1 === 0 ? Math.floor(scaledNum) : scaledNum.toFixed(1);
-            return `${formattedNum}${units[unitIndex]}`;
-        }
+    const unitIndex = Math.min(
+        Math.floor(Math.log10(Math.abs(num)) / 3) - 1,
+        units.length - 1
+    );
+
+    if (unitIndex < 0) return Math.floor(num).toString();
+
+    const scaledNum = num / Math.pow(1000, unitIndex + 1);
+    const formattedNum = scaledNum % 1 === 0 ? Math.floor(scaledNum) : scaledNum.toFixed(1);
+    return `${formattedNum}${units[unitIndex]}`;
+}
 
         function fetchLeaderboard() {
             console.log('Fetching leaderboard from users/...');
