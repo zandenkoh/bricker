@@ -423,6 +423,17 @@
             cursor: pointer;
         }
 
+        #trolls-btn {
+            padding: 5px 10px;
+            margin-top: 5px;
+            background: #fff;
+            border: 1px solid #000;
+            color: #000;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
         .login-popup button:hover {
             background: #0053a6;
         }
@@ -1895,6 +1906,73 @@
         #bg-music-toggle {
             width: 30px;
         }
+
+
+        .mode-toggle {
+            margin-top: 8px;
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #444;
+            background: #000;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .mode-toggle.active {
+            background: #116611;
+        }
+
+        .leaderboard-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: -6px;
+            text-align: center;
+        }
+
+        /* Tab & active states you already have; just ensuring visibility toggles */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Simple ‘pop’ when crate opens */
+        @keyframes popReveal {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        #revealCard.pop-in {
+            animation: popReveal .25s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+        }
     </style>
 </head>
 
@@ -1906,6 +1984,7 @@
     </div>
 
 
+
     <div class="main-main-container">
         <div class="main-container">
             <div class="sidebar-container">
@@ -1914,6 +1993,17 @@
                     <p class="level-count">Level: <span id="level">1</span></p>
                     <p class="rebirth-count">Rebirths: <span id="rebirth">1</span></p>
                     <button id="save-button">Save progress</button>
+                    <button onclick="enterArena()" style="display: none;">⚔️ Enter Arena</button>
+
+                </div>
+
+                <div id="mascot-container" style="display: none;">
+                    <h3>🐾 Mascots</h3>
+                    <div id="mascots-preview">
+                        <!-- User's mascots can be shown here later -->
+                        <p style="font-size:12px;color:#444;">No mascots yet</p>
+                    </div>
+                    <button id="mascots-btn">Open Mascots</button>
                 </div>
                 <div id="milestones-container">
                     <h3>Milestones</h3>
@@ -1931,10 +2021,12 @@
                         <button id="copyInviteBtn">Copy Link</button>
                     </div>
                 </div>
+                <div id="troll-container" style="display: none;">
+                    <button id="trolls-btn">Trolls</button>
+                </div>
 
             </div>
             <div class="together">
-                <!-- Replace the existing .ui div in the HTML body with this updated version -->
                 <div class="ui">
                     <div class="ball-options">
                         <div class="ball-option" id="basic-option" onclick="buyBall('basic')">
@@ -2036,6 +2128,7 @@
                         </div>
                     </div>
 
+
                     <div class="bricker-title"
                         style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:85px;align-self:flex-end;width:fit-content;white-space: nowrap;flex:1;box-sizing:border-box;padding:10px;">
                         <h1>Bricker</h1>
@@ -2048,6 +2141,7 @@
 
                     </div>
                 </div>
+
                 <canvas id="gameCanvas" width="1000" height="520"></canvas>
             </div>
             <div class="leaderboard-container">
@@ -2134,9 +2228,79 @@
         </div>
     </div>
 
+    <!-- Mascots Popup -->
+    <div id="mascotsPopup" class="login-overlay" style="display:none;">
+        <div class="my-balls-popup" style="width:600px;max-width:95%;">
+            <button class="close-btn" id="closeMascotsBtn">✕</button>
+            <h2>Mascots</h2>
+            <div class="nav-tabs">
+                <button class="tab-btn active" data-tab="my-mascots">My Mascots</button>
+                <button class="tab-btn" data-tab="normal">Normal</button>
+                <button class="tab-btn" data-tab="rare">Rare</button>
+                <button class="tab-btn" data-tab="legendary">Legendary</button>
+                <button class="tab-btn" data-tab="goofy">Goofy</button>
+            </div>
+            <div class="tab-content active" id="tab-my-mascots">
+                <p>You don’t own any mascots yet.</p>
+            </div>
+            <div class="tab-content" id="tab-normal">
+                <p>Normal mascots will appear here.</p>
+            </div>
+            <div class="tab-content" id="tab-rare">
+                <p>Rare mascots will appear here.</p>
+            </div>
+            <div class="tab-content" id="tab-legendary">
+                <p>Legendary mascots will appear here.</p>
+            </div>
+            <div class="tab-content" id="tab-goofy">
+                <p>Goofy mascots will appear here.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mascot Crate Reveal -->
+    <div id="mascotCratePopup" class="login-overlay" style="display:none;">
+        <div class="my-balls-popup" style="width:560px;max-width:95%;position:relative;overflow:hidden;">
+            <button class="close-btn" id="closeCrateBtn">✕</button>
+            <h2 style="margin-bottom:8px;">Mystery Crate</h2>
+            <p id="crateHint" style="margin:0 0 12px;opacity:0.8;">Click the crate to open!</p>
+
+            <div id="crateStage"
+                style="display:flex;align-items:center;justify-content:center;height:280px;cursor:pointer;">
+                <!-- Crate Closed -->
+                <div id="crateBox" style="
+        width:200px;height:200px;border:3px solid #333;border-radius:14px;
+        background: repeating-linear-gradient(45deg,#9a6a2f,#9a6a2f 12px,#b37b38 12px,#b37b38 24px);
+        box-shadow: 0 8px 0 #6e4b1f, 0 18px 24px rgba(0,0,0,.25);
+        position:relative;transform:translateY(0); transition: transform .25s ease;">
+                    <div style="position:absolute;inset:12px;border:3px dashed #5a3c18;border-radius:10px;"></div>
+                    <div id="crateLid" style="
+          position:absolute;left:-6px;right:-6px;top:-28px;height:36px;border:3px solid #333;border-radius:10px;
+          background:#b37b38; box-shadow: 0 6px 0 #6e4b1f; transition: transform .35s ease;">
+                    </div>
+                </div>
+
+                <!-- Reveal card (hidden until opened) -->
+                <div id="revealCard" style="display:none; text-align:center;">
+                    <img id="revealImg" src="" alt="mascot"
+                        style="width:120px;height:120px;object-fit:contain;margin:auto;display:block;">
+                    <h3 id="revealName" style="margin:8px 0 4px;"></h3>
+                    <div id="revealBadges" style="font-size:12px;opacity:0.9;"></div>
+                    <button id="equipMascotBtn" style="margin-top:12px;">Equip</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div id="troll-toast-container"
+        style="position: fixed;bottom: 20px;right: 20px;display: flex;flex-direction: column;gap: 10px;z-index: 2000;">
+    </div>
 
 
 
+    <script src="mascots.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -2473,6 +2637,17 @@
             poison: 175,
             snowball: 200
         };
+        const ballUnlocks = {
+            basic: { level: 0, rebirth: 0 },
+            sniper: { level: 10, rebirth: 0 },
+            big: { level: 20, rebirth: 0 },
+            explosion: { level: 0, rebirth: 1 },
+            multiplying: { level: 0, rebirth: 3 },
+            cannonball: { level: 0, rebirth: 5 },
+            poison: { level: 0, rebirth: 10 },
+            snowball: { level: 0, rebirth: 15 }
+        };
+
         let ballUpgrades = {
             basic: {
                 level: 1,
@@ -2540,6 +2715,45 @@
         };
         let username = '';
         let lastUpdateTime = Date.now();
+
+        function isBallUnlocked(type) {
+            const unlock = ballUnlocks[type];
+
+            // Case 1: unlocked by level
+            if (level >= unlock.level && rebirthCount >= unlock.rebirth) {
+                return true;
+            }
+
+            // Case 2: rebirth "skips" some level locks
+            if (rebirthCount > 0) {
+                // At rebirth 1 → keep basic, sniper, big automatically
+                if (["basic", "sniper", "big"].includes(type)) return true;
+            }
+
+            return false;
+        }
+
+
+        function updateBallOptionsUI() {
+            Object.keys(ballUnlocks).forEach(type => {
+                const optionEl = document.getElementById(`${type}-option`);
+                if (!optionEl) return;
+
+                if (isBallUnlocked(type)) {
+                    optionEl.style.opacity = "1";
+                    optionEl.style.cursor = "pointer";
+                    optionEl.style.pointerEvents = "auto";
+                } else {
+                    optionEl.style.opacity = "0.4";
+                    optionEl.style.cursor = "not-allowed";
+                    optionEl.style.pointerEvents = "auto";
+                }
+            });
+        }
+
+        function enterArena() {
+            window.location.href = "matchmaking.html";
+        }
 
         function getUpgradeCost(type) {
             const baseCosts = {
@@ -2625,6 +2839,7 @@
 
         window.onload = function () {
             auth.onAuthStateChanged(user => {
+                const trollsContainer = document.getElementById("troll-container");
                 if (user && !isGuest) {
                     // Logged in: ignore invite links
                     loadGameState(user.uid);   // <-- this will trigger bgMusic if enabled
@@ -2648,6 +2863,8 @@
 
                     // Setup invite container
                     setupInviteContainer(user.uid);
+                    if (trollsContainer) trollsContainer.style.display = "block";
+
 
                 } else {
                     // Guest case
@@ -2669,8 +2886,12 @@
                         }
                     }
                     applyMusicSettings();
+                    if (trollsContainer) trollsContainer.style.display = "none";
+
 
                 }
+
+                updateBallOptionsUI(); // run for both
             });
         };
 
@@ -3333,6 +3554,8 @@
                     cosmetics,
                     autoRebirthOwned,
                     autoRebirthEnabled,
+                    mascotsOwned,          // array of owned mascot entries
+                    selectedMascotId,      // equipped mascot (optional)
                     settings: {
                         backgroundMusic: settings.backgroundMusic,
                         backgroundMusicVolume: settings.backgroundMusicVolume
@@ -4587,6 +4810,9 @@ display: flex;
                             bundleGold: false,
                             bundlePlatinum: false
                         };
+                        mascotsOwned = Array.isArray(data.mascotsOwned) ? data.mascotsOwned : (data.mascotsOwned || []);
+                        selectedMascotId = data.selectedMascotId || null;
+
                         syncBallsWithCounts();
                         autoBalls = [];
                         for (let i = 0; i < (data.autoBalls || 0); i++) {
@@ -4645,8 +4871,15 @@ display: flex;
 
 
                         updateUI();
+                        renderMascots();     // ensures shop tabs (Normal/Rare/Legendary/Goofy) show items
+                        renderMyMascots();   // ensures My Mascots displays owned ones
+                        updateMascotsPreview();
+                        applyMascotEffects();
+
+
                         loadMilestones();
                         spawnBricks();
+                        updateBallOptionsUI();
                         if (!gameStarted) {
                             startGame();
                             gameStarted = true;
@@ -4939,6 +5172,17 @@ display: flex;
                 ctx.fillStyle = this.color;
                 ctx.fill();
                 ctx.closePath();
+
+                if (cosmetics.activeTrail) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius + 4, 0, Math.PI * 2);
+                    ctx.strokeStyle = cosmetics.activeTrail === "legendary" ? "gold" :
+                        cosmetics.activeTrail === "rare" ? "blueviolet" :
+                            cosmetics.activeTrail === "goofy" ? "pink" : "white";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.closePath();
+                }
             }
         }
 
@@ -4954,6 +5198,11 @@ display: flex;
                 this.health = Math.floor((health + Math.floor(level / 2)) * difficultyFactor);
                 this.formatHealth = formatNumber(health);
                 this.hover = false;
+                if (cosmetics.activeEffect) {
+                    spawnMascotEffect(this.x, this.y, cosmetics.activeEffect);
+                }
+
+
             }
 
             isCursorHovering(mouseX, mouseY) {
@@ -4981,9 +5230,11 @@ display: flex;
                 ctx.strokeStyle = '#333';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(this.x, this.y, this.width, this.height);
+                updateParticles(ctx);
             }
 
         }
+
 
         // BossBrick class
         class BossBrick extends Brick {
@@ -5365,6 +5616,7 @@ display: flex;
                 gold -= cost;
                 ballUpgrades[type].level++;
 
+
                 // Speed increase: Diminishing returns after speed 10
                 const currentSpeed = ballUpgrades[type].speed;
                 let speedIncrease = 0;
@@ -5498,6 +5750,7 @@ display: flex;
                 spawnBricks();
                 updateUI();
                 updateMilestones();
+                updateBallOptionsUI();
 
                 showToast('Rebirth successful! Starting from level 1 with retained ball upgrades.');
                 saveGameState();
@@ -7618,6 +7871,7 @@ display: flex;
         function nextLevel() {
             if (bricks.length === 0) {
                 level++;
+                updateBallOptionsUI();
                 updateUI();
                 if (level >= 100 && autoRebirthOwned && autoRebirthEnabled) {
                     rebirth(true); // skipConfirm = true
@@ -7953,6 +8207,602 @@ display: flex;
                     });
                 });
         }
+
+
+        // Mascot system globals
+        const MASCOT_VARIANTS = ["cursor", "background", "trail", "effect"]; // can expand later
+        let mascotsOwned = [];         // hydrated from DB
+        let selectedMascotId = null;   // currently equipped mascot id
+        let particles = [];
+
+        function updateParticles(ctx) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+
+        // Mascots popup logic
+        const mascotsBtn = document.getElementById("mascots-btn");
+        const mascotsPopup = document.getElementById("mascotsPopup");
+        const closeMascotsBtn = document.getElementById("closeMascotsBtn");
+        const tabButtons = document.querySelectorAll(".tab-btn");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        mascotsBtn.addEventListener("click", () => {
+            mascotsPopup.style.display = "flex";
+        });
+
+        closeMascotsBtn.addEventListener("click", () => {
+            mascotsPopup.style.display = "none";
+        });
+
+        // Tab switching
+        tabButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                // Remove active
+                tabButtons.forEach(b => b.classList.remove("active"));
+                tabContents.forEach(c => c.classList.remove("active"));
+
+                // Add active
+                btn.classList.add("active");
+                const target = btn.getAttribute("data-tab");
+                document.getElementById(`tab-${target}`).classList.add("active");
+            });
+        });
+
+        function renderMyMascots() {
+            const container = document.getElementById("tab-my-mascots");
+            if (!container) return;
+            container.innerHTML = "";
+
+            if (!mascotsOwned.length) {
+                container.innerHTML = `<p>You don’t own any mascots yet.</p>`;
+                return;
+            }
+
+            const grid = document.createElement("div");
+            grid.style.display = "grid";
+            grid.style.gridTemplateColumns = "repeat(3, 1fr)";
+            grid.style.gap = "10px";
+
+            mascotsOwned
+                .slice() // copy
+                .sort((a, b) => b.obtainedAt - a.obtainedAt)
+                .forEach(o => {
+                    const card = document.createElement("div");
+                    card.style.background = "#eef7ff";
+                    card.style.border = "2px solid #335";
+                    card.style.borderRadius = "10px";
+                    card.style.padding = "10px";
+                    card.style.textAlign = "center";
+                    card.innerHTML = `
+        <img src="${o.image}" alt="${o.baseName}" style="width:80px;height:80px;object-fit:contain;">
+        <h4 style="margin:8px 0 4px;">${o.baseName}</h4>
+        <div style="font-size:12px;opacity:.85;margin-bottom:6px;">
+          <span style="text-transform:capitalize;">${o.type}</span> • ${o.variant}
+        </div>
+        <button class="equip-mascot-btn" data-id="${o.id}" ${selectedMascotId === o.id ? "disabled" : ""}>
+          ${selectedMascotId === o.id ? "Equipped" : "Equip"}
+        </button>
+      `;
+                    grid.appendChild(card);
+                });
+
+            container.appendChild(grid);
+        }
+
+
+        function renderMascots() {
+            const types = ["normal", "rare", "legendary", "goofy"];
+            types.forEach(type => {
+                const container = document.getElementById(`tab-${type}`);
+                if (!container) return;
+                container.innerHTML = "";
+
+                const filtered = mascots.filter(m => (m.type || "").toLowerCase() === type);
+                if (filtered.length === 0) {
+                    container.innerHTML = `<p>No ${type} mascots available.</p>`;
+                    return;
+                }
+
+                const grid = document.createElement("div");
+                grid.style.display = "grid";
+                grid.style.gridTemplateColumns = "repeat(3, 1fr)";
+                grid.style.gap = "10px";
+
+                filtered.forEach(m => {
+                    const alreadyHaveAnyVariant = mascotsOwned.some(o => o.baseName === m.name);
+                    const card = document.createElement("div");
+                    card.style.background = "#f4eed6";
+                    card.style.border = "2px solid #444";
+                    card.style.borderRadius = "10px";
+                    card.style.padding = "10px";
+                    card.style.textAlign = "center";
+                    card.innerHTML = `
+        <img src="${m.image}" alt="${m.name}" style="width:80px;height:80px;object-fit:contain;">
+        <h4 style="margin:8px 0 4px;">${m.name}</h4>
+        <div style="font-size:12px;opacity:.85;margin-bottom:6px;text-transform:capitalize;">Type: ${m.type}</div>
+        <p style="margin:0 0 8px;">Cost: ${m.cost} rebirths</p>
+        <button class="buy-mascot-btn" data-name="${m.name}" ${isGuest ? "disabled" : ""}>
+          ${isGuest ? "Login to Buy" : "Buy"}
+        </button>
+        ${alreadyHaveAnyVariant ? '<div style="font-size:11px;opacity:.7;margin-top:4px;">You own variant(s)</div>' : ''}
+      `;
+                    grid.appendChild(card);
+                });
+
+                container.appendChild(grid);
+            });
+        }
+
+        // Handle mascot buying
+        document.addEventListener("click", (e) => {
+            if (e.target.classList.contains("buy-mascot-btn")) {
+                const mascotName = e.target.getAttribute("data-name");
+                const mascot = mascots.find(m => m.name === mascotName);
+
+                if (!mascot) return;
+
+                // Example: check rebirths
+                if (rebirthCount >= mascot.cost) {
+                    rebirthCount -= mascot.cost;
+                    alert(`🎉 You bought ${mascot.name}!`);
+                    // TODO: Save to DB / add to user's mascots
+                } else {
+                    alert("❌ Not enough rebirths!");
+                }
+            }
+        });
+
+        // Call once on load
+        renderMascots();
+
+        // Open/close crate popup
+        const mascotCratePopup = document.getElementById("mascotCratePopup");
+        const crateStage = document.getElementById("crateStage");
+        const crateBox = document.getElementById("crateBox");
+        const crateLid = document.getElementById("crateLid");
+        const revealCard = document.getElementById("revealCard");
+        const revealImg = document.getElementById("revealImg");
+        const revealName = document.getElementById("revealName");
+        const revealBadges = document.getElementById("revealBadges");
+        const equipMascotBtn = document.getElementById("equipMascotBtn");
+        const closeCrateBtn = document.getElementById("closeCrateBtn");
+
+        let _pendingOwnedMascot = null; // set during reveal, finalized on close/equip
+
+        function openCrate() {
+            mascotCratePopup.style.display = "flex";
+            // reset visuals
+            revealCard.style.display = "none";
+            revealCard.classList.remove("pop-in");
+            crateBox.style.display = "block";
+            crateBox.style.transform = "translateY(0)";
+            crateLid.style.transform = "translateY(0) rotate(0deg)";
+            document.getElementById("crateHint").textContent = "Click the crate to open!";
+        }
+
+        function closeCrate() {
+            mascotCratePopup.style.display = "none";
+            // finalize save if we created an item and haven’t saved yet (we do save immediately already, so this is just safety)
+            _pendingOwnedMascot = null;
+        }
+
+        // Clicking the crate → reveal animation
+        crateStage.addEventListener("click", () => {
+            if (revealCard.style.display === "block") return; // already revealed
+
+            // lid pop
+            crateLid.style.transform = "translateY(-60px) rotate(-12deg)";
+            crateBox.style.transform = "translateY(6px)";
+
+            setTimeout(() => {
+                crateBox.style.display = "none";
+                revealCard.style.display = "block";
+                revealCard.classList.add("pop-in");
+            }, 280);
+        });
+
+        closeCrateBtn.addEventListener("click", closeCrate);
+
+        // Buy handler
+        document.addEventListener("click", async (e) => {
+            const buyBtn = e.target.closest(".buy-mascot-btn");
+            if (!buyBtn) return;
+
+            if (isGuest) {
+                showLoginPopupForSave();
+                return;
+            }
+
+            const mascotName = buyBtn.getAttribute("data-name");
+            const base = mascots.find(m => m.name === mascotName);
+            if (!base) return;
+
+            if (rebirthCount < base.cost) {
+                showToast("❌ Not enough rebirths!");
+                return;
+            }
+
+            // Spend, update UI immediately
+            rebirthCount -= base.cost;
+            updateUI();
+
+            // Roll variant & create owned entry
+            const variant = MASCOT_VARIANTS[Math.floor(Math.random() * MASCOT_VARIANTS.length)];
+            const owned = {
+                id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                baseName: base.name,
+                image: base.image,
+                type: (base.type || "").toLowerCase(),
+                variant,                // cursor/background/trail/effect
+                obtainedAt: Date.now()
+            };
+
+            // Persist mascots & rebirthCount atomically-ish (update both fields)
+            try {
+                const user = auth.currentUser;
+                if (!user) throw new Error("No user");
+                mascotsOwned.push(owned);
+
+                await database.ref(`users/${user.uid}/gameState`).update({
+                    mascotsOwned,
+                    rebirthCount
+                });
+
+                // Open crate UI with this reward
+                _pendingOwnedMascot = owned;
+                revealImg.src = owned.image;
+                revealName.textContent = owned.baseName;
+                revealBadges.innerHTML = `
+      <span style="padding:2px 6px;border:1px solid #999;border-radius:999px;margin-right:6px;text-transform:capitalize;">${owned.type}</span>
+      <span style="padding:2px 6px;border:1px solid #999;border-radius:999px;text-transform:capitalize;">${owned.variant}</span>
+    `;
+                openCrate();
+
+                // refresh UIs
+                renderMyMascots();
+                renderMascots();
+                showToast(`🎉 You bought ${base.name}!`);
+            } catch (err) {
+                // rollback on failure
+                rebirthCount += base.cost;
+                mascotsOwned = mascotsOwned.filter(x => x !== owned);
+                updateUI();
+                showToast("Save failed: " + err.message);
+            }
+        });
+
+        // Equip handler
+        document.addEventListener("click", async (e) => {
+            const equipBtn = e.target.closest(".equip-mascot-btn");
+            if (!equipBtn) return;
+            if (isGuest) {
+                showLoginPopupForSave();
+                return;
+            }
+
+            const id = equipBtn.getAttribute("data-id");
+            selectedMascotId = id;
+
+            try {
+                const user = auth.currentUser;
+                if (!user) throw new Error("No user");
+                await database.ref(`users/${user.uid}/gameState`).update({ selectedMascotId });
+                renderMyMascots();
+                showToast("Mascot equipped!");
+            } catch (err) {
+                showToast("Failed to equip: " + err.message);
+            }
+        });
+
+        // Also wire the Equip button inside the reveal card
+        equipMascotBtn.addEventListener("click", async () => {
+            if (!_pendingOwnedMascot) return;
+
+            if (isGuest) {
+                showLoginPopupForSave();
+                return;
+            }
+
+            try {
+                const user = auth.currentUser;
+                if (!user) throw new Error("No user");
+                selectedMascotId = _pendingOwnedMascot.id;
+                await database.ref(`users/${user.uid}/gameState`).update({ selectedMascotId });
+                renderMyMascots();
+                showToast("Mascot equipped!");
+                closeCrate();
+            } catch (err) {
+                showToast("Failed to equip: " + err.message);
+            }
+        });
+
+        function updateMascotsPreview() {
+            const container = document.getElementById("mascots-preview");
+            if (!container) return;
+
+            const equipped = mascotsOwned.find(m => m.id === selectedMascotId);
+            if (!equipped) {
+                container.innerHTML = `<p style="font-size:12px;color:#444;">No mascots yet</p>`;
+                return;
+            }
+            container.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;">
+      <img src="${equipped.image}" alt="${equipped.baseName}" style="width:36px;height:36px;object-fit:contain;">
+      <div>
+        <div style="font-weight:600;">${equipped.baseName}</div>
+        <div style="font-size:11px;opacity:.8;text-transform:capitalize;">${equipped.type} • ${equipped.variant}</div>
+      </div>
+    </div>
+  `;
+        }
+
+        function getEquippedMascot() {
+            if (!selectedMascotId) return null;
+            return mascotsOwned.find(m => m.id === selectedMascotId) || null;
+        }
+
+        function applyMascotEffects() {
+            const mascot = getEquippedMascot();
+            if (!mascot) return;
+
+            switch (mascot.variant) {
+                case "cursor":
+                    document.body.style.cursor = `url(${mascot.image}), auto`;
+                    break;
+                case "background":
+                    document.body.style.background = `url(${mascot.image}) center/cover no-repeat fixed`;
+                    break;
+                case "trail":
+                    cosmetics.activeTrail = mascot.type;
+                    break;
+                case "effect":
+                    cosmetics.activeEffect = mascot.type;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function spawnMascotEffect(x, y, effectType) {
+            switch (effectType) {
+                case "rare":
+                    spawnParticles(x, y, "blueviolet");
+                    break;
+                case "legendary":
+                    spawnParticles(x, y, "gold");
+                    break;
+                case "goofy":
+                    spawnParticles(x, y, "pink");
+                    break;
+                default:
+                    spawnParticles(x, y, "white");
+                    break;
+            }
+        }
+
+        function spawnParticles(x, y, color) {
+            for (let i = 0; i < 8; i++) {
+                const particle = {
+                    x, y,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    life: 30,
+                    color
+                };
+                particles.push(particle);
+            }
+        }
+
+        // ========= TROLLS: UI + backend =========
+
+        document.getElementById('trolls-btn')?.addEventListener('click', showTrollsPopup);
+        startTrollsListener();
+
+        // Show feature popup
+        // Show feature popup
+        function showTrollsPopup() {
+            const overlay = document.createElement('div');
+            overlay.className = 'login-overlay';
+            overlay.innerHTML = `
+      <div class="login-popup" style="max-width:520px">
+        <h2>👹 Trolls</h2>
+        <p style="margin-top:6px">Set a background on everyone's canvas for <b>5 seconds</b>.<br><b>Cost: 1 rebirth</b>.</p>
+
+        <div style="margin:10px 0">
+          <label style="font-weight:600;">Image/GIF URL</label>
+          <input id="troll-url" placeholder="https://... (png, jpg, gif)" style="width:100%;margin-top:6px;padding:6px;border:1px solid #ccc;border-radius:6px;" />
+        </div>
+      
+        <div style="display:flex; flex-direction: column; gap:12px; align-items:center; margin-top:12px;">
+          <canvas id="trollPreview" width="320" height="180"
+                  style="width:100%;max-width:320px;height:180px;
+                         border:2px dashed #555;border-radius:12px;
+                         background-size:cover;background-position:center;
+                         background-repeat:no-repeat;"></canvas>
+          <button id="troll-buy-btn" style="width:100%;padding:10px;border-radius:8px;">Buy (1 rebirth)</button>
+        </div>
+
+        <div class="button-group" style="margin-top:16px;display: flex; align-items: center; justify-content:center;">
+          <button id="troll-close">Close</button>
+        </div>
+      </div>
+    `;
+            document.body.appendChild(overlay);
+
+            const urlInput = overlay.querySelector('#troll-url');
+            const previewCanvas = overlay.querySelector('#trollPreview');
+            const buyBtn = overlay.querySelector('#troll-buy-btn');
+
+            // Update buy button state
+            const updateBuyBtn = () => {
+                buyBtn.disabled = isGuest || rebirthCount < 1;
+                buyBtn.title = isGuest ? 'Login required' : (rebirthCount < 1 ? 'You need at least 1 rebirth' : '');
+            };
+            updateBuyBtn();
+
+            // Auto-preview on input
+            urlInput.addEventListener('input', () => {
+                const url = (urlInput.value || '').trim();
+                previewCanvas.style.backgroundImage = url ? `url('${url}')` : '';
+            });
+
+            buyBtn.addEventListener('click', () => purchaseCanvasTroll((urlInput.value || '').trim(), overlay));
+            overlay.querySelector('#troll-close').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        }
+
+
+        // Deduct 1 rebirth, push the troll, auto-hide by creator
+        function purchaseCanvasTroll(url, overlay) {
+            if (!url) { showToast('Please paste an image/GIF URL.'); return; }
+            if (isGuest || !auth.currentUser) { overlay?.remove(); showLoginPopupForSave(); return; }
+            if (rebirthCount < 1) { showToast('You need at least 1 rebirth.'); return; }
+
+            const user = auth.currentUser;
+            const trollsRef = database.ref('trolls').push();
+            const payload = {
+                id: trollsRef.key,
+                type: 'canvasBackground',
+                url,
+                createdBy: user.uid,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                visibility: true
+            };
+
+
+            // Deduct 1 rebirth (local + DB)
+            rebirthCount -= 1;
+            updateUI();
+            database.ref('users/' + user.uid + '/gameState').update({
+                rebirthCount: rebirthCount
+            });
+
+            trollsRef.set(payload).then(() => {
+                overlay?.remove();
+                showToast('Troll sent! 👹');
+
+                // After server sets createdAt, schedule auto-hide (creator only)
+                database.ref('trolls/' + trollsRef.key + '/createdAt').once('value').then(s => {
+                    const t = s.val();
+                    const remaining = 5000 - Math.max(0, Date.now() - (typeof t === 'number' ? t : Date.now()));
+                    setTimeout(() => {
+                        // Only the creator flips visibility to false
+                        database.ref('trolls/' + trollsRef.key + '/visibility').set(false);
+                    }, Math.max(0, remaining));
+                });
+            }).catch(err => {
+                showToast('Failed to send troll: ' + err.message);
+            });
+        }
+
+        // Listen for active trolls and apply to canvas
+        function startTrollsListener() {
+            const ref = database.ref('trolls');
+
+            const handle = (snap) => {
+                const t = snap.val();
+                if (!t || t.type !== 'canvasBackground' || !t.visibility || !t.url) return;
+
+                const createdAt = typeof t.createdAt === 'number' ? t.createdAt : Date.now();
+                const elapsed = Date.now() - createdAt;
+                const remaining = 5000 - elapsed;
+                if (remaining <= 0) return; // already expired
+
+                applyCanvasBackgroundTroll(t.url, remaining, snap.key, t.createdBy);
+            };
+
+            ref.on('child_added', (snap) => handleTroll(snap, true));   // show toast
+            ref.on('child_changed', (snap) => handleTroll(snap, false)); // no toast
+        }
+
+        function handleTroll(snap, isNew) {
+            const t = snap.val();
+            if (!t || t.type !== 'canvasBackground' || !t.visibility || !t.url) return;
+
+            const createdAt = typeof t.createdAt === 'number' ? t.createdAt : Date.now();
+            const elapsed = Date.now() - createdAt;
+            const remaining = 5000 - elapsed;
+            if (remaining <= 0) return;
+
+            applyCanvasBackgroundTroll(t.url, remaining, snap.key, t.createdBy, isNew);
+        }
+
+        function applyCanvasBackgroundTroll(url, durationMs, trollKey, creatorId) {
+            const canvas = document.getElementById('gameCanvas');
+            if (!canvas) return;
+
+            database.ref('users/' + creatorId + '/gameState/username').once('value').then(snap => {
+                const creatorName = snap.val() || "Someone";
+                showTrollToast(`👹 You got trolled by ${creatorName}`);
+            });
+
+            const prev = {
+                bg: canvas.style.backgroundImage,
+                size: canvas.style.backgroundSize,
+                pos: canvas.style.backgroundPosition,
+                rep: canvas.style.backgroundRepeat
+            };
+
+            canvas.style.backgroundImage = `url('${url}')`;
+            canvas.style.backgroundSize = 'cover';
+            canvas.style.backgroundPosition = 'center';
+            canvas.style.backgroundRepeat = 'no-repeat';
+
+            if (window.__trollTimer) clearTimeout(window.__trollTimer);
+
+            window.__trollTimer = setTimeout(() => {
+                if (auth.currentUser && auth.currentUser.uid === creatorId) {
+                    database.ref('trolls/' + trollKey + '/visibility').set(false)
+                        .then(() => location.reload());
+                } else {
+                    canvas.style.backgroundImage = prev.bg;
+                    canvas.style.backgroundSize = prev.size;
+                    canvas.style.backgroundPosition = prev.pos;
+                    canvas.style.backgroundRepeat = prev.rep;
+                }
+            }, Math.max(0, durationMs));
+        }
+
+
+
+        function showTrollToast(message) {
+            const container = document.getElementById("troll-toast-container");
+            if (!container) return;
+
+            const toast = document.createElement("div");
+            toast.textContent = message;
+            toast.style.cssText = `
+    background: rgba(30,30,30,0.95);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    animation: fadeIn 0.3s ease, fadeOut 0.5s ease 3.5s forwards;
+  `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+
+
     </script>
 </body>
 
