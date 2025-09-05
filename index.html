@@ -377,14 +377,16 @@
         }
 
         #save-button:hover,
-        #all-milestones-btn {
+        #all-milestones-btn,
+        #mascots-btn {
             background: transparent;
             color: #000;
             outline: 1px solid #000;
         }
 
         #save-button:active,
-        #all-milestones-btn:active {
+        #all-milestones-btn:active,
+        #mascots-btn:active {
             transform: scale(0.95);
         }
 
@@ -1996,6 +1998,116 @@
                 transform: translateY(10px);
             }
         }
+
+
+
+        .whatsapp-invite {
+            background: transparent;
+            border: 2px solid #444;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .whatsapp-invite h2 {
+            margin: 0 0 8px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #075e54;
+            text-transform: uppercase;
+        }
+
+        .whatsapp-invite p {
+            margin: 0 0 10px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .whatsapp-qr {
+            width: 100%;
+            max-width: 120px;
+            border-radius: 8px;
+            margin: 8px auto;
+            display: block;
+            border: 1px solid #25D366;
+        }
+
+        .whatsapp-invite button {
+            background: #25D366;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .whatsapp-invite button:hover {
+            background: #1ebd5a;
+        }
+
+        .ignore-invite {
+            font-size: 12px;
+            margin-top: 6px;
+            text-decoration: underline;
+            color: #555;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .ignore-invite:hover {
+            opacity: 1;
+            color: #000;
+        }
+
+        .whatsapp-collapsed {
+            margin-top: 12px;
+            padding: 6px;
+            text-align: center;
+            background: #d9fdd3;
+            border: 1px solid #25D366;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #075e54;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .whatsapp-collapsed:hover {
+            background: #c8f3c0;
+        }
+
+        .buy-mascot-btn,
+        .unequip-mascot-btn,
+        .equip-mascot-btn {
+            padding: 6px 15px;
+            background: #000;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        .buy-mascot-btn:hover,
+        .unequip-mascot-btn:hover,
+        .equip-mascot-btn:hover {
+            background: #0053a6;
+        }
+
+        #mascots-btn {
+            padding: 5px 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            border: none;
+        }
     </style>
 </head>
 
@@ -2034,13 +2146,23 @@
 
                 </div>
 
-                <div id="mascot-container" style="display: none;">
+                <div class="whatsapp-invite" id="whatsappInvite">
+                    <h2>📢 Join Our WhatsApp!</h2>
+                    <p>Get the latest updates and be the first to know when <strong>Season 2</strong> drops!</p>
+                    <img src="./frame.png" alt="Join Bricker WhatsApp" class="whatsapp-qr">
+                    <button onclick="window.open('https://whatsapp.com/channel/0029Vb6SbwdFy72I2nI8Zo2U', '_blank')">
+                        Join Channel
+                    </button>
+                    <p class="ignore-invite" onclick="ignoreWhatsAppInvite()">Ignore</p>
+                </div>
+
+                <div id="mascot-container" style="display: block;">
                     <h3>🐾 Mascots</h3>
                     <div id="mascots-preview">
                         <!-- User's mascots can be shown here later -->
                         <p style="font-size:12px;color:#444;">No mascots yet</p>
                     </div>
-                    <button id="mascots-btn">Open Mascots</button>
+                    <button id="mascots-btn">View Mascots</button>
                 </div>
                 <div id="milestones-container">
                     <h3>Milestones</h3>
@@ -2058,7 +2180,10 @@
                         <button id="copyInviteBtn">Copy Link</button>
                     </div>
                 </div>
-
+                <div class="whatsapp-collapsed" id="whatsappCollapsed" style="display:none;"
+                    onclick="restoreWhatsAppInvite()">
+                    📢 Join Our WhatsApp for Updates
+                </div>
             </div>
             <div class="together">
                 <div class="ui">
@@ -2335,7 +2460,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://unpkg.com/intro.js@7.0.1/intro.min.js"></script>
-
     <script>
 
         document.addEventListener("mousemove", e => {
@@ -8355,24 +8479,43 @@ display: flex;
                     card.style.borderRadius = "10px";
                     card.style.padding = "10px";
                     card.style.textAlign = "center";
-                    card.innerHTML = `
-        <img src="${o.image}" alt="${o.baseName}" style="width:80px;height:80px;object-fit:contain;">
-        <h4 style="margin:8px 0 4px;">${o.baseName}</h4>
-        <div style="font-size:12px;opacity:.85;margin-bottom:6px;">
-          <span style="text-transform:capitalize;">${o.type}</span> <span style="display:none;">${o.variant}</span>
-        </div>
-        <button class="equip-mascot-btn" data-id="${o.id}" ${selectedMascotId === o.id ? "disabled" : ""}>
-${selectedMascotId === o.id
-                            ? `<button class="unequip-mascot-btn" data-id="${o.id}">Unequip</button>`
-                            : `<button class="equip-mascot-btn" data-id="${o.id}">Equip</button>`
-                        }
 
-        </button>
-      `;
+                    // build button depending on whether this mascot is selected
+                    const isSelected = selectedMascotId === o.id;
+                    const buttonHTML = isSelected
+                        ? `<button class="unequip-mascot-btn" data-id="${o.id}">Unequip</button>`
+                        : `<button class="equip-mascot-btn" data-id="${o.id}">Equip</button>`;
+
+                    card.innerHTML = `
+                <img src="${o.image}" alt="${o.baseName}" style="width:80px;height:80px;object-fit:contain;">
+                <h4 style="margin:8px 0 4px;">${o.baseName}</h4>
+                <div style="font-size:12px;opacity:.85;margin-bottom:6px;">
+                    <span style="text-transform:capitalize;">${o.type}</span> 
+                    <span style="display:none;">${o.variant}</span>
+                </div>
+                ${buttonHTML}
+            `;
+
                     grid.appendChild(card);
                 });
 
             container.appendChild(grid);
+
+            // attach event listeners after rendering
+            container.querySelectorAll(".equip-mascot-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const id = btn.dataset.id;
+                    selectedMascotId = id;
+                    renderMyMascots(); // re-render to switch to Unequip button
+                });
+            });
+
+            container.querySelectorAll(".unequip-mascot-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    selectedMascotId = null;
+                    renderMyMascots(); // re-render to switch back to Equip button
+                });
+            });
         }
 
         function renderMascots() {
@@ -8539,7 +8682,7 @@ ${selectedMascotId === o.id
                 revealName.textContent = owned.baseName;
                 revealBadges.innerHTML = `
       <span style="padding:2px 6px;border:1px solid #999;border-radius:999px;margin-right:6px;text-transform:capitalize;">${owned.type}</span>
-      <span style="padding:2px 6px;border:1px solid #999;border-radius:999px;text-transform:capitalize;">${owned.variant}</span>
+      <span style="padding:2px 6px;border:1px solid #999;border-radius:999px;text-transform:capitalize;display:none;">${owned.variant}</span>
     `;
                 openCrate();
 
@@ -8897,8 +9040,40 @@ ${selectedMascotId === o.id
             setTimeout(() => toast.remove(), 4000);
         }
 
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem("whatsappInviteIgnored") === "true") {
+                showCollapsedWhatsApp();
+            }
+        });
 
+        function ignoreWhatsAppInvite() {
+            const invite = document.getElementById("whatsappInvite");
+            const collapsed = document.getElementById("whatsappCollapsed");
+            if (invite && collapsed) {
+                invite.style.display = "none";
+                collapsed.style.display = "block";
+                localStorage.setItem("whatsappInviteIgnored", "true");
+            }
+        }
 
+        function restoreWhatsAppInvite() {
+            const invite = document.getElementById("whatsappInvite");
+            const collapsed = document.getElementById("whatsappCollapsed");
+            if (invite && collapsed) {
+                invite.style.display = "block";
+                collapsed.style.display = "none";
+                localStorage.setItem("whatsappInviteIgnored", "false");
+            }
+        }
+
+        function showCollapsedWhatsApp() {
+            const invite = document.getElementById("whatsappInvite");
+            const collapsed = document.getElementById("whatsappCollapsed");
+            if (invite && collapsed) {
+                invite.style.display = "none";
+                collapsed.style.display = "block";
+            }
+        }
     </script>
 </body>
 
