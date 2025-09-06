@@ -395,7 +395,7 @@
             margin-top: 5px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             border: none;
         }
 
@@ -1228,7 +1228,8 @@
             margin-right: 0;
         }
 
-        #milestones-container {
+        #milestones-container,
+        #mascot-container {
             margin-top: 20px;
             font-size: 12px;
         }
@@ -2105,7 +2106,7 @@
             margin-top: 5px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             border: none;
         }
     </style>
@@ -2128,8 +2129,8 @@
                         <p class="gold-count"><span id="gold">20</span> Gold</p>
                         <p class="level-count">Level <span id="level">1</span></p>
                     </div>
-                    <p class="rebirth-count">Rebirths: <span id="rebirth">1</span></p>
-                    <p class="bricks-count">Bricks: <span id="bricksBroken">0</span></p>
+                    <p class="rebirth-count"><b>Rebirths: </b><span id="rebirth">1</span></p>
+                    <p class="bricks-count"><b>Bricks: </b> <span id="bricksBroken">0</span></p>
 
                     <button id="save-button">Save progress</button>
                     <!-- Chat Button -->
@@ -2157,7 +2158,7 @@
                 </div>
 
                 <div id="mascot-container" style="display: block;">
-                    <h3>🐾 Mascots</h3>
+                    <h3>Mascots</h3>
                     <div id="mascots-preview">
                         <!-- User's mascots can be shown here later -->
                         <p style="font-size:12px;color:#444;">No mascots yet</p>
@@ -5816,9 +5817,18 @@ display: flex;
 
                 updateUI();
                 showToast(`Upgraded ${type} ball to level ${ballUpgrades[type].level}! Speed +${speedIncrease.toFixed(2)}, Damage +${damageIncrease.toFixed(2)}`);
-                // Refresh the My Balls popup to update costs and stats
-                document.querySelector('.login-overlay')?.remove();
+
+                // ✅ Preserve scroll properly
+                const popup = document.querySelector('.my-balls-popup');
+                let scrollPos = popup ? popup.scrollTop : 0;
+
+                // Remove ALL overlays before recreating
+                document.querySelectorAll('.login-overlay').forEach(el => el.remove());
+
                 showMyBallsPopup();
+
+                const newPopup = document.querySelector('.my-balls-popup');
+                if (newPopup) newPopup.scrollTop = scrollPos;
             } else {
                 showToast('Not enough gold!');
             }
@@ -5850,7 +5860,7 @@ display: flex;
         }
 
         // Rebirth
-        function rebirth(skipConfirm = false) {
+        function rebirth(skipConfirm = false, silent = false) {
             if (level >= 100 && (skipConfirm || confirm('Are you sure you want to rebirth? You will lose all balls and gold but keep ball upgrades.'))) {
                 gold = 20;
                 level = 1;
@@ -5927,7 +5937,12 @@ display: flex;
 
                 // Refresh the My Balls popup to update rebirth info
                 document.querySelector('.login-overlay')?.remove();
-                showMyBallsPopup();
+
+                // Only show popup on manual rebirths
+                if (!silent) {
+                    showMyBallsPopup();
+                }
+
             } else {
                 showToast(level < 100 ? 'You need to reach level 100 to rebirth!' : 'Rebirth cancelled.');
             }
@@ -7286,63 +7301,63 @@ display: flex;
                             <canvas id="basic-stats-preview" width="40" height="40"></canvas>
                             <span><b>Basic</b>: ${balls.filter(b => b.type === 'basic').length} balls, Level: ${ballUpgrades.basic.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${ballUpgrades.basic.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < basicCost || ballUpgrades.basic.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('basic')">Upgrade<br>(${basicCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < basicCost || ballUpgrades.basic.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('basic')">Upgrade<br>(${formatNumber(basicCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="sniper-stats-preview" width="40" height="40"></canvas>
                             <span><b>Sniper</b>: ${balls.filter(b => b.type === 'sniper').length} balls, Level: ${ballUpgrades.sniper.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < sniperCost || ballUpgrades.sniper.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('sniper')">Upgrade<br>(${sniperCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < sniperCost || ballUpgrades.sniper.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('sniper')">Upgrade<br>(${formatNumber(sniperCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="big-stats-preview" width="40" height="40"></canvas>
                             <span><b>Big</b>: ${balls.filter(b => b.type === 'big').length} balls, Level: ${ballUpgrades.big.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < bigCost || ballUpgrades.big.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('big')">Upgrade<br>(${bigCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < bigCost || ballUpgrades.big.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('big')">Upgrade<br>(${formatNumber(bigCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="explosion-stats-preview" width="40" height="40"></canvas>
                             <span><b>Bomb</b>: ${balls.filter(b => b.type === 'explosion').length} balls, Level: ${ballUpgrades.explosion.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.explosion.speed.toFixed(1)}, Damage: ${ballUpgrades.explosion.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < explosionCost || ballUpgrades.explosion.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('explosion')">Upgrade<br>(${explosionCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < explosionCost || ballUpgrades.explosion.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('explosion')">Upgrade<br>(${formatNumber(explosionCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="multiplying-stats-preview" width="40" height="40"></canvas>
                             <span><b>Clones</b>: ${balls.filter(b => b.type === 'multiplying').length} balls, Level: ${ballUpgrades.multiplying.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < multiplyingCost || ballUpgrades.multiplying.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('multiplying')">Upgrade<br>(${multiplyingCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < multiplyingCost || ballUpgrades.multiplying.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('multiplying')">Upgrade<br>(${formatNumber(multiplyingCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="child-stats-preview" width="40" height="40"></canvas>
                             <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${ballUpgrades.child.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < childCost || ballUpgrades.child.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('child')">Upgrade<br>(${childCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < childCost || ballUpgrades.child.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('child')">Upgrade<br>(${formatNumber(childCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="cannonball-stats-preview" width="40" height="40"></canvas>
                             <span><b>Cannon</b>: ${balls.filter(b => b.type === 'cannonball').length} balls, Level: ${ballUpgrades.cannonball.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${ballUpgrades.cannonball.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < cannonballCost || ballUpgrades.cannonball.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('cannonball')">Upgrade<br>(${cannonballCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < cannonballCost || ballUpgrades.cannonball.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('cannonball')">Upgrade<br>(${formatNumber(cannonballCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="poison-stats-preview" width="40" height="40"></canvas>
                             <span><b>Poison</b>: ${balls.filter(b => b.type === 'poison').length} balls, Level: ${ballUpgrades.poison.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${ballUpgrades.poison.damage.toFixed(1)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < poisonCost || ballUpgrades.poison.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('poison')">Upgrade<br>(${poisonCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < poisonCost || ballUpgrades.poison.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('poison')">Upgrade<br>(${formatNumber(poisonCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="snowball-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Snowball</b>: ${balls.filter(b => b.type === 'snowball').length} balls, Level: ${ballUpgrades.snowball.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.snowball.speed.toFixed(1)}, Damage: ${ballUpgrades.snowball.damage.toFixed(1)}</span>
+                            <span><b>Snowball</b>: ${balls.filter(b => b.type === 'snowball').length} balls, Level: ${ballUpgrades.snowball.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.snowball.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.snowball.damage)}</span>
                         </div>
-                        <button class="upgrade-btn" ${gold < snowballCost || ballUpgrades.snowball.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('snowball')">Upgrade<br>(${snowballCost} gold)</button>
+                        <button class="upgrade-btn" ${gold < snowballCost || ballUpgrades.snowball.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('snowball')">Upgrade<br>(${formatNumber(snowballCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -7369,7 +7384,7 @@ display: flex;
             <div class="tab-content" id="rebirth">
                 <div class="rebirth-info">
                     <p>Rebirth at level 100 to start from level 1, losing all balls and gold but keeping ball upgrades.</p>
-                    <p>Current Idle Gold Per Second: ${idleGoldPerSecond.toFixed(2)}</p>
+                    <p>Current Idle Gold Per Second: <b>${formatNumber(idleGoldPerSecond)}</b></p>
                     <p>Each rebirth increases idle gold per second by 1.2 times and max upgrade level by 5.</p>
                     <button class="rebirth-btn" ${level < 100 ? 'disabled' : ''} onclick="rebirth()">Rebirth (Level ${level}/100)</button>
                 </div>
@@ -7395,7 +7410,7 @@ display: flex;
                     <div class="shop-option">
                         <span>💰 Idle Gold Boost</span>
                         <span class="tooltip">Permanently increases idle gold by +0.5/sec.</span>
-                        <button onclick="buyIdleGoldBoost()" ${gold < Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1))) ? 'disabled' : ''}>Buy (${Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1)))} Gold)</button>
+                        <button onclick="buyIdleGoldBoost()" ${gold < Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1))) ? 'disabled' : ''}>Buy (${formatNumber(Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1))))} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🌌 Cosmic Barrage</span>
@@ -7443,32 +7458,32 @@ display: flex;
                     <div class="shop-option">
                         <span>💥 Instant Brick Destroy</span>
                         <span class="tooltip">Destroys 3 random bricks instantly, grants 5 gold each.</span>
-                        <button onclick="buyInstantBrickDestroy()" ${gold < getDynamicPrice(basePrices.instantBrickDestroy) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.instantBrickDestroy)} Gold)</button>
+                        <button onclick="buyInstantBrickDestroy()" ${gold < getDynamicPrice(basePrices.instantBrickDestroy) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.instantBrickDestroy))} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>⚡ Double Damage</span>
                         <span class="tooltip">Increases all ball damage by 2.5x for 60 seconds.</span>
-                        <button onclick="buyDoubleDamage()" ${gold < getDynamicPrice(basePrices.doubleDamage) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.doubleDamage)} Gold)</button>
+                        <button onclick="buyDoubleDamage()" ${gold < getDynamicPrice(basePrices.doubleDamage) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.doubleDamage))} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🏀 Extra Ball</span>
                         <span class="tooltip">Adds 1 random ball (Sniper, Big, Bomb, or Clones).</span>
-                        <button onclick="buyExtraBall()" ${gold < getDynamicPrice(basePrices.extraBall) || balls.length >= maxBalls ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.extraBall)} Gold)</button>
+                        <button onclick="buyExtraBall()" ${gold < getDynamicPrice(basePrices.extraBall) || balls.length >= maxBalls ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.extraBall))} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🧲 Gold Magnet</span>
                         <span class="tooltip">Collects all gold power-ups for 30 seconds, 100 gold each.</span>
-                        <button onclick="buyGoldMagnet()" ${gold < getDynamicPrice(basePrices.goldMagnet) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.goldMagnet)} Gold)</button>
+                        <button onclick="buyGoldMagnet()" ${gold < getDynamicPrice(basePrices.goldMagnet) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.goldMagnet))} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🛠️ Brick Health Reduction</span>
                         <span class="tooltip">Reduces all brick health to 30% (minimum 1).</span>
-                        <button onclick="buyBrickHealthReduction()" ${gold < getDynamicPrice(basePrices.brickHealthReduction) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.brickHealthReduction)} Gold)</button>
+                        <button onclick="buyBrickHealthReduction()" ${gold < getDynamicPrice(basePrices.brickHealthReduction) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.brickHealthReduction))} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🚀 Speed Surge</span>
                         <span class="tooltip">Increases ball speed by 4x for 30 seconds.</span>
-                        <button onclick="buySpeedSurge()" ${gold < getDynamicPrice(basePrices.speedSurge) ? 'disabled' : ''}>Buy (${getDynamicPrice(basePrices.speedSurge)} Gold)</button>
+                        <button onclick="buySpeedSurge()" ${gold < getDynamicPrice(basePrices.speedSurge) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.speedSurge))} Gold)</button>
                     </div>
                 </div>
             </div>
@@ -7491,6 +7506,7 @@ display: flex;
             drawBallPreview('poison-stats-preview', 'lime', 8);
             drawBallPreview('snowball-stats-preview', 'white', 8);
             drawBallPreview('auto-stats-preview', 'black', 8);
+
             const tabs = overlay.querySelectorAll('.tab-btn');
             const contents = overlay.querySelectorAll('.tab-content');
             tabs.forEach(tab => {
@@ -7507,8 +7523,6 @@ display: flex;
             });
             document.getElementById('buy-auto-rebirth-btn')?.addEventListener('click', buyAutoRebirth);
         }
-
-
 
         function toggleCosmeticButton(button, cosmeticName) {
             if (!cosmetics[cosmeticName] && !button.disabled) {
@@ -7652,6 +7666,7 @@ display: flex;
                             <p>Total Play Time: ${(stats.totalPlayTime / 3600).toFixed(2)} hours</p>
                             <p>Total Balls Purchased: ${stats.totalBallsPurchased}</p>
                             <p>Total Upgrades Purchased: ${stats.totalUpgrades}</p>
+                            <p>Total Bricks Destroyed: ${stats.totalBricksBroken}</p>
                             <p>Total Rebirths: ${rebirthCount || 0}</p>
                             <p>Donated: ${formatNumber(stats.totalDonated || 0)} Gold</p>
                             <p>Rank: ${rankNameSettings}</p>
@@ -8065,7 +8080,7 @@ display: flex;
                 updateBallOptionsUI();
                 updateUI();
                 if (level >= 100 && autoRebirthOwned && autoRebirthEnabled) {
-                    rebirth(true); // skipConfirm = true
+                    rebirth(true, true); // skipConfirm=true, silent=true
                 } else {
                     spawnBricks();
                     updateUI();
