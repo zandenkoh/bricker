@@ -2109,6 +2109,81 @@
             font-size: 14px;
             border: none;
         }
+
+        /* Custom styles for the pop-up */
+        #gamePromoPopup {
+            display: none;
+            background-image: url('./dunes-ad.png');
+            background-size: cover;
+            background-position: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+        }
+
+        #gamePromoPopup:hover {
+            text-decoration: underline;
+            text-decoration-color: #fff;
+        }
+
+        #popupOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            text-decoration: none;
+        }
+
+        #closePopupBtn {
+            display: none;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #closePopupBtn:hover {
+            background: rgba(255, 255, 255, 1);
+        }
+
+        #popupContent {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        #popupHeading {
+            font-size: 2.25rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-decoration: none;
+        }
+
+        #popupDescription {
+            font-size: 1.125rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            text-decoration: none;
+        }
     </style>
 </head>
 
@@ -2454,6 +2529,17 @@
     </div>
 
 
+    <!-- Overlay for the pop-up -->
+    <div id="popupOverlay"></div>
+
+    <!-- Pop-up container -->
+    <a href="https://zandenkoh.github.io/dunes/" id="gamePromoPopup">
+        <div id="popupContent">
+            <h2 id="popupHeading">Play Dunes Now!!</h2>
+            <p id="popupDescription">We've just launched a new multiplayer game, play it now!</p>
+        </div>
+        <button id="closePopupBtn" aria-label="Close pop-up">&times;</button>
+    </a>
 
     <script src="mascots.js"></script>
     <!-- Firebase SDK -->
@@ -2998,9 +3084,10 @@
                     // Logged in: ignore invite links
                     loadGameState(user.uid);   // <-- this will trigger bgMusic if enabled
                     startTutorialIfNeeded(user.uid);
-                    showSG60GiveawayPopup(user.uid);
+                    //showSG60GiveawayPopup(user.uid);
                     migrateNewBalls();
                     setupListeners();
+                    showPopup();
 
                     // Only show modal if not previously closed
                     if (localStorage.getItem('updateModalClosed') !== 'true') {
@@ -3041,6 +3128,7 @@
                     }
                     applyMusicSettings();
                     if (trollsContainer) trollsContainer.style.display = "none";
+                    hidePopup();
 
 
                 }
@@ -3048,6 +3136,43 @@
                 updateBallOptionsUI(); // run for both
             });
         };
+
+        // Get DOM elements
+        const GamePopup = document.getElementById('gamePromoPopup');
+        const GameOverlay = document.getElementById('popupOverlay');
+        const GameCloseBtn = document.getElementById('closePopupBtn');
+
+        // Function to show pop-up
+        function showPopup() {
+            // Check if pop-up was previously closed
+            if (localStorage.getItem('popupClosed') !== 'true') {
+                GamePopup.style.display = 'block';
+                GameOverlay.style.display = 'block';
+                // Show close button after 2 seconds
+                setTimeout(() => {
+                    GameCloseBtn.style.display = 'flex';
+                    GameCloseBtn.style.alignItems = 'center';
+                    GameCloseBtn.style.justifyContent = 'center';
+                }, 2000);
+            }
+        }
+
+        // Function to hide pop-up
+        function hidePopup() {
+            GamePopup.style.display = 'none';
+            GameOverlay.style.display = 'none';
+            // Save closed state to local storage
+            localStorage.setItem('popupClosed', 'true');
+        }
+
+        // Close button event listener
+        GameCloseBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent the link from being followed
+            hidePopup();
+        });
+
+
+
 
         const sgTarget = new Date("2025-10-02T00:00:00+08:00").getTime();
 
@@ -5121,7 +5246,6 @@ display: flex;
                         gold -= weaponCost;
                         deployRandomWeapon();
                         updateUI();
-                        saveGameState();
                     } else {
                         showToast('Not enough gold!');
                     }
