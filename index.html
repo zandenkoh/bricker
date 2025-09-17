@@ -2855,6 +2855,7 @@
         let level = 1;
         let balls = [];
         let bricks = [];
+        window.bricks = [];
         let powerUps = [];
         let autoBalls = [];
         let effects = [];
@@ -4195,6 +4196,7 @@ display: flex;
     flex-direction: column; /* Stack username and info vertically */
     gap: 5px; /* Space between username and info */
     flex: 1;
+    white-space: nowrap;
     }
 
     .leaderboard-card.current-user {
@@ -5472,6 +5474,64 @@ display: flex;
 
 
         // Brick class
+        /*      class Brick {
+                  constructor(x, y, health) {
+                      this.x = x;
+                      this.y = y;
+                      this.width = brickWidth;
+                      this.height = brickHeight;
+                      // Adjust health based on idleGoldPerSecond and totalUpgrades
+                      const difficultyFactor = 1 + (idleGoldPerSecond * 0.5) + (stats.totalUpgrades * 0.05);
+                      this.health = Math.floor((health + Math.floor(level / 2)) * difficultyFactor);
+                      this.formatHealth = formatNumber(health);
+                      this.hover = false;
+                      if (cosmetics.activeEffect) {
+                          spawnMascotEffect(this.x, this.y, cosmetics.activeEffect);
+                      }
+      
+      
+                  }
+      
+                  takeDamage(damage) {
+                      this.health -= damage;
+                      if (this.health <= 0) {
+                          // Brick destroyed → increment counter
+                          stats.totalBricksBroken = (stats.totalBricksBroken || 0) + 1;
+                          // remove brick from game here if you already have logic for that
+                      }
+                  }
+      
+                  isCursorHovering(mouseX, mouseY) {
+                      return (
+                          mouseX > this.x &&
+                          mouseX < this.x + this.width &&
+                          mouseY > this.y &&
+                          mouseY < this.y + this.height
+                      );
+                  }
+      
+      
+                  draw() {
+                      ctx.fillStyle = `rgba(255, 0, 0, ${this.health / (3 + level / 2)})`;
+                      ctx.fillRect(this.x, this.y, this.width, this.height);
+      
+                      ctx.fillStyle = '#fff';
+                      ctx.font = '18px Arial';
+                      ctx.textAlign = 'center';
+                      ctx.textBaseline = 'middle';
+      
+                      // Use formatted number for display only
+                      ctx.fillText(formatNumber(this.health), this.x + this.width / 2, this.y + this.height / 2);
+      
+                      ctx.strokeStyle = '#333';
+                      ctx.lineWidth = 2;
+                      ctx.strokeRect(this.x, this.y, this.width, this.height);
+                      updateParticles(ctx);
+                  }
+      
+              }
+      */
+
         class Brick {
             constructor(x, y, health) {
                 this.x = x;
@@ -5486,19 +5546,31 @@ display: flex;
                 if (cosmetics.activeEffect) {
                     spawnMascotEffect(this.x, this.y, cosmetics.activeEffect);
                 }
-
-
             }
 
+            /** Apply damage to this brick */
             takeDamage(damage) {
                 this.health -= damage;
-                if (this.health <= 0) {
-                    // Brick destroyed → increment counter
-                    stats.totalBricksBroken = (stats.totalBricksBroken || 0) + 1;
-                    // remove brick from game here if you already have logic for that
+
+                if (this.health > 0) {
+                    showToast(`Hit! -${damage} HP`);
                 }
+
+                if (this.health <= 0) {
+                    // Increment stats & rewards
+                    stats.totalBricksBroken = (stats.totalBricksBroken || 0) + 1;
+                    const index = bricks.indexOf(this);
+                    if (index !== -1) bricks.splice(index, 1);
+
+                    gold += 5;
+                    if (powerUps.length < maxPowerUps) spawnPowerUp();
+                    showToast('Brick destroyed! +5 gold');
+                }
+
+                updateUI();
             }
 
+            /** Check if mouse is inside this brick */
             isCursorHovering(mouseX, mouseY) {
                 return (
                     mouseX > this.x &&
@@ -5508,9 +5580,14 @@ display: flex;
                 );
             }
 
-
+            /** Draw this brick (with hover highlight) */
             draw() {
-                ctx.fillStyle = `rgba(255, 0, 0, ${this.health / (3 + level / 2)})`;
+                // Slightly brighten when hovered
+                const baseAlpha = this.health / (3 + level / 2);
+                ctx.fillStyle = this.hover
+                    ? `rgba(255, 80, 80, ${Math.min(baseAlpha + 0.2, 1)})`
+                    : `rgba(255, 0, 0, ${baseAlpha})`;
+
                 ctx.fillRect(this.x, this.y, this.width, this.height);
 
                 ctx.fillStyle = '#fff';
@@ -5518,16 +5595,167 @@ display: flex;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
-                // Use formatted number for display only
                 ctx.fillText(formatNumber(this.health), this.x + this.width / 2, this.y + this.height / 2);
 
-                ctx.strokeStyle = '#333';
+                ctx.strokeStyle = this.hover ? '#ff0' : '#333';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(this.x, this.y, this.width, this.height);
+
                 updateParticles(ctx);
             }
-
         }
+
+        /* === Global mouse handling for hover + click damage === */
+        let mousePos = { x: 0, y: 0 };
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left;
+            mousePos.y = e.clientY - rect.top;
+
+            // update hover flags
+            bricks.forEach(b => (b.hover = b.isCursorHovering(mousePos.x, mousePos.y)));
+        });
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // find top-most brick hit
+            for (let i = bricks.length - 1; i >= 0; i--) {
+                const b = bricks[i];
+                if (b.isCursorHovering(clickX, clickY)) {
+                    b.takeDamage(1); // damage per click
+                    break;
+                }
+            }
+        });
+
+        /* ---------- Robust brick click/hover patch  ----------
+   Paste AFTER your Brick class and after bricks + canvas exist.
+   It will:
+   - handle CSS/dpr scaling
+   - log helpful debug info
+   - guard against overlays or missing globals
+-----------------------------------------------------*/
+(function initBrickClick() {
+  function getCanvasElement() {
+    // prefer existing global `canvas` if present, otherwise find first <canvas>
+    if (typeof canvas !== 'undefined' && canvas instanceof HTMLCanvasElement) return canvas;
+    const el = document.querySelector('canvas') || document.getElementById('gameCanvas');
+    return el instanceof HTMLCanvasElement ? el : null;
+  }
+
+  function toCanvasCoords(canvasEl, clientX, clientY) {
+    const rect = canvasEl.getBoundingClientRect();
+    // account for canvas internal resolution vs CSS size
+    const scaleX = canvasEl.width / rect.width;
+    const scaleY = canvasEl.height / rect.height;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+      rect
+    };
+  }
+
+  function addListeners(canvasEl) {
+    canvasEl.style.touchAction = canvasEl.style.touchAction || 'none'; // avoid touch scroll interference
+
+    canvasEl.addEventListener('mousemove', (e) => {
+      // convert to canvas coords
+      const { x, y } = toCanvasCoords(canvasEl, e.clientX, e.clientY);
+      if (!Array.isArray(window.bricks)) return;
+      let anyHover = false;
+      for (let i = 0; i < bricks.length; i++) {
+        const b = bricks[i];
+        if (!b) continue;
+        b.hover = !!b.isCursorHovering(x, y);
+        if (b.hover) anyHover = true;
+      }
+      // small debug (comment out if noisy)
+      // console.debug('mousemove -> canvas coords', Math.round(x), Math.round(y), 'hover?', anyHover);
+    });
+
+    canvasEl.addEventListener('click', (e) => {
+      console.groupCollapsed('Brick click debug');
+      console.log('Raw click client coords:', e.clientX, e.clientY);
+
+      // detect top element at pointer (quick overlay check)
+      const topEl = document.elementFromPoint(e.clientX, e.clientY);
+      console.log('Top element at pointer:', topEl && (topEl.tagName + (topEl.id ? '#' + topEl.id : '')));
+
+      // if something other than the canvas is on top, warn
+      if (topEl !== canvasEl && !canvasEl.contains(topEl)) {
+        console.warn('Pointer target is NOT the canvas — an overlay might intercept clicks.');
+      }
+
+      if (!Array.isArray(window.bricks)) {
+        console.warn('`bricks` is not defined or not an array.');
+        console.groupEnd();
+        return;
+      }
+
+      const { x, y } = toCanvasCoords(canvasEl, e.clientX, e.clientY);
+      console.log('Translated canvas coords:', Math.round(x), Math.round(y));
+      let hit = false;
+
+      // iterate backward so top-most bricks (drawn last) are hit first
+      for (let i = bricks.length - 1; i >= 0; i--) {
+        const b = bricks[i];
+        if (!b) continue;
+        if (typeof b.isCursorHovering !== 'function') {
+          console.warn('brick.isCursorHovering missing for item at index', i);
+          continue;
+        }
+        if (b.isCursorHovering(x, y)) {
+          hit = true;
+          console.log('Hit brick index', i, 'health before:', b.health);
+
+          // call takeDamage if available; otherwise modify directly
+          if (typeof b.takeDamage === 'function') {
+            b.takeDamage(e.shiftKey ? 5 : 1);
+          } else {
+            b.health -= (e.shiftKey ? 5 : 1);
+            if (b.health <= 0) {
+              bricks.splice(i, 1);
+            }
+            if (typeof updateUI === 'function') updateUI();
+          }
+
+          console.log('After hit -> health:', b.health);
+          break; // only hit one brick per click
+        }
+      }
+
+      if (!hit) console.log('No brick found at that point.');
+      console.groupEnd();
+    });
+  }
+
+  function readyInit() {
+    const canvasEl = getCanvasElement();
+    if (!canvasEl) {
+      // if we don't find a canvas, wait a bit (maybe created later) and retry once
+      console.warn('No canvas found yet. Retrying in 200ms...');
+      setTimeout(() => {
+        const next = getCanvasElement();
+        if (next) addListeners(next);
+        else console.error('Still no <canvas> found. Make sure your game canvas exists and has been created before this script runs.');
+      }, 200);
+      return;
+    }
+    addListeners(canvasEl);
+    console.log('Brick click handlers attached to canvas:', canvasEl);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', readyInit);
+  } else {
+    // DOM already ready
+    setTimeout(readyInit, 0);
+  }
+})();
 
 
         // BossBrick class
