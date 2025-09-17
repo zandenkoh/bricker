@@ -2184,6 +2184,16 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
             text-decoration: none;
         }
+
+        #donate-btn {
+            border: none;
+            background: #000;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+        }
     </style>
 </head>
 
@@ -2862,7 +2872,7 @@
         let rebirthCount = 0;
         let autoRebirthOwned = false; // Permanently purchased in shop (saved to DB)
         let autoRebirthEnabled = false;
-        const brickWidth = 70;
+        const brickWidth = 100;
         const brickHeight = 30;
         const maxBalls = 1000;
         const MAX_BALL_SPEED = 35;
@@ -4376,7 +4386,9 @@ display: flex;
                                 gold: gameState.gold || 0,
                                 ballCounts: gameState.ballCounts || {},
                                 totalUpgrades: gameState.stats?.totalUpgrades || 0,
-                                idleGoldPerSecond: gameState.idleGoldPerSecond || 0.5
+                                idleGoldPerSecond: gameState.idleGoldPerSecond || 0.5,
+                                ballUpgrades: gameState?.ballUpgrades || {},
+                                stats: gameState?.stats || {}
                             });
                         }
                     });
@@ -4475,7 +4487,9 @@ display: flex;
                                 gold: gameState.gold || 0,
                                 ballCounts: gameState.ballCounts || {},
                                 totalUpgrades: gameState.stats?.totalUpgrades || 0,
-                                idleGoldPerSecond: gameState.idleGoldPerSecond || 0.5
+                                idleGoldPerSecond: gameState.idleGoldPerSecond || 0.5,
+                                ballUpgrades: gameState?.ballUpgrades || {},
+                                stats: gameState?.stats || {}
                             });
                         }
                     });
@@ -4735,11 +4749,19 @@ display: flex;
             const rankColor = rank.color;
             const rankClass = getRankClass(leader.rank);
 
-            // Favourite balls
-            const ballEntries = Object.entries(leader.ballCounts || {});
-            const topBalls = ballEntries
-                .sort((a, b) => (b[1] || 0) - (a[1] || 0))
+            // ✅ Use ballUpgrades instead of ballCounts
+            const ballUpgrades = leader.ballUpgrades || {};
+            const topBalls = Object.entries(ballUpgrades)
+                .sort((a, b) => (b[1].level || 0) - (a[1].level || 0))
                 .slice(0, 4);
+
+            const stats = leader.stats || {};
+            const formatTime = (seconds) => {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = Math.floor(seconds % 60);
+                return `${h}h ${m}m ${s}s`;
+            };
 
             overlay.innerHTML = `
         <div class="user-details-popup">
@@ -4751,7 +4773,9 @@ display: flex;
 
                 <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
                     <div style="display:flex;align-items:center;gap:0;">
-                        <span class="username" style="font-size:26px; margin:0; font-weight:900; display:inline-block; width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${leader.username}</span>
+                        <span class="username" style="font-size:26px; margin:0; font-weight:900; display:inline-block; width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            ${leader.username}
+                        </span>
                     </div>
 
                     <!-- Rebirths + Rank side by side -->
@@ -4761,7 +4785,10 @@ display: flex;
                             <span class="rebirth-label" style="font-size:15px;font-weight:400;margin:0;">Rebirths</span>
                         </div>
                         <div style="display:flex;flex-direction:column;align-items:center;">
-                            <span class="rebirth-count rank-tooltip-trigger" style="font-size:22px;font-weight:900;margin:0;color:${rankColor};cursor:pointer;" onmouseenter="showRankTooltip('${rankName}', '${rankColor}', this)">${rankName}</span>
+                            <span class="rebirth-count rank-tooltip-trigger" style="font-size:22px;font-weight:900;margin:0;color:${rankColor};cursor:pointer;" 
+                                  onmouseenter="showRankTooltip('${rankName}', '${rankColor}', this)">
+                                  ${rankName}
+                            </span>
                             <span class="rebirth-label" style="font-size:15px;font-weight:400;margin:0;">Rank</span>
                         </div>
                     </div>
@@ -4773,17 +4800,50 @@ display: flex;
             <!-- Favourite Balls -->
             <div style="margin-top:10px;">
                 <h4 style="margin:0 0 8px;font-size:15px;font-weight:600;color:#000;">Favourite Balls</h4>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-                    ${topBalls.map(([ball]) => `
+                <div style="display:flex;gap:10px;justify-content:center;white-space:nowrap;">
+                    ${topBalls.map(([ball, data]) => `
                         <div style="text-align:center;">
                             <canvas id="fav-${ball}-canvas" width="60" height="60" style="border:2px solid #444;"></canvas>
-                            <div style="font-size:15px;margin-top:4px;color:#000;font-weight:700;">${formatBallText(ball)}</div>
+                            <div style="font-size:15px;margin-top:4px;color:#000;font-weight:700;">
+                                ${formatBallText(ball)}
+                                <br>
+                                <p style="font-size:13px;font-weight:400;">Lv ${data.level}</p>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
             </div>
-            <div id="donation-container" style="display:none; margin-top:10px;">
-                <input type="number" id="donation-amount" placeholder="Enter gold to donate" min="1" style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #444; border-radius:5px; background:#e9dcaf; color:#000; box-sizing:border-box;">
+
+            <!-- Player Stats -->
+            <div style="margin-top:15px;">
+                <h4 style="margin:0 0 8px;font-size:15px;font-weight:600;color:#000;">Player Stats</h4>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;text-align:center;">
+                    <div style="background:transparent;border:1px solid #000;color:#000;padding:8px;border-radius:8px;">
+                        <div style="font-size:18px;font-weight:700;">${formatNumber(stats.totalBallsPurchased ?? 0)}</div>
+                        <div style="font-size:13px;">Balls Purchased</div>
+                    </div>
+                    <div style="background:transparent;border:1px solid #000;color:#000;padding:8px;border-radius:8px;">
+                        <div style="font-size:18px;font-weight:700;">${formatNumber(stats.totalBricksBroken ?? 0)}</div>
+                        <div style="font-size:13px;">Bricks Broken</div>
+                    </div>
+                    <div style="background:transparent;border:1px solid #000;color:#000;padding:8px;border-radius:8px;">
+                        <div style="font-size:18px;font-weight:700;">${formatNumber(stats.totalDonated ?? 0)}</div>
+                        <div style="font-size:13px;">Gold Donated</div>
+                    </div>
+                    <div style="background:transparent;border:1px solid #000;color:#000;padding:8px;border-radius:8px;">
+                        <div style="font-size:18px;font-weight:700;">${formatTime(stats.totalPlayTime ?? 0)}</div>
+                        <div style="font-size:13px;">Play Time</div>
+                    </div>
+                    <div style="background:transparent;border:1px solid #000;color:#000;padding:8px;border-radius:8px;">
+                        <div style="font-size:18px;font-weight:700;">${formatNumber(stats.totalUpgrades ?? 0)}</div>
+                        <div style="font-size:13px;">Total Upgrades</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="donation-container" style="display:none; margin-top:20px;">
+                <input type="number" id="donation-amount" placeholder="Enter gold to donate" min="1" 
+                       style="width:100%; padding:8px; margin-bottom:-10px; border:1px solid #444; border-radius:5px; background:#e9dcaf; color:#000; box-sizing:border-box;">
             </div>
             <button id="donate-btn" onclick="toggleDonationInput('${leader.uid}')" style="margin-top:15px;">Donate Gold</button>
         </div>
@@ -4795,7 +4855,7 @@ display: flex;
             overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
             overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 
-            // Draw ball previews
+            // ✅ Draw ball previews with correct colors
             topBalls.forEach(([ball]) => {
                 const canvasId = `fav-${ball}-canvas`;
                 switch (ball) {
@@ -5639,123 +5699,123 @@ display: flex;
    - log helpful debug info
    - guard against overlays or missing globals
 -----------------------------------------------------*/
-(function initBrickClick() {
-  function getCanvasElement() {
-    // prefer existing global `canvas` if present, otherwise find first <canvas>
-    if (typeof canvas !== 'undefined' && canvas instanceof HTMLCanvasElement) return canvas;
-    const el = document.querySelector('canvas') || document.getElementById('gameCanvas');
-    return el instanceof HTMLCanvasElement ? el : null;
-  }
-
-  function toCanvasCoords(canvasEl, clientX, clientY) {
-    const rect = canvasEl.getBoundingClientRect();
-    // account for canvas internal resolution vs CSS size
-    const scaleX = canvasEl.width / rect.width;
-    const scaleY = canvasEl.height / rect.height;
-    return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY,
-      rect
-    };
-  }
-
-  function addListeners(canvasEl) {
-    canvasEl.style.touchAction = canvasEl.style.touchAction || 'none'; // avoid touch scroll interference
-
-    canvasEl.addEventListener('mousemove', (e) => {
-      // convert to canvas coords
-      const { x, y } = toCanvasCoords(canvasEl, e.clientX, e.clientY);
-      if (!Array.isArray(window.bricks)) return;
-      let anyHover = false;
-      for (let i = 0; i < bricks.length; i++) {
-        const b = bricks[i];
-        if (!b) continue;
-        b.hover = !!b.isCursorHovering(x, y);
-        if (b.hover) anyHover = true;
-      }
-      // small debug (comment out if noisy)
-      // console.debug('mousemove -> canvas coords', Math.round(x), Math.round(y), 'hover?', anyHover);
-    });
-
-    canvasEl.addEventListener('click', (e) => {
-      console.groupCollapsed('Brick click debug');
-      console.log('Raw click client coords:', e.clientX, e.clientY);
-
-      // detect top element at pointer (quick overlay check)
-      const topEl = document.elementFromPoint(e.clientX, e.clientY);
-      console.log('Top element at pointer:', topEl && (topEl.tagName + (topEl.id ? '#' + topEl.id : '')));
-
-      // if something other than the canvas is on top, warn
-      if (topEl !== canvasEl && !canvasEl.contains(topEl)) {
-        console.warn('Pointer target is NOT the canvas — an overlay might intercept clicks.');
-      }
-
-      if (!Array.isArray(window.bricks)) {
-        console.warn('`bricks` is not defined or not an array.');
-        console.groupEnd();
-        return;
-      }
-
-      const { x, y } = toCanvasCoords(canvasEl, e.clientX, e.clientY);
-      console.log('Translated canvas coords:', Math.round(x), Math.round(y));
-      let hit = false;
-
-      // iterate backward so top-most bricks (drawn last) are hit first
-      for (let i = bricks.length - 1; i >= 0; i--) {
-        const b = bricks[i];
-        if (!b) continue;
-        if (typeof b.isCursorHovering !== 'function') {
-          console.warn('brick.isCursorHovering missing for item at index', i);
-          continue;
-        }
-        if (b.isCursorHovering(x, y)) {
-          hit = true;
-          console.log('Hit brick index', i, 'health before:', b.health);
-
-          // call takeDamage if available; otherwise modify directly
-          if (typeof b.takeDamage === 'function') {
-            b.takeDamage(e.shiftKey ? 5 : 1);
-          } else {
-            b.health -= (e.shiftKey ? 5 : 1);
-            if (b.health <= 0) {
-              bricks.splice(i, 1);
+        (function initBrickClick() {
+            function getCanvasElement() {
+                // prefer existing global `canvas` if present, otherwise find first <canvas>
+                if (typeof canvas !== 'undefined' && canvas instanceof HTMLCanvasElement) return canvas;
+                const el = document.querySelector('canvas') || document.getElementById('gameCanvas');
+                return el instanceof HTMLCanvasElement ? el : null;
             }
-            if (typeof updateUI === 'function') updateUI();
-          }
 
-          console.log('After hit -> health:', b.health);
-          break; // only hit one brick per click
-        }
-      }
+            function toCanvasCoords(canvasEl, clientX, clientY) {
+                const rect = canvasEl.getBoundingClientRect();
+                // account for canvas internal resolution vs CSS size
+                const scaleX = canvasEl.width / rect.width;
+                const scaleY = canvasEl.height / rect.height;
+                return {
+                    x: (clientX - rect.left) * scaleX,
+                    y: (clientY - rect.top) * scaleY,
+                    rect
+                };
+            }
 
-      if (!hit) console.log('No brick found at that point.');
-      console.groupEnd();
-    });
-  }
+            function addListeners(canvasEl) {
+                canvasEl.style.touchAction = canvasEl.style.touchAction || 'none'; // avoid touch scroll interference
 
-  function readyInit() {
-    const canvasEl = getCanvasElement();
-    if (!canvasEl) {
-      // if we don't find a canvas, wait a bit (maybe created later) and retry once
-      console.warn('No canvas found yet. Retrying in 200ms...');
-      setTimeout(() => {
-        const next = getCanvasElement();
-        if (next) addListeners(next);
-        else console.error('Still no <canvas> found. Make sure your game canvas exists and has been created before this script runs.');
-      }, 200);
-      return;
-    }
-    addListeners(canvasEl);
-    console.log('Brick click handlers attached to canvas:', canvasEl);
-  }
+                canvasEl.addEventListener('mousemove', (e) => {
+                    // convert to canvas coords
+                    const { x, y } = toCanvasCoords(canvasEl, e.clientX, e.clientY);
+                    if (!Array.isArray(window.bricks)) return;
+                    let anyHover = false;
+                    for (let i = 0; i < bricks.length; i++) {
+                        const b = bricks[i];
+                        if (!b) continue;
+                        b.hover = !!b.isCursorHovering(x, y);
+                        if (b.hover) anyHover = true;
+                    }
+                    // small debug (comment out if noisy)
+                    // console.debug('mousemove -> canvas coords', Math.round(x), Math.round(y), 'hover?', anyHover);
+                });
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', readyInit);
-  } else {
-    // DOM already ready
-    setTimeout(readyInit, 0);
-  }
-})();
+                canvasEl.addEventListener('click', (e) => {
+                    console.groupCollapsed('Brick click debug');
+                    console.log('Raw click client coords:', e.clientX, e.clientY);
+
+                    // detect top element at pointer (quick overlay check)
+                    const topEl = document.elementFromPoint(e.clientX, e.clientY);
+                    console.log('Top element at pointer:', topEl && (topEl.tagName + (topEl.id ? '#' + topEl.id : '')));
+
+                    // if something other than the canvas is on top, warn
+                    if (topEl !== canvasEl && !canvasEl.contains(topEl)) {
+                        console.warn('Pointer target is NOT the canvas — an overlay might intercept clicks.');
+                    }
+
+                    if (!Array.isArray(window.bricks)) {
+                        console.warn('`bricks` is not defined or not an array.');
+                        console.groupEnd();
+                        return;
+                    }
+
+                    const { x, y } = toCanvasCoords(canvasEl, e.clientX, e.clientY);
+                    console.log('Translated canvas coords:', Math.round(x), Math.round(y));
+                    let hit = false;
+
+                    // iterate backward so top-most bricks (drawn last) are hit first
+                    for (let i = bricks.length - 1; i >= 0; i--) {
+                        const b = bricks[i];
+                        if (!b) continue;
+                        if (typeof b.isCursorHovering !== 'function') {
+                            console.warn('brick.isCursorHovering missing for item at index', i);
+                            continue;
+                        }
+                        if (b.isCursorHovering(x, y)) {
+                            hit = true;
+                            console.log('Hit brick index', i, 'health before:', b.health);
+
+                            // call takeDamage if available; otherwise modify directly
+                            if (typeof b.takeDamage === 'function') {
+                                b.takeDamage(e.shiftKey ? 5 : 1);
+                            } else {
+                                b.health -= (e.shiftKey ? 5 : 1);
+                                if (b.health <= 0) {
+                                    bricks.splice(i, 1);
+                                }
+                                if (typeof updateUI === 'function') updateUI();
+                            }
+
+                            console.log('After hit -> health:', b.health);
+                            break; // only hit one brick per click
+                        }
+                    }
+
+                    if (!hit) console.log('No brick found at that point.');
+                    console.groupEnd();
+                });
+            }
+
+            function readyInit() {
+                const canvasEl = getCanvasElement();
+                if (!canvasEl) {
+                    // if we don't find a canvas, wait a bit (maybe created later) and retry once
+                    console.warn('No canvas found yet. Retrying in 200ms...');
+                    setTimeout(() => {
+                        const next = getCanvasElement();
+                        if (next) addListeners(next);
+                        else console.error('Still no <canvas> found. Make sure your game canvas exists and has been created before this script runs.');
+                    }, 200);
+                    return;
+                }
+                addListeners(canvasEl);
+                console.log('Brick click handlers attached to canvas:', canvasEl);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', readyInit);
+            } else {
+                // DOM already ready
+                setTimeout(readyInit, 0);
+            }
+        })();
 
 
         // BossBrick class
@@ -8113,19 +8173,19 @@ display: flex;
 
         /*function toggleBackgroundMusic(enabled) {
             bgMusicEnabled = enabled;
-
+ 
             if (enabled) {
                 bgMusic.play().catch(() => { }); // browsers may block until user interacts
             } else {
                 bgMusic.pause();
             }
-
+ 
             // Save instantly to localStorage
             const currentState = JSON.parse(localStorage.getItem("brickerGameState")) || {};
             currentState.settings = currentState.settings || {};
             currentState.settings.backgroundMusic = enabled;
             localStorage.setItem("brickerGameState", JSON.stringify(currentState));
-
+ 
             // If logged in, update DB
             const user = auth.currentUser;
             if (user && !isGuest) {
