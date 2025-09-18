@@ -268,7 +268,7 @@
 
         .gold-count {
             margin: 5px 0;
-            font-size: 23px;
+            font-size: 22px;
             font-weight: 900;
             color: #000;
         }
@@ -308,6 +308,18 @@
 
         .ball-option p {
             color: #444;
+        }
+
+        #custom-option {
+            align-self: flex-end;
+        }
+
+        #custom-option .ball-price {
+            background: #f4eed6;
+        }
+
+        #custom-option .ball-preview svg {
+            scale: 0.8;
         }
 
         #weapons-btn {
@@ -2194,6 +2206,367 @@
             cursor: pointer;
             font-weight: 700;
         }
+
+        /* Modal container */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 10000;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal::-webkit-scrollbar {
+            width: 0;
+        }
+
+        /* Modal content */
+        .modal-content {
+            background: linear-gradient(145deg, #f4eed6, #e9dcaf);
+            margin: 5vh auto;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            border: 3px solid #444;
+            overflow-y: auto;
+            position: relative;
+            color: #1a1a1a;
+            font-family: 'Arial', sans-serif;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: popIn 0.4s ease-out;
+        }
+
+        /* Scrollbar styling */
+        .modal-content::-webkit-scrollbar {
+            width: 0;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 5px;
+            border: 2px solid #e9dcaf;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: #f4eed6;
+        }
+
+        /* Pop-in animation */
+        @keyframes popIn {
+            from {
+                transform: scale(0.85);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Close button */
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            background: transparent;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s, transform 0.2s, background 0.2s;
+        }
+
+        /* Modal title */
+        .modal-title {
+            font-size: 30px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 0;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal text */
+        .modal-text {
+            font-size: 16px;
+            color: #34495e;
+            line-height: 1.6;
+            margin: 0 0 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Modal list for locked state */
+        .modal-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px;
+        }
+
+        .modal-list li {
+            font-size: 15px;
+            color: #34495e;
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .modal-list li::before {
+            content: "★";
+            position: absolute;
+            left: 0;
+            color: #ffd700;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        /* Modal button group (used only for locked state) */
+        .modal-button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* Modal buttons */
+        .modal-button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+        }
+
+        .modal-button.primary {
+            background: #1abc9c;
+            color: #fff;
+        }
+
+        .modal-button.primary:hover:not(:disabled) {
+            background: #16a085;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-button.primary:disabled {
+            background: #bdc3c7;
+            color: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .modal-button.secondary {
+            background: #f4eed6;
+            color: #2c3e50;
+            border: 2px solid #444;
+        }
+
+        .modal-button.secondary:hover {
+            background: #e0d3a0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Set group */
+        .set-group {
+            margin-bottom: 30px;
+            background: #f4eed6;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #444;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Set group title */
+        .set-group-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 10px;
+            text-align: left;
+            text-transform: uppercase;
+            top: 0;
+            background: linear-gradient(145deg, #f4eed6, #e9dcaf);
+            padding: 10px 12px;
+            z-index: 2;
+            border-bottom: 2px solid #444;
+        }
+
+        /* Sets list (horizontal scroll) */
+        .sets-list {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding-bottom: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .sets-list::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .sets-list::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 4px;
+            border: 1px solid #f4eed6;
+        }
+
+        .sets-list::-webkit-scrollbar-track {
+            background: #e9dcaf;
+        }
+
+        /* Set option */
+        .set-option {
+            flex: 0 0 180px;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #444;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Group-specific background tints */
+        .set-option.normal {
+            background: #f9f9f9;
+        }
+
+        .set-option.advanced {
+            background: #f0f4f0;
+        }
+
+        .set-option.elite {
+            background: #f0f4ff;
+        }
+
+        .set-option.powerful {
+            background: #fff8e1;
+        }
+
+        .set-option:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            border-color: #1abc9c;
+        }
+
+        /* Set preview container */
+        .set-preview-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Set preview */
+        .set-preview {
+            position: relative;
+            text-align: center;
+        }
+
+        .set-preview canvas {
+            width: 60px;
+            height: 60px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .set-preview .multiplier {
+            font-size: 13px;
+            font-weight: 800;
+            color: #34495e;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        /* Set price */
+        .set-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #e67e22;
+            text-align: center;
+            background: #f4eed6;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            margin-bottom: 5px;
+        }
+
+        /* Buy button */
+        .set-buy-button {
+            display: block;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            background: #1abc9c;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            width: 70%;
+            transition: background 0.2s, transform 0.1s, opacity 0.2s;
+            opacity: 1;
+            margin-top: 10px;
+        }
+
+        .set-buy-button:hover:not(:disabled) {
+            background: #16a085;
+        }
+
+        .set-buy-button:disabled {
+            background: #e74c3c;
+            cursor: not-allowed;
+        }
+
+        /* Tooltip */
+        .set-option .tooltip {
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f4eed6;
+            border: 2px solid #444;
+            color: #2c3e50;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s, top 0.2s;
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .set-option:hover .tooltip {
+            opacity: 1;
+            top: -55px;
+        }
     </style>
 </head>
 
@@ -2210,6 +2583,12 @@
         <div class="main-container">
             <div class="sidebar-container">
                 <div class="info-container">
+                    <div class="bricker-title"
+                        style="display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;height:85px;width:font-content;white-space: nowrap;flex:1;box-sizing:border-box;padding:0;margin-bottom:0;">
+                        <h1 style="margin-bottom:0;font-size:18px;">Bricker</h1>
+                        <div id="miniCountdown" class="mini-countdown" title="Click to see what's coming!"></div>
+
+                    </div>
                     <div class="gold-level-container">
                         <p class="gold-count"><span id="gold">20</span> Gold</p>
                         <p class="level-count">Level <span id="level">1</span></p>
@@ -2355,6 +2734,21 @@
                                 <span id="snowballPrice">200</span>
                             </div>
                         </div>
+                        <div class="ball-option" id="custom-option" onclick="openCustomBallModal()">
+                            <p></p>
+                            <div class="ball-preview">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="#000" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                                </svg>
+
+                            </div>
+                            <div class="ball-price">
+                                <span>Sets</span>
+                            </div>
+                        </div>
+
                         <div class="button-group">
                             <div class="ball-option" id="weapons-btn">
                                 <p>Mass Destruction</p>
@@ -2373,13 +2767,6 @@
                         </div>
                     </div>
 
-
-                    <div class="bricker-title"
-                        style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:85px;align-self:flex-end;width:fit-content;white-space: nowrap;flex:1;box-sizing:border-box;padding:10px;">
-                        <h1>Bricker</h1>
-                        <div id="miniCountdown" class="mini-countdown" title="Click to see what's coming!"></div>
-
-                    </div>
                 </div>
 
                 <canvas id="gameCanvas" width="1000" height="520"></canvas>
@@ -2533,6 +2920,12 @@
         </div>
     </div>
 
+    <div id="custom-balls-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeCustomBallModal()">&times;</span>
+            <!-- Modal content will be dynamically populated -->
+        </div>
+    </div>
 
     <div id="troll-toast-container"
         style="position: fixed;bottom: 20px;right: 20px;display: flex;flex-direction: column;gap: 10px;z-index: 2000;">
@@ -2564,6 +2957,7 @@
             trail.className = "cursor-trail";
             trail.style.left = e.clientX + "px";
             trail.style.top = e.clientY + "px";
+            trail.style.zIndex = "9999"
             document.body.appendChild(trail);
 
             // Remove after animation ends
@@ -5616,18 +6010,20 @@ display: flex;
                     showToast(`Hit! -${damage} HP`);
                 }
 
-                if (this.health <= 0) {
-                    // Increment stats & rewards
-                    stats.totalBricksBroken = (stats.totalBricksBroken || 0) + 1;
-                    const index = bricks.indexOf(this);
-                    if (index !== -1) bricks.splice(index, 1);
+    if (this.health <= 0) {
+        // Increment stats & rewards
+        stats.totalBricksBroken = (stats.totalBricksBroken || 0) + 1;
+        const index = bricks.indexOf(this);
+        if (index !== -1) bricks.splice(index, 1);
 
-                    gold += 5;
-                    if (powerUps.length < maxPowerUps) spawnPowerUp();
-                    showToast('Brick destroyed! +5 gold');
-                }
+        const goldReward = Math.max(1, Math.floor(idleGoldPerSecond));
+        gold += goldReward;
+        if (powerUps.length < maxPowerUps) spawnPowerUp();
+        showToast(`Brick destroyed, +${formatNumber(goldReward)} gold`);
+    }
 
-                updateUI();
+    updateUI();
+
             }
 
             /** Check if mouse is inside this brick */
@@ -5686,7 +6082,7 @@ display: flex;
             for (let i = bricks.length - 1; i >= 0; i--) {
                 const b = bricks[i];
                 if (b.isCursorHovering(clickX, clickY)) {
-                    b.takeDamage(1); // damage per click
+                    b.takeDamage(Math.max(1, Math.floor(idleGoldPerSecond)));
                     break;
                 }
             }
@@ -5774,7 +6170,7 @@ display: flex;
 
                             // call takeDamage if available; otherwise modify directly
                             if (typeof b.takeDamage === 'function') {
-                                b.takeDamage(e.shiftKey ? 5 : 1);
+                                b.takeDamage(Math.max(1, Math.floor(idleGoldPerSecond)));
                             } else {
                                 b.health -= (e.shiftKey ? 5 : 1);
                                 if (b.health <= 0) {
@@ -5836,7 +6232,7 @@ display: flex;
                 ctx.font = '15px Arial';
                 ctx.textAlign = 'center'; // Center text horizontally
                 ctx.textBaseline = 'middle'; // Center text vertically
-                ctx.fillText(`Boss: ${Math.floor(this.health)}`, this.x + this.width / 2, this.y + this.height / 2); // Center text vertically
+                ctx.fillText(`Boss: ${formatNumber(this.health)}`, this.x + this.width / 2, this.y + this.height / 2); // Center text vertically
             }
         }
 
@@ -6066,15 +6462,15 @@ display: flex;
             goldDisplay.textContent = formatNumber(gold);
             levelDisplay.textContent = level;
             rebirthDisplay.textContent = rebirthCount;
-            document.getElementById('basicPrice').textContent = ballPrices.basic;
-            document.getElementById('sniperPrice').textContent = ballPrices.sniper;
-            document.getElementById('bigPrice').textContent = ballPrices.big;
-            document.getElementById('explosionPrice').textContent = ballPrices.explosion;
-            document.getElementById('multiplyingPrice').textContent = ballPrices.multiplying;
-            document.getElementById('autoPrice').textContent = autoBallPrice;
-            document.getElementById('cannonballPrice').textContent = ballPrices.cannonball;
-            document.getElementById('poisonPrice').textContent = ballPrices.poison;
-            document.getElementById('snowballPrice').textContent = ballPrices.snowball;
+            document.getElementById('basicPrice').textContent = formatNumber(ballPrices.basic);
+            document.getElementById('sniperPrice').textContent = formatNumber(ballPrices.sniper);
+            document.getElementById('bigPrice').textContent = formatNumber(ballPrices.big);
+            document.getElementById('explosionPrice').textContent = formatNumber(ballPrices.explosion);
+            document.getElementById('multiplyingPrice').textContent = formatNumber(ballPrices.multiplying);
+            document.getElementById('autoPrice').textContent = formatNumber(autoBallPrice);
+            document.getElementById('cannonballPrice').textContent = formatNumber(ballPrices.cannonball);
+            document.getElementById('poisonPrice').textContent = formatNumber(ballPrices.poison);
+            document.getElementById('snowballPrice').textContent = formatNumber(ballPrices.snowball);
             document.getElementById("bricksBroken").innerText = formatNumber(stats.totalBricksBroken || 0);
             drawBallPreview('basic-preview', 'gray', 8);
             drawBallPreview('sniper-preview', 'blue', 8);
@@ -6088,15 +6484,15 @@ display: flex;
 
             // Update tooltips with current speed and damage
             const ballTooltips = {
-                'basic-option': `Basic Ball: Standard ball that bounces off walls and breaks bricks. Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${ballUpgrades.basic.damage.toFixed(1)}`,
-                'sniper-option': `Sniper Ball: Redirects to nearest brick on wall hit. Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}`,
-                'big-option': `Big Ball: Larger size for more hitting surface. Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}`,
+                'basic-option': `Basic Ball: Standard ball that bounces off walls and breaks bricks. Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.basic.damage.toFixed(1))}`,
+                'sniper-option': `Sniper Ball: Redirects to nearest brick on wall hit. Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.sniper.damage.toFixed(1))}`,
+                'big-option': `Big Ball: Larger size for more hitting surface. Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.big.damage.toFixed(1))}`,
                 'explosion-option': `Bomb Ball: Deals ${ballUpgrades.explosion.damage.toFixed(1)} damage to hit brick, ${Math.floor(ballUpgrades.explosion.damage / 2).toFixed(1)} to nearby bricks. Speed: ${ballUpgrades.explosion.speed.toFixed(1)}`,
-                'multiplying-option': `Clones Ball: Spawns a small clone on brick hit. Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}`,
+                'multiplying-option': `Clones Ball: Spawns a small clone on brick hit. Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.multiplying.damage.toFixed(1))}`,
                 'auto-option': `Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 5, Damage: 1000`,
-                'cannonball-option': `Cannonball: Powerful ball that smashes through bricks. Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${ballUpgrades.cannonball.damage.toFixed(1)}`,
-                'poison-option': `Poison Ball: Infects bricks to receive double damage. Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${ballUpgrades.poison.damage.toFixed(1)}`,
-                'snowball-option': `Snowball: Gains power and speed with every bounce. Speed: ${ballUpgrades.snowball.speed.toFixed(1)}, Damage: ${ballUpgrades.snowball.damage.toFixed(1)}`
+                'cannonball-option': `Cannonball: Powerful ball that smashes through bricks. Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.cannonball.damage.toFixed(1))}`,
+                'poison-option': `Poison Ball: Infects bricks to receive double damage. Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.poison.damage.toFixed(1))}`,
+                'snowball-option': `Snowball: Gains power and speed with every bounce. Speed: ${ballUpgrades.snowball.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.snowball.damage.toFixed(1))}`
             };
             Object.keys(ballTooltips).forEach(id => {
                 const element = document.getElementById(id);
@@ -9500,6 +9896,298 @@ display: flex;
                 invite.style.display = "none";
                 collapsed.style.display = "block";
             }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        let tempSetSelection = {};
+
+        // Initialize tempSetSelection
+        function initializeTempSetSelection() {
+            tempSetSelection = {};
+        }
+
+        // Open the Custom Balls modal
+        function openCustomBallModal() {
+            const modal = document.getElementById('custom-balls-modal');
+            if (!modal) {
+                showToast('Error: Custom Sets modal not found.');
+                return;
+            }
+            modal.style.display = 'flex';
+            renderCustomBallsModal();
+        }
+
+        // Close the Custom Balls modal
+        function closeCustomBallModal() {
+            const modal = document.getElementById('custom-balls-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Render the modal content based on customBought status
+        function renderCustomBallsModal() {
+            const modalContent = document.querySelector('#custom-balls-modal .modal-content');
+            if (!modalContent) {
+                showToast('Error: Modal content not found.');
+                return;
+            }
+
+            modalContent.innerHTML = '<p class="modal-text">Loading...</p>';
+            const user = auth.currentUser;
+
+            if (!user) {
+                modalContent.innerHTML = `
+            <span class="close" onclick="closeCustomBallModal()">&times;</span>
+            <h2 class="modal-title">Custom Sets</h2>
+            <p class="modal-text">Please log in to access Custom Sets.</p>
+            <div class="modal-button-group">
+                <button class="modal-button primary" onclick="showLoginPopupForSave()">Log In</button>
+                <button class="modal-button secondary" onclick="closeCustomBallModal()">Close</button>
+            </div>
+        `;
+                return;
+            }
+
+            database.ref(`users/${user.uid}/gameState/customBought`).once('value')
+                .then(snapshot => {
+                    const customBought = snapshot.val() === true;
+                    modalContent.innerHTML = '';
+                    if (customBought) {
+                        renderCustomSetsPurchased(modalContent);
+                    } else {
+                        renderCustomSetsLocked(modalContent);
+                    }
+                })
+                .catch(error => {
+                    modalContent.innerHTML = `
+                <span class="close" onclick="closeCustomBallModal()">&times;</span>
+                <h2 class="modal-title">Custom Sets</h2>
+                <p class="modal-text">Error loading Custom Sets: ${error.message}</p>
+                <button class="modal-button secondary" onclick="closeCustomBallModal()">Close</button>
+            `;
+                });
+        }
+
+        // Ball type to color mapping (matching updateUI)
+        const ballColors = {
+            basic: 'gray',
+            sniper: 'blue',
+            big: 'green',
+            explosion: 'orange',
+            multiplying: 'purple',
+            cannonball: 'darkgray',
+            poison: 'lime',
+            snowball: 'white'
+        };
+
+        // Render UI for when Custom Sets is unlocked
+        function renderCustomSetsPurchased(modalContent) {
+            modalContent.innerHTML = `
+        <span class="close" onclick="closeCustomBallModal()">&times;</span>
+        <h2 class="modal-title">Custom Sets</h2>
+        <p class="modal-text">Buy a set to add powerful balls</p>
+        <div id="custom-sets-container"></div>
+    `;
+
+            const setsContainer = document.getElementById('custom-sets-container');
+            const setGroups = [
+                {
+                    group: 'Normal',
+                    sets: [
+                        { id: 'normal-1', balls: { basic: 100 }, multiplier: 1, description: 'Steady damage for beginners' },
+                        { id: 'normal-2', balls: { sniper: 50 }, multiplier: 1.5, description: 'Precision hits for accuracy' },
+                        { id: 'normal-3', balls: { basic: 75, snowball: 25 }, multiplier: 1.2, description: 'Balanced mix for versatility' },
+                        { id: 'normal-4', balls: { big: 30 }, multiplier: 2, description: 'Fast heavy hits' },
+                    ]
+                },
+                {
+                    group: 'Advanced',
+                    sets: [
+                        { id: 'advanced-1', balls: { explosion: 50 }, multiplier: 2, description: 'Area damage for clusters' },
+                        { id: 'advanced-2', balls: { sniper: 40, poison: 20 }, multiplier: 1.8, description: 'Toxic precision combo' },
+                        { id: 'advanced-3', balls: { big: 30, cannonball: 30 }, multiplier: 2.2, description: 'Heavy-duty destruction' },
+                        { id: 'advanced-4', balls: { basic: 100 }, multiplier: 3, description: 'Rapid-fire basic barrage' },
+                    ]
+                },
+                {
+                    group: 'Elite',
+                    sets: [
+                        { id: 'elite-1', balls: { multiplying: 25 }, multiplier: 2.5, description: 'Exponential damage growth' },
+                        { id: 'elite-2', balls: { explosion: 30, snowball: 20 }, multiplier: 2.3, description: 'Freeze and blast combo' },
+                        { id: 'elite-3', balls: { poison: 40 }, multiplier: 2, description: 'Fast toxic spread' },
+                        { id: 'elite-4', balls: { big: 20, multiplying: 20 }, multiplier: 2.7, description: 'Heavy multiplying power' },
+                    ]
+                },
+                {
+                    group: 'Powerful',
+                    sets: [
+                        { id: 'powerful-1', balls: { multiplying: 15, cannonball: 15 }, multiplier: 3, description: 'Ultimate combo for elites' },
+                        { id: 'powerful-2', balls: { explosion: 20 }, multiplier: 4, description: 'Rapid explosive chaos' },
+                        { id: 'powerful-3', balls: { poison: 10, multiplying: 10 }, multiplier: 3.5, description: 'Toxic multiplying mayhem' },
+                        { id: 'powerful-4', balls: { sniper: 50, big: 25 }, multiplier: 3.2, description: 'Precision and power mix' },
+                    ]
+                }
+            ];
+
+            setGroups.forEach(group => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = `set-group ${group.group.toLowerCase()}`;
+                groupDiv.innerHTML = `
+            <h3 class="set-group-title">${group.group}</h3>
+            <div class="sets-list" id="sets-list-${group.group.toLowerCase()}"></div>
+        `;
+                setsContainer.appendChild(groupDiv);
+
+                const setsList = document.getElementById(`sets-list-${group.group.toLowerCase()}`);
+                group.sets.forEach(set => {
+                    const price = calculateSetPrice(set);
+                    const canAfford = gold >= price;
+                    const ballEntries = Object.entries(set.balls).slice(0, 2); // Limit to two ball types
+                    const div = document.createElement('div');
+                    div.className = `set-option ${group.group.toLowerCase()}`;
+                    div.id = `set-${set.id}`;
+                    div.innerHTML = `
+                <div class="set-preview-container">
+                    ${ballEntries.map(([type, count], index) => `
+                        <div class="set-preview">
+                            <canvas id="set-${set.id}-${type}-preview" width="60" height="60"></canvas>
+                            <div class="multiplier">x${count}${set.multiplier > 1 ? ` <br>${set.multiplier}x speed` : ''}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="set-price">${formatNumber(price)} Gold</div>
+                <button class="set-buy-button" onclick="buySet('${set.id}')" ${!canAfford ? 'disabled' : ''}>Buy</button>
+                <div class="tooltip">${set.description}</div>
+            `;
+                    setsList.appendChild(div);
+
+                    // Draw previews for each ball type
+                    ballEntries.forEach(([type]) => {
+                        const canvasId = `set-${set.id}-${type}-preview`;
+                        const color = ballColors[type] || 'gray';
+                        const size = type === 'big' ? 12 : 8; // Match updateUI sizes
+                        drawBallPreview(canvasId, color, size);
+                    });
+                });
+            });
+        }
+
+        // Render UI for when Custom Sets is locked
+        function renderCustomSetsLocked(modalContent) {
+            modalContent.innerHTML = `
+        <span class="close" onclick="closeCustomBallModal()">&times;</span>
+        <h2 class="modal-title">Unlock Custom Sets</h2>
+        <p class="modal-text">Unlock powerful sets to enhance your gameplay!</p>
+        <ul class="modal-list">
+            <li>Choose from Normal to Powerful sets</li>
+            <li>Sets let you spawn a variety of balls instantly</li>
+            <li>Enables strategic combinations for any playstyle</li>
+        </ul>
+        <p class="modal-text">Cost: 100 Rebirths (You have: ${formatNumber(rebirthCount)})</p>
+        <div class="modal-button-group">
+            <button class="modal-button primary" onclick="unlockCustomSets()" ${rebirthCount < 100 ? 'disabled' : ''}>Unlock Now</button>
+            <button class="modal-button secondary" onclick="closeCustomBallModal()">Close</button>
+        </div>
+    `;
+        }
+
+        // Calculate dynamic price for a set
+        function calculateSetPrice(set) {
+            const basePrice = Object.entries(set.balls).reduce((sum, [type, count]) => {
+                return sum + (ballPrices[type] || 100) * count;
+            }, 0);
+            return Math.round(basePrice * set.multiplier * (1 + idleGoldPerSecond / 10));
+        }
+
+        // Buy a specific set
+        function buySet(setId) {
+            const set = getSetById(setId);
+            if (!set) {
+                showToast('Invalid set selected!');
+                return;
+            }
+
+            const price = calculateSetPrice(set);
+            if (gold < price) {
+                showToast('Not enough gold!');
+                return;
+            }
+
+            const user = auth.currentUser;
+            if (!user) {
+                showLoginPopupForSave();
+                return;
+            }
+
+            gold -= price;
+            Object.entries(set.balls).forEach(([type, count]) => {
+                ballCounts[type] = (ballCounts[type] || 0) + count;
+                stats.totalBallsPurchased = (stats.totalBallsPurchased || 0) + count;
+            });
+            syncBallsWithCounts();
+            saveGameState();
+            updateUI();
+            showToast(`Purchased set: ${Object.entries(set.balls).map(([type, count]) => `${count} ${type.charAt(0).toUpperCase() + type.slice(1)}`).join(' + ')}!`);
+            closeCustomBallModal();
+        }
+
+        // Helper to get set by ID
+        function getSetById(setId) {
+            const setGroups = [
+                {
+                    sets: [
+                        { id: 'normal-1', balls: { basic: 100 }, multiplier: 1, description: 'Steady damage for beginners' },
+                        { id: 'normal-2', balls: { sniper: 50 }, multiplier: 1.5, description: 'Precision hits for accuracy' },
+                        { id: 'normal-3', balls: { basic: 75, snowball: 25 }, multiplier: 1.2, description: 'Balanced mix for versatility' },
+                        { id: 'normal-4', balls: { big: 30 }, multiplier: 2, description: 'Fast heavy hits' },
+                    ]
+                },
+                {
+                    sets: [
+                        { id: 'advanced-1', balls: { explosion: 50 }, multiplier: 2, description: 'Area damage for clusters' },
+                        { id: 'advanced-2', balls: { sniper: 40, poison: 20 }, multiplier: 1.8, description: 'Toxic precision combo' },
+                        { id: 'advanced-3', balls: { big: 30, cannonball: 30 }, multiplier: 2.2, description: 'Heavy-duty destruction' },
+                        { id: 'advanced-4', balls: { basic: 100 }, multiplier: 3, description: 'Rapid-fire basic barrage' },
+                    ]
+                },
+                {
+                    sets: [
+                        { id: 'elite-1', balls: { multiplying: 25 }, multiplier: 2.5, description: 'Exponential damage growth' },
+                        { id: 'elite-2', balls: { explosion: 30, snowball: 20 }, multiplier: 2.3, description: 'Freeze and blast combo' },
+                        { id: 'elite-3', balls: { poison: 40 }, multiplier: 2, description: 'Fast toxic spread' },
+                        { id: 'elite-4', balls: { big: 20, multiplying: 20 }, multiplier: 2.7, description: 'Heavy multiplying power' },
+                    ]
+                },
+                {
+                    sets: [
+                        { id: 'powerful-1', balls: { multiplying: 15, cannonball: 15 }, multiplier: 3, description: 'Ultimate combo for elites' },
+                        { id: 'powerful-2', balls: { explosion: 20 }, multiplier: 4, description: 'Rapid explosive chaos' },
+                        { id: 'powerful-3', balls: { poison: 10, multiplying: 10 }, multiplier: 3.5, description: 'Toxic multiplying mayhem' },
+                        { id: 'powerful-4', balls: { sniper: 50, big: 25 }, multiplier: 3.2, description: 'Precision and power mix' },
+                    ]
+                }
+            ];
+
+            return setGroups.flatMap(group => group.sets).find(set => set.id === setId);
         }
     </script>
 </body>
