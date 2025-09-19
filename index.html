@@ -2985,25 +2985,49 @@
     .ball-option:hover .tooltip {
         opacity: 1;
     }
+
+.toast {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e9dcaf;
+    border: 1px solid #444;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    z-index: 9999;
+    opacity: 0;
+    min-width: 200px;
+    max-width: 300px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    bottom: 20px; /* Default position, will be overridden by JS */
+    pointer-events: auto;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+/* Ensure toasts don't interfere with each other during spam */
+.toast:not(.show) {
+    pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
     .toast {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #e9dcaf;
-        border: 1px solid #444;
-        color: #000;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        z-index: 9999;
-        opacity: 0;
-        transition: opacity 0.5s;
+        min-width: 90vw;
+        max-width: 90vw;
+        padding: 12px 16px;
+        font-size: 16px;
+        left: 5%;
+        transform: translateX(0);
     }
-    .toast.show {
-        opacity: 1;
-    }
+}
+
     .upgrade-btn.disabled, .rebirth-btn.disabled {
         background: #ccc;
         cursor: not-allowed;
@@ -3269,7 +3293,7 @@
         const brickWidth = 100;
         const brickHeight = 30;
         const maxBalls = 1000;
-        const MAX_BALL_SPEED = 35;
+        const MAX_BALL_SPEED = 45;
         const maxPowerUps = 10;
         const maxBricks = 66;
         const ballPrices = {
@@ -3293,53 +3317,73 @@
             snowball: { level: 0, rebirth: 15 }
         };
 
+        // Replace existing ballUpgrades entries with these (or add the fields)
         let ballUpgrades = {
             basic: {
                 level: 1,
                 speed: 3.5,
-                damage: 1
+                baseDamage: 1,
+                damage: 1,
+                damageGrowth: 1.08   // ~8% per level
             },
             sniper: {
                 level: 1,
                 speed: 4.5,
-                damage: 1
+                baseDamage: 1,
+                damage: 1,
+                damageGrowth: 1.10   // ~10% per level
             },
             big: {
                 level: 1,
                 speed: 2.7,
-                damage: 1
+                baseDamage: 1,
+                damage: 1,
+                damageGrowth: 1.09   // ~9% per level
             },
             explosion: {
                 level: 1,
                 speed: 2.7,
-                damage: 2
+                baseDamage: 2,
+                damage: 2,
+                damageGrowth: 1.12   // ~12% per level
             },
             multiplying: {
                 level: 1,
                 speed: 2.7,
-                damage: 1
+                baseDamage: 1,
+                damage: 1,
+                damageGrowth: 1.09   // ~9% per level
             },
             child: {
                 level: 1,
                 speed: 3.6,
-                damage: 1
+                baseDamage: 1,
+                damage: 1,
+                damageGrowth: 1.07   // ~7% per level
             },
             cannonball: {
                 level: 1,
                 speed: 3.0,
-                damage: 3
+                baseDamage: 3,
+                damage: 3,
+                damageGrowth: 1.13   // ~13% per level, still strongest
             },
             poison: {
                 level: 1,
                 speed: 3.5,
-                damage: 1
+                baseDamage: 1,
+                damage: 1,
+                damageGrowth: 1.09   // ~9% per level
             },
             snowball: {
                 level: 1,
                 speed: 3.5,
-                damage: 1
+                baseDamage: 1,
+                damage: 1,
+                damageGrowth: 1.08   // ~8% per level
             }
         };
+
         let globalUpgrades = {
             speedBoost: {
                 active: false,
@@ -3464,8 +3508,9 @@
             });
         });
 
+
         // Toast notification
-        function showToast(message) {
+        /*function showToast(message) {
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = message;
@@ -3475,6 +3520,144 @@
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 500);
             }, 2000);
+        }*/
+        // Keep track of all active toasts
+        let activeToasts = [];
+        let isProcessing = false;
+
+        function showToast(message, duration = 2000) {
+            // Prevent multiple simultaneous processing
+            if (isProcessing) {
+                setTimeout(() => showToast(message, duration), 50);
+                return;
+            }
+
+            isProcessing = true;
+
+            // Limit to latest 4 toasts - remove oldest if we have 4 or more
+            if (activeToasts.length >= 3) {
+                const oldestToast = activeToasts.shift();
+                if (oldestToast.element.parentNode) {
+                    oldestToast.element.remove();
+                }
+            }
+
+            // Create the toast element
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            toast.dataset.toastId = Date.now() + Math.random();
+            document.body.appendChild(toast);
+
+            // Add to active toasts array
+            const toastData = {
+                element: toast,
+                id: toast.dataset.toastId,
+                startTime: Date.now(),
+                duration: duration
+            };
+            activeToasts.push(toastData);
+
+            // Force a reflow to get accurate height
+            toast.offsetHeight;
+
+            // Position all toasts with dynamic heights
+            updateToastPositions();
+
+            // Show this toast
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('show');
+                    // Recalculate positions after show animation starts
+                    setTimeout(updateToastPositions, 50);
+                }
+                isProcessing = false;
+            }, 100);
+
+            // Schedule removal
+            setTimeout(() => {
+                safeRemoveToast(toastData);
+            }, duration + 500);
+        }
+
+        function updateToastPositions() {
+            // Filter out any toasts that might have been removed from DOM
+            activeToasts = activeToasts.filter(toastData => toastData.element.parentNode);
+
+            let totalHeight = 0;
+            const spacing = 15;
+
+            // Calculate positions from bottom up
+            for (let i = activeToasts.length - 1; i >= 0; i--) {
+                const toastData = activeToasts[i];
+                const toast = toastData.element;
+
+                if (toast.parentNode && toast.parentNode === document.body) {
+                    // Get actual height including padding and border
+                    const toastHeight = toast.offsetHeight;
+
+                    // Position from bottom
+                    const bottomPosition = totalHeight + 20; // 20px from screen bottom for first toast
+
+                    toast.style.bottom = `${bottomPosition}px`;
+                    toast.style.height = 'auto'; // Ensure it uses actual height
+                    toast.style.zIndex = `10000 + ${i}`;
+
+                    // Add spacing for next toast
+                    totalHeight += toastHeight + spacing;
+                }
+            }
+        }
+
+        function safeRemoveToast(toastData) {
+            if (isProcessing) {
+                setTimeout(() => safeRemoveToast(toastData), 100);
+                return;
+            }
+
+            isProcessing = true;
+
+            const index = activeToasts.findIndex(t => t.id === toastData.id);
+            if (index > -1 && activeToasts[index].element.parentNode) {
+                const toast = toastData.element;
+
+                // Fade out animation
+                toast.classList.remove('show');
+
+                // Remove from DOM after animation and update positions
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                    activeToasts.splice(index, 1);
+                    // Recalculate all positions after removal
+                    requestAnimationFrame(updateToastPositions);
+                    isProcessing = false;
+                }, 500);
+            } else {
+                if (index > -1) {
+                    activeToasts.splice(index, 1);
+                }
+                isProcessing = false;
+            }
+        }
+
+        // Optional: Dismiss all toasts
+        function dismissAllToasts() {
+            isProcessing = true;
+            activeToasts.forEach(toastData => {
+                const toast = toastData.element;
+                if (toast.parentNode) {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.remove();
+                        }
+                    }, 500);
+                }
+            });
+            activeToasts = [];
+            setTimeout(() => { isProcessing = false; }, 550);
         }
 
         // Check for inviter in URL
@@ -3974,109 +4157,109 @@
                 });
         }
 
-function waitForElementToDisplay(elementId, callback) {
-    let attempts = 0;
-    const maxAttempts = 50; // Prevent infinite loops (5 seconds max)
-    
-    const checkElement = () => {
-        attempts++;
-        
-        // Try different selectors in order of preference
-        let element = null;
-        let foundBy = '';
-        
-        // 1. Try regular ID first
-        element = document.getElementById(elementId);
-        if (element) {
-            foundBy = 'id';
-        } else {
-            // 2. Try data-uid exact match
-            element = document.querySelector(`[data-uid="${elementId}"]`);
-            if (element) {
-                foundBy = 'data-uid (exact)';
-            } else {
-                // 3. Try data-uid with sanitized version
+        function waitForElementToDisplay(elementId, callback) {
+            let attempts = 0;
+            const maxAttempts = 50; // Prevent infinite loops (5 seconds max)
+
+            const checkElement = () => {
+                attempts++;
+
+                // Try different selectors in order of preference
+                let element = null;
+                let foundBy = '';
+
+                // 1. Try regular ID first
+                element = document.getElementById(elementId);
+                if (element) {
+                    foundBy = 'id';
+                } else {
+                    // 2. Try data-uid exact match
+                    element = document.querySelector(`[data-uid="${elementId}"]`);
+                    if (element) {
+                        foundBy = 'data-uid (exact)';
+                    } else {
+                        // 3. Try data-uid with sanitized version
+                        const sanitizedId = sanitizeUidForId(elementId);
+                        element = document.querySelector(`[data-uid="${sanitizedId}"]`);
+                        if (element) {
+                            foundBy = 'data-uid (sanitized)';
+                        }
+                    }
+                }
+
+                // Check if element exists and is visible
+                if (element && element.offsetParent !== null) {
+                    console.log(`✓ Found element for update "${elementId}" after ${attempts} attempts (${foundBy})`);
+                    callback();
+                } else if (attempts < maxAttempts) {
+                    console.log(`⏳ Still searching for element "${elementId}" (attempt ${attempts}/${maxAttempts})`);
+                    setTimeout(checkElement, 100);
+                } else {
+                    console.warn(`⚠️ Gave up searching for element "${elementId}" after ${maxAttempts} attempts`);
+                }
+            };
+
+            console.log(`🔍 Starting search for element "${elementId}"`);
+            checkElement();
+        }
+
+        function sanitizeUidForId(uid) {
+            return uid.replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+
+        function showUpdateTooltip(updateId, elementId, content) {
+            // Find element using the same logic
+            let element = document.getElementById(elementId);
+            if (!element) {
+                element = document.querySelector(`[data-uid="${elementId}"]`);
+            }
+            if (!element) {
                 const sanitizedId = sanitizeUidForId(elementId);
                 element = document.querySelector(`[data-uid="${sanitizedId}"]`);
-                if (element) {
-                    foundBy = 'data-uid (sanitized)';
-                }
             }
-        }
-        
-        // Check if element exists and is visible
-        if (element && element.offsetParent !== null) {
-            console.log(`✓ Found element for update "${elementId}" after ${attempts} attempts (${foundBy})`);
-            callback();
-        } else if (attempts < maxAttempts) {
-            console.log(`⏳ Still searching for element "${elementId}" (attempt ${attempts}/${maxAttempts})`);
-            setTimeout(checkElement, 100);
-        } else {
-            console.warn(`⚠️ Gave up searching for element "${elementId}" after ${maxAttempts} attempts`);
-        }
-    };
-    
-    console.log(`🔍 Starting search for element "${elementId}"`);
-    checkElement();
-}
 
-function sanitizeUidForId(uid) {
-    return uid.replace(/[^a-zA-Z0-9_-]/g, '_');
-}
+            if (!element) {
+                console.warn(`Element with ID or data-uid "${elementId}" not found for update ${updateId}`);
+                return;
+            }
 
-
-function showUpdateTooltip(updateId, elementId, content) {
-    // Find element using the same logic
-    let element = document.getElementById(elementId);
-    if (!element) {
-        element = document.querySelector(`[data-uid="${elementId}"]`);
-    }
-    if (!element) {
-        const sanitizedId = sanitizeUidForId(elementId);
-        element = document.querySelector(`[data-uid="${sanitizedId}"]`);
-    }
-    
-    if (!element) {
-        console.warn(`Element with ID or data-uid "${elementId}" not found for update ${updateId}`);
-        return;
-    }
-
-    const tooltip = document.createElement('div');
-    tooltip.style.position = 'absolute';
-    tooltip.style.backgroundColor = '#333';
-    tooltip.style.color = '#fff';
-    tooltip.style.padding = '5px 10px';
-    tooltip.style.paddingRight = '5px';
-    tooltip.style.borderRadius = '5px';
-    tooltip.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
-    tooltip.style.zIndex = '999';
-    tooltip.style.maxWidth = '300px';
-    tooltip.style.fontSize = '14px';
-    tooltip.style.textAlign = 'center';
-    tooltip.innerHTML = `
+            const tooltip = document.createElement('div');
+            tooltip.style.position = 'absolute';
+            tooltip.style.backgroundColor = '#333';
+            tooltip.style.color = '#fff';
+            tooltip.style.padding = '5px 10px';
+            tooltip.style.paddingRight = '5px';
+            tooltip.style.borderRadius = '5px';
+            tooltip.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+            tooltip.style.zIndex = '999';
+            tooltip.style.maxWidth = '300px';
+            tooltip.style.fontSize = '14px';
+            tooltip.style.textAlign = 'center';
+            tooltip.innerHTML = `
         <div style="display:flex;flex-direction:row;gap:0;align-items:center;">
             <p style="margin: 0 5px 0 0;">${content}</p>
             <button style="margin: 0; position: relative; background: red; margin-right: 0; border-radius: 50px; padding: 0; width: 20px; height: 20px; border: none; color: #fff; font-size: 16px; cursor: pointer; line-height: 1;">✕</button>
         </div>
         <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 10px solid #333;"></div>
     `;
-    document.body.appendChild(tooltip);
+            document.body.appendChild(tooltip);
 
-    // Position relative to the found element
-    const rect = element.getBoundingClientRect();
-    const elementType = element.id ? 'id' : 'data-uid';
-    console.log(`Positioning tooltip for element found by ${elementType}:`, elementId);
-    
-    tooltip.style.left = `${rect.left + window.scrollX + rect.width / 2 - tooltip.offsetWidth / 2}px`;
-    tooltip.style.top = `${rect.top + window.scrollY + rect.height + 10}px`;
+            // Position relative to the found element
+            const rect = element.getBoundingClientRect();
+            const elementType = element.id ? 'id' : 'data-uid';
+            console.log(`Positioning tooltip for element found by ${elementType}:`, elementId);
 
-    tooltip.querySelector('button').addEventListener('click', () => {
-        const dismissedUpdates = JSON.parse(localStorage.getItem('dismissedUpdates') || '[]');
-        dismissedUpdates.push(updateId);
-        localStorage.setItem('dismissedUpdates', JSON.stringify(dismissedUpdates));
-        tooltip.remove();
-    });
-}
+            tooltip.style.left = `${rect.left + window.scrollX + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+            tooltip.style.top = `${rect.top + window.scrollY + rect.height + 10}px`;
+
+            tooltip.querySelector('button').addEventListener('click', () => {
+                const dismissedUpdates = JSON.parse(localStorage.getItem('dismissedUpdates') || '[]');
+                dismissedUpdates.push(updateId);
+                localStorage.setItem('dismissedUpdates', JSON.stringify(dismissedUpdates));
+                tooltip.remove();
+            });
+        }
 
         function buyAutoRebirth() {
             const user = auth.currentUser;
@@ -6644,61 +6827,94 @@ display: flex;
 
         function upgradeBall(type) {
             const cost = getUpgradeCost(type);
-            const maxUpgradeLevel = rebirthCount; // Max level increases by 5 per rebirth
+
+            // Max upgrade level: scales with rebirths (5 levels per rebirth)
+            const maxUpgradeLevel = rebirthCount * 5;
             if (ballUpgrades[type].level >= maxUpgradeLevel) {
                 showToast(`Max upgrade level (${maxUpgradeLevel}) reached for ${type} ball!`);
                 return;
             }
-            if (gold >= cost) {
-                gold -= cost;
-                ballUpgrades[type].level++;
 
-
-                // Speed increase: Diminishing returns after speed 10
-                const currentSpeed = ballUpgrades[type].speed;
-                let speedIncrease = 0;
-                if (currentSpeed < 10) {
-                    speedIncrease = 0.5; // Normal speed increase below 10
-                } else {
-                    // Logarithmic tapering: smaller increases as speed grows
-                    speedIncrease = 0.5 / (1 + (currentSpeed - 10) * 0.1);
-                }
-                ballUpgrades[type].speed += speedIncrease;
-                ballUpgrades[type].speed = Math.min(ballUpgrades[type].speed, MAX_BALL_SPEED);
-
-                // Damage increase: Slow exponential growth, inversely proportional to speed reduction
-                const speedReductionFactor = currentSpeed < 10 ? 1 : (1 + (currentSpeed - 10) * 0.1);
-                const damageBase = type === 'explosion' ? 0.5 : 0.2;
-                const damageIncrease = damageBase * Math.pow(1.05, ballUpgrades[type].level) / speedReductionFactor;
-                ballUpgrades[type].damage += damageIncrease;
-
-                stats.totalUpgrades++;
-                balls.forEach(ball => {
-                    if (ball.type === type) {
-                        // Update ball movement while preserving direction
-                        ball.dx = (ball.dx / Math.abs(ball.dx)) * ballUpgrades[type].speed;
-                        ball.dy = (ball.dy / Math.abs(ball.dy)) * ballUpgrades[type].speed;
-                    }
-                });
-
-                updateUI();
-                showToast(`Upgraded ${type} ball to level ${ballUpgrades[type].level}! Speed +${speedIncrease.toFixed(2)}, Damage +${damageIncrease.toFixed(2)}`);
-
-                // ✅ Preserve scroll properly
-                const popup = document.querySelector('.my-balls-popup');
-                let scrollPos = popup ? popup.scrollTop : 0;
-
-                // Remove ALL overlays before recreating
-                document.querySelectorAll('.login-overlay').forEach(el => el.remove());
-
-                showMyBallsPopup();
-
-                const newPopup = document.querySelector('.my-balls-popup');
-                if (newPopup) newPopup.scrollTop = scrollPos;
-            } else {
+            if (gold < cost) {
                 showToast('Not enough gold!');
+                return;
             }
+
+            // Deduct cost
+            gold -= cost;
+
+            // Level up
+            const oldLevel = ballUpgrades[type].level;
+            const newLevel = oldLevel + 1;
+            ballUpgrades[type].level = newLevel;
+
+            // ----------------------------
+            // Damage scaling
+            // ----------------------------
+            const base = ballUpgrades[type].baseDamage || 1;
+            const baseGrowth = ballUpgrades[type].damageGrowth || 1.10;
+
+            // Rebirths boost damage scaling to roughly match idle gold growth
+            // Use sqrt of idle gold multiplier so it doesn’t explode too fast
+            const rebirthMultiplier = Math.pow(1.2, rebirthCount * 0.5);
+
+            const oldDamage = ballUpgrades[type].damage;
+
+            // Exponential growth by level, plus rebirth multiplier
+            const rawDamage = base * Math.pow(baseGrowth, newLevel - 1) * rebirthMultiplier;
+
+            // Soft cap taper after level 20 so damage doesn’t skyrocket
+            const taperFactor = newLevel > 20 ? (20 / newLevel) : 1;
+            const newDamage = rawDamage * taperFactor;
+
+            ballUpgrades[type].damage = +newDamage.toFixed(6);
+
+            // ----------------------------
+            // Speed scaling
+            // ----------------------------
+            const currentSpeed = ballUpgrades[type].speed;
+            let speedIncrease = 0;
+            if (currentSpeed < 10) {
+                speedIncrease = 0.5; // normal gain
+            } else {
+                // diminishing returns beyond speed 10
+                speedIncrease = 0.5 / (1 + (currentSpeed - 10) * 0.1);
+            }
+            ballUpgrades[type].speed = Math.min(currentSpeed + speedIncrease, MAX_BALL_SPEED);
+
+            // ----------------------------
+            // Stats + active ball update
+            // ----------------------------
+            stats.totalUpgrades++;
+            balls.forEach(ball => {
+                if (ball.type === type) {
+                    ball.dx = (ball.dx / Math.abs(ball.dx)) * ballUpgrades[type].speed;
+                    ball.dy = (ball.dy / Math.abs(ball.dy)) * ballUpgrades[type].speed;
+                }
+            });
+
+            updateUI();
+
+            const damageGain = newDamage - oldDamage;
+            showToast(
+                `Upgraded ${type} ball to level ${newLevel}! ` +
+                `Speed +${speedIncrease.toFixed(2)}, ` +
+                `Damage +${formatNumber(damageGain.toFixed(2))} (now ${formatNumber(newDamage.toFixed(2))})`
+            );
+
+            // ✅ Preserve scroll properly
+            const popup = document.querySelector('.my-balls-popup');
+            let scrollPos = popup ? popup.scrollTop : 0;
+
+            // Remove ALL overlays before recreating
+            document.querySelectorAll('.login-overlay').forEach(el => el.remove());
+
+            showMyBallsPopup();
+
+            const newPopup = document.querySelector('.my-balls-popup');
+            if (newPopup) newPopup.scrollTop = scrollPos;
         }
+
 
         // Apply global upgrade
         function applyGlobalUpgrade(type) {
@@ -8165,56 +8381,56 @@ display: flex;
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="basic-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Basic</b>: ${balls.filter(b => b.type === 'basic').length} balls, Level: ${ballUpgrades.basic.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${ballUpgrades.basic.damage.toFixed(1)}</span>
+                            <span><b>Basic</b>: ${balls.filter(b => b.type === 'basic').length} balls, Level: ${ballUpgrades.basic.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.basic.damage.toFixed(1))}</span>
                         </div>
                         <button class="upgrade-btn" ${gold < basicCost || ballUpgrades.basic.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('basic')">Upgrade<br>(${formatNumber(basicCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="sniper-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Sniper</b>: ${balls.filter(b => b.type === 'sniper').length} balls, Level: ${ballUpgrades.sniper.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${ballUpgrades.sniper.damage.toFixed(1)}</span>
+                            <span><b>Sniper</b>: ${balls.filter(b => b.type === 'sniper').length} balls, Level: ${ballUpgrades.sniper.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.sniper.damage.toFixed(1))}</span>
                         </div>
                         <button class="upgrade-btn" ${gold < sniperCost || ballUpgrades.sniper.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('sniper')">Upgrade<br>(${formatNumber(sniperCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="big-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Big</b>: ${balls.filter(b => b.type === 'big').length} balls, Level: ${ballUpgrades.big.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${ballUpgrades.big.damage.toFixed(1)}</span>
+                            <span><b>Big</b>: ${balls.filter(b => b.type === 'big').length} balls, Level: ${ballUpgrades.big.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.big.damage.toFixed(1))}</span>
                         </div>
                         <button class="upgrade-btn" ${gold < bigCost || ballUpgrades.big.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('big')">Upgrade<br>(${formatNumber(bigCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="explosion-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Bomb</b>: ${balls.filter(b => b.type === 'explosion').length} balls, Level: ${ballUpgrades.explosion.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.explosion.speed.toFixed(1)}, Damage: ${ballUpgrades.explosion.damage.toFixed(1)}</span>
+                            <span><b>Bomb</b>: ${balls.filter(b => b.type === 'explosion').length} balls, Level: ${ballUpgrades.explosion.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.explosion.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.explosion.damage.toFixed(1))}</span>
                         </div>
                         <button class="upgrade-btn" ${gold < explosionCost || ballUpgrades.explosion.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('explosion')">Upgrade<br>(${formatNumber(explosionCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="multiplying-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Clones</b>: ${balls.filter(b => b.type === 'multiplying').length} balls, Level: ${ballUpgrades.multiplying.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${ballUpgrades.multiplying.damage.toFixed(1)}</span>
+                            <span><b>Clones</b>: ${balls.filter(b => b.type === 'multiplying').length} balls, Level: ${ballUpgrades.multiplying.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.multiplying.damage.toFixed(1))}</span>
                         </div>
                         <button class="upgrade-btn" ${gold < multiplyingCost || ballUpgrades.multiplying.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('multiplying')">Upgrade<br>(${formatNumber(multiplyingCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="child-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${ballUpgrades.child.damage.toFixed(1)}</span>
+                            <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.child.damage.toFixed(1))}</span>
                         </div>
                         <button class="upgrade-btn" ${gold < childCost || ballUpgrades.child.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('child')">Upgrade<br>(${formatNumber(childCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="cannonball-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Cannon</b>: ${balls.filter(b => b.type === 'cannonball').length} balls, Level: ${ballUpgrades.cannonball.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${ballUpgrades.cannonball.damage.toFixed(1)}</span>
+                            <span><b>Cannon</b>: ${balls.filter(b => b.type === 'cannonball').length} balls, Level: ${ballUpgrades.cannonball.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.cannonball.damage.toFixed(1))}</span>
                         </div>
                         <button class="upgrade-btn" ${gold < cannonballCost || ballUpgrades.cannonball.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('cannonball')">Upgrade<br>(${formatNumber(cannonballCost)})</button>
                     </div>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <canvas id="poison-stats-preview" width="40" height="40"></canvas>
-                            <span><b>Poison</b>: ${balls.filter(b => b.type === 'poison').length} balls, Level: ${ballUpgrades.poison.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${ballUpgrades.poison.damage.toFixed(1)}</span>
+                            <span><b>Poison</b>: ${balls.filter(b => b.type === 'poison').length} balls, Level: ${ballUpgrades.poison.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.poison.damage.toFixed(1))}</span>
                         </div>
                         <button class="upgrade-btn" ${gold < poisonCost || ballUpgrades.poison.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('poison')">Upgrade<br>(${formatNumber(poisonCost)})</button>
                     </div>
