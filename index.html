@@ -6010,19 +6010,19 @@ display: flex;
                     showToast(`Hit! -${damage} HP`);
                 }
 
-    if (this.health <= 0) {
-        // Increment stats & rewards
-        stats.totalBricksBroken = (stats.totalBricksBroken || 0) + 1;
-        const index = bricks.indexOf(this);
-        if (index !== -1) bricks.splice(index, 1);
+                if (this.health <= 0) {
+                    // Increment stats & rewards
+                    stats.totalBricksBroken = (stats.totalBricksBroken || 0) + 1;
+                    const index = bricks.indexOf(this);
+                    if (index !== -1) bricks.splice(index, 1);
 
-        const goldReward = Math.max(1, Math.floor(idleGoldPerSecond));
-        gold += goldReward;
-        if (powerUps.length < maxPowerUps) spawnPowerUp();
-        showToast(`Brick destroyed, +${formatNumber(goldReward)} gold`);
-    }
+                    const goldReward = Math.max(1, Math.floor(idleGoldPerSecond));
+                    gold += goldReward;
+                    if (powerUps.length < maxPowerUps) spawnPowerUp();
+                    showToast(`Brick destroyed, +${formatNumber(goldReward)} gold`);
+                }
 
-    updateUI();
+                updateUI();
 
             }
 
@@ -10115,7 +10115,7 @@ display: flex;
             const basePrice = Object.entries(set.balls).reduce((sum, [type, count]) => {
                 return sum + (ballPrices[type] || 100) * count;
             }, 0);
-            return Math.round(basePrice * set.multiplier * (1 + idleGoldPerSecond / 10));
+            return Math.round(basePrice * set.multiplier * 0.1 * (1 + idleGoldPerSecond / 10));
         }
 
         // Buy a specific set
@@ -10188,6 +10188,48 @@ display: flex;
             ];
 
             return setGroups.flatMap(group => group.sets).find(set => set.id === setId);
+        }
+
+        // Unlock Custom Sets feature
+        function unlockCustomSets() {
+            if (rebirthCount < 100) {
+                showToast('You need 100 Rebirths to unlock Custom Sets!');
+                return;
+            }
+
+            const user = auth.currentUser;
+            if (!user) {
+                showLoginPopupForSave();
+                return;
+            }
+
+            // Deduct rebirths
+            rebirthCount -= 100;
+
+            // Update Firebase
+            database.ref(`users/${user.uid}/gameState`).update({
+                customBought: true,
+                rebirthCount: rebirthCount
+            })
+                .then(() => {
+                    // Save locally and update UI
+                    saveGameState();
+                    updateUI();
+
+                    showToast('Custom Sets unlocked! Powerful ball combinations now available.');
+
+                    // Close and immediately reopen the modal to show the new content
+                    closeCustomBallModal();
+                    setTimeout(() => {
+                        openCustomBallModal();
+                    }, 300); // Small delay for smooth transition
+                })
+                .catch(error => {
+                    showToast('Error unlocking Custom Sets: ' + error.message);
+                    // Revert the local change on error
+                    rebirthCount += 100;
+                    updateUI();
+                });
         }
     </script>
 </body>
