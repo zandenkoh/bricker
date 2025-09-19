@@ -3974,58 +3974,109 @@
                 });
         }
 
-        function waitForElementToDisplay(elementId, callback) {
-            const checkElement = () => {
-                const element = document.getElementById(elementId);
-                if (element && element.offsetParent !== null) {
-                    callback();
-                } else {
-                    setTimeout(checkElement, 100);
+function waitForElementToDisplay(elementId, callback) {
+    let attempts = 0;
+    const maxAttempts = 50; // Prevent infinite loops (5 seconds max)
+    
+    const checkElement = () => {
+        attempts++;
+        
+        // Try different selectors in order of preference
+        let element = null;
+        let foundBy = '';
+        
+        // 1. Try regular ID first
+        element = document.getElementById(elementId);
+        if (element) {
+            foundBy = 'id';
+        } else {
+            // 2. Try data-uid exact match
+            element = document.querySelector(`[data-uid="${elementId}"]`);
+            if (element) {
+                foundBy = 'data-uid (exact)';
+            } else {
+                // 3. Try data-uid with sanitized version
+                const sanitizedId = sanitizeUidForId(elementId);
+                element = document.querySelector(`[data-uid="${sanitizedId}"]`);
+                if (element) {
+                    foundBy = 'data-uid (sanitized)';
                 }
-            };
-            checkElement();
-        }
-
-
-        function showUpdateTooltip(updateId, elementId, content) {
-            const element = document.getElementById(elementId);
-            if (!element) {
-                console.warn(`Element with ID ${elementId} not found for update ${updateId}`);
-                return;
             }
+        }
+        
+        // Check if element exists and is visible
+        if (element && element.offsetParent !== null) {
+            console.log(`✓ Found element for update "${elementId}" after ${attempts} attempts (${foundBy})`);
+            callback();
+        } else if (attempts < maxAttempts) {
+            console.log(`⏳ Still searching for element "${elementId}" (attempt ${attempts}/${maxAttempts})`);
+            setTimeout(checkElement, 100);
+        } else {
+            console.warn(`⚠️ Gave up searching for element "${elementId}" after ${maxAttempts} attempts`);
+        }
+    };
+    
+    console.log(`🔍 Starting search for element "${elementId}"`);
+    checkElement();
+}
 
-            const tooltip = document.createElement('div');
-            tooltip.style.position = 'absolute';
-            tooltip.style.backgroundColor = '#333';
-            tooltip.style.color = '#fff';
-            tooltip.style.padding = '5px 10px';
-            tooltip.style.paddingRight = '5px';
-            tooltip.style.borderRadius = '5px';
-            tooltip.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
-            tooltip.style.zIndex = '999';
-            tooltip.style.maxWidth = '300px';
-            tooltip.style.fontSize = '14px';
-            tooltip.style.textAlign = 'center';
-            tooltip.innerHTML = `
+function sanitizeUidForId(uid) {
+    return uid.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+
+function showUpdateTooltip(updateId, elementId, content) {
+    // Find element using the same logic
+    let element = document.getElementById(elementId);
+    if (!element) {
+        element = document.querySelector(`[data-uid="${elementId}"]`);
+    }
+    if (!element) {
+        const sanitizedId = sanitizeUidForId(elementId);
+        element = document.querySelector(`[data-uid="${sanitizedId}"]`);
+    }
+    
+    if (!element) {
+        console.warn(`Element with ID or data-uid "${elementId}" not found for update ${updateId}`);
+        return;
+    }
+
+    const tooltip = document.createElement('div');
+    tooltip.style.position = 'absolute';
+    tooltip.style.backgroundColor = '#333';
+    tooltip.style.color = '#fff';
+    tooltip.style.padding = '5px 10px';
+    tooltip.style.paddingRight = '5px';
+    tooltip.style.borderRadius = '5px';
+    tooltip.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+    tooltip.style.zIndex = '999';
+    tooltip.style.maxWidth = '300px';
+    tooltip.style.fontSize = '14px';
+    tooltip.style.textAlign = 'center';
+    tooltip.innerHTML = `
         <div style="display:flex;flex-direction:row;gap:0;align-items:center;">
             <p style="margin: 0 5px 0 0;">${content}</p>
             <button style="margin: 0; position: relative; background: red; margin-right: 0; border-radius: 50px; padding: 0; width: 20px; height: 20px; border: none; color: #fff; font-size: 16px; cursor: pointer; line-height: 1;">✕</button>
         </div>
         <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 10px solid #333;"></div>
     `;
-            document.body.appendChild(tooltip);
+    document.body.appendChild(tooltip);
 
-            const rect = element.getBoundingClientRect();
-            tooltip.style.left = `${rect.left + window.scrollX + rect.width / 2 - tooltip.offsetWidth / 2}px`;
-            tooltip.style.top = `${rect.top + window.scrollY + rect.height + 10}px`;
+    // Position relative to the found element
+    const rect = element.getBoundingClientRect();
+    const elementType = element.id ? 'id' : 'data-uid';
+    console.log(`Positioning tooltip for element found by ${elementType}:`, elementId);
+    
+    tooltip.style.left = `${rect.left + window.scrollX + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+    tooltip.style.top = `${rect.top + window.scrollY + rect.height + 10}px`;
 
-            tooltip.querySelector('button').addEventListener('click', () => {
-                const dismissedUpdates = JSON.parse(localStorage.getItem('dismissedUpdates') || '[]');
-                dismissedUpdates.push(updateId);
-                localStorage.setItem('dismissedUpdates', JSON.stringify(dismissedUpdates));
-                tooltip.remove();
-            });
-        }
+    tooltip.querySelector('button').addEventListener('click', () => {
+        const dismissedUpdates = JSON.parse(localStorage.getItem('dismissedUpdates') || '[]');
+        dismissedUpdates.push(updateId);
+        localStorage.setItem('dismissedUpdates', JSON.stringify(dismissedUpdates));
+        tooltip.remove();
+    });
+}
 
         function buyAutoRebirth() {
             const user = auth.currentUser;
@@ -4804,6 +4855,7 @@ display: flex;
                         const entry = document.createElement('div');
                         const rank = index + 1;
                         entry.className = `leaderboard-card rank-${rank}`;
+                        entry.id = leader.uid;
                         entry.innerHTML = `
                     <span class="rank">${rank}</span>
                     <div class="user-and-info">
