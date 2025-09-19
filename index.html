@@ -3678,6 +3678,12 @@
             chatPopup.style.display = "flex";
             chatOpen = true;
             markChatAsRead();
+
+            // Wait for next animation frame to ensure layout is complete
+            requestAnimationFrame(() => {
+                const chatContainer = chatPopup.querySelector('.chat-messages') || chatPopup;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
         });
 
 
@@ -10115,7 +10121,7 @@ display: flex;
             const basePrice = Object.entries(set.balls).reduce((sum, [type, count]) => {
                 return sum + (ballPrices[type] || 100) * count;
             }, 0);
-            return Math.round(basePrice * set.multiplier * 0.1 * (1 + idleGoldPerSecond / 10));
+            return Math.round(basePrice * set.multiplier * 0.07 * (1 + idleGoldPerSecond / 10));
         }
 
         // Buy a specific set
