@@ -6247,10 +6247,6 @@ display: flex;
             takeDamage(damage) {
                 this.health -= damage;
 
-                if (this.health > 0) {
-                    showToast(`Hit! -${damage} HP`);
-                }
-
                 if (this.health <= 0) {
                     // Increment stats & rewards
                     stats.totalBricksBroken = (stats.totalBricksBroken || 0) + 1;
