@@ -3762,7 +3762,7 @@
 
 
 
-        const sgTarget = new Date("2025-10-05T00:00:00+08:00").getTime();
+        const sgTarget = new Date("2025-12-05T00:00:00+08:00").getTime();
 
         function updateCountdownDisplays() {
             const now = new Date().getTime();
@@ -3789,7 +3789,7 @@
 
             // Show overlay if time is up
             if (diff <= 0) {
-                document.getElementById("updateOverlay").style.display = "flex";
+                document.getElementById("updateOverlay").style.display = "none";
                 clearInterval(timer);
             }
         }
