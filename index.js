@@ -84,12 +84,12 @@ document.head.appendChild(style);
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "${FIREBASE_API_KEY}",
-    authDomain: "${FIREBASE_AUTH_DOMAIN}",
-    projectId: "${FIREBASE_PROJECT_ID}",
-    storageBucket: "${FIREBASE_STORAGE_BUCKET}",
-    messagingSenderId: "${FIREBASE_MESSAGING_SENDER_ID}",
-    appId: "${FIREBASE_APP_ID}"
+    apiKey: "AIzaSyCusXta6VD-G0zanUUPPMhs4Qc9aThb33Q",
+    authDomain: "bricker-by-zlabs.firebaseapp.com",
+    projectId: "bricker-by-zlabs",
+    storageBucket: "bricker-by-zlabs.firebasestorage.app",
+    messagingSenderId: "949608388167",
+    appId: "1:949608388167:web:beff34c82661cf69980362"
 };
 
 // Initialize Firebase
