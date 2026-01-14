@@ -135,8 +135,8 @@ let originalTitle = document.title;
 let toastEl = null;
 
 const gcImages = [
-    "./SLS.png",
-    "./classroom.png"
+    "./public/SLS.png",
+    "./public/classroom.png"
 ];
 let gcIndex = 0;
 const gcImageEl = document.getElementById('gcImage');
@@ -2362,7 +2362,7 @@ function showNewRankToast(userName, newRank) {
     toast.innerHTML = `
     <div class="newranktoast-rank-circle">
       ${newRank}
-      <img src="./green.png" alt="Rank Up">
+      <img src="./public/green.png" alt="Rank Up">
     </div>
     <div class="newranktoast-content">
       <h4>${userName} just climbed the leaderboard!</h4>
@@ -5764,7 +5764,7 @@ let settings = {
     backgroundMusicVolume: 0.5
 };
 
-const bgMusic = new Audio("LevelWave.m4a");
+const bgMusic = new Audio("./public/LevelWave.m4a");
 bgMusic.loop = true;
 bgMusic.volume = settings.backgroundMusicVolume;
 
@@ -5878,7 +5878,7 @@ function showSettingsPopup() {
         <!-- Background music toggle --> 
         <label style="display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:8px;"> 
             <input type="checkbox" id="bg-music-toggle"> 
-            Toggle Modric track 
+            Toggle LevelWave (by Modric) 
             
         </label> 
             
