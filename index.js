@@ -449,6 +449,44 @@ let stats = {
 let username = '';
 let lastUpdateTime = Date.now();
 
+// Background idle gold tracking
+let backgroundIdleStart = null;
+let isPageVisible = !document.hidden;
+
+// Handle tab visibility changes
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Tab is now hidden - start tracking background time
+        backgroundIdleStart = Date.now();
+        isPageVisible = false;
+    } else {
+        // Tab is now visible - calculate and apply idle gold
+        isPageVisible = true;
+        if (backgroundIdleStart) {
+            const backgroundDuration = (Date.now() - backgroundIdleStart) / 1000; // in seconds
+            const multiplier = globalUpgrades.goldBoost.active ? 2 : 1;
+            const idleGoldEarned = idleGoldPerSecond * backgroundDuration * multiplier;
+            gold += idleGoldEarned;
+            
+            // Notify user of idle earnings
+            const formattedGold = Math.floor(idleGoldEarned).toLocaleString();
+            const timeMinutes = Math.floor(backgroundDuration / 60);
+            const timeSecs = Math.floor(backgroundDuration % 60);
+            let timeStr = '';
+            if (timeMinutes > 0) {
+                timeStr = `${timeMinutes}m ${timeSecs}s`;
+            } else {
+                timeStr = `${timeSecs}s`;
+            }
+            showToast(`💰 Earned ${formattedGold} gold while away! (${timeStr})`);
+            
+            updateUI();
+            updateMilestones();
+            backgroundIdleStart = null;
+        }
+    }
+});
+
 function isBallUnlocked(type) {
     const unlock = ballUnlocks[type];
 
@@ -708,55 +746,65 @@ function dismissAllToasts() {
 const urlParams = new URLSearchParams(window.location.search);
 const inviterId = urlParams.get("id");
 
+// Track if initial auth state has been processed
+let authStateProcessed = false;
+let authInitialized = false;
 
 window.onload = function () {
     auth.onAuthStateChanged(user => {
         const trollsContainer = document.getElementById("troll-container");
+        
         if (user && !isGuest) {
             // Remove any lingering login modals
             document.querySelectorAll('.login-overlay').forEach(el => el.remove());
+            
+            // Only do login actions on first auth change or if previously not logged in
+            if (!authStateProcessed || !authInitialized) {
+                authInitialized = true;
+                authStateProcessed = true;
 
-            // Set save button for logged in users
-            document.getElementById('save-button').textContent = 'Save progress';
+                // Set save button for logged in users
+                document.getElementById('save-button').textContent = 'Save progress';
 
-            // Logged in: ignore invite links
-            loadGameState(user.uid);   // <-- this will trigger bgMusic if enabled
-            startTutorialIfNeeded(user.uid);
-            //showSG60GiveawayPopup(user.uid);
-            migrateNewBalls();
-            setupListeners();
-            showPopup();
+                // Logged in: ignore invite links
+                loadGameState(user.uid);   // <-- this will trigger bgMusic if enabled
+                startTutorialIfNeeded(user.uid);
+                //showSG60GiveawayPopup(user.uid);
+                migrateNewBalls();
+                setupListeners();
+                showPopup();
 
-            // Only show modal if not previously closed
-            if (localStorage.getItem('updateModalClosed') !== 'true') {
-                setTimeout(() => {
-                    document.getElementById("updateModal").style.display = "flex";
-                }, 1500);
+                // Only show modal if not previously closed
+                if (localStorage.getItem('updateModalClosed') !== 'true') {
+                    setTimeout(() => {
+                        document.getElementById("updateModal").style.display = "flex";
+                    }, 1500);
+                }
+
+                // Set invite link for this user
+                const inviteLinkEl = document.getElementById("inviteLink");
+                if (inviteLinkEl) {
+                    inviteLinkEl.value = "zandenkoh.github.io/bricker/" + "?id=" + user.uid;
+                }
+
+                // Setup invite container
+                setupInviteContainer(user.uid);
+                if (trollsContainer) trollsContainer.style.display = "block";
             }
 
-            // Set invite link for this user
-            const inviteLinkEl = document.getElementById("inviteLink");
-            if (inviteLinkEl) {
-                inviteLinkEl.value = "zandenkoh.github.io/bricker/" + "?id=" + user.uid;
-            }
-
-            // Setup invite container
-            setupInviteContainer(user.uid);
-            if (trollsContainer) trollsContainer.style.display = "block";
-
-
-        } else {
+        } else if (!user && !isGuest && !authStateProcessed) {
+            // Only show login on initial load if not guest and not logged in
+            authStateProcessed = true;
+            
             // For guests or not logged in, set button to "Login to save"
             document.getElementById('save-button').textContent = 'Login to save';
             document.getElementById('save-button').onclick = () => showLoginPopupForSave();
 
-            if (!isGuest) {
-                // Only show login/signup modal if not playing as guest
-                if (inviterId) {
-                    showInviteSignupPopup(inviterId);
-                } else {
-                    showLoginPopup();
-                }
+            // Only show login/signup modal if not playing as guest
+            if (inviterId) {
+                showInviteSignupPopup(inviterId);
+            } else {
+                showLoginPopup();
             }
 
             // Load local settings for guests and apply once
@@ -772,8 +820,6 @@ window.onload = function () {
             applyMusicSettings();
             if (trollsContainer) trollsContainer.style.display = "none";
             hidePopup();
-
-
         }
 
         updateBallOptionsUI(); // run for both
@@ -1469,6 +1515,8 @@ function login() {
             document.querySelector('.login-overlay').remove();
             loadGameState(userCredential.user.uid); // Only load data, do not save local storage
             startTutorialIfNeeded(userCredential.user.uid);
+            // Reload page to refresh all game state
+            setTimeout(() => location.reload(), 500);
         })
         .catch(error => {
             showToast('Login failed: ' + error.message);
@@ -1494,6 +1542,8 @@ function signUp() {
             document.querySelector('.login-overlay').remove();
             saveGameStateFromLocalStorage(userCredential.user.uid); // Save local storage data for new users
             startTutorialIfNeeded(userCredential.user.uid);
+            // Reload page to refresh all game state
+            setTimeout(() => location.reload(), 500);
         })
         .catch(error => {
             showToast('Sign up failed: ' + error.message);
@@ -6309,6 +6359,102 @@ function nextLevel() {
     }
 }
 
+// PIP Window Management
+let pipWindowElement = null;
+let pipIsDragging = false;
+let pipDragOffsetX = 0;
+let pipDragOffsetY = 0;
+
+function createPIPWindow() {
+    if (pipWindowElement) return; // Already created
+    
+    pipWindowElement = document.createElement('div');
+    pipWindowElement.className = 'pip-window';
+    pipWindowElement.innerHTML = `
+        <div class="pip-header">
+            <span>🎮 Live Stats</span>
+            <button class="pip-close">&times;</button>
+        </div>
+        <div class="pip-stats">
+            <div class="pip-stat-row">
+                <span class="pip-stat-label">💰 Gold:</span>
+                <span class="pip-stat-value" id="pip-gold">0</span>
+            </div>
+            <div class="pip-stat-row">
+                <span class="pip-stat-label">📈 Level:</span>
+                <span class="pip-stat-value" id="pip-level">1</span>
+            </div>
+            <div class="pip-stat-row">
+                <span class="pip-stat-label">🎪 Rebirths:</span>
+                <span class="pip-stat-value" id="pip-rebirth">0</span>
+            </div>
+            <div class="pip-stat-row">
+                <span class="pip-stat-label">⚽ Balls:</span>
+                <span class="pip-stat-value" id="pip-balls">0</span>
+            </div>
+            <div class="pip-stat-row">
+                <span class="pip-stat-label">🧱 Bricks:</span>
+                <span class="pip-stat-value" id="pip-bricks">0</span>
+            </div>
+            <div class="pip-stat-row">
+                <span class="pip-stat-label">⚙️ Idle/s:</span>
+                <span class="pip-stat-value" id="pip-idle">${idleGoldPerSecond.toFixed(1)}</span>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(pipWindowElement);
+    
+    // Setup close button
+    pipWindowElement.querySelector('.pip-close').addEventListener('click', closePIPWindow);
+    
+    // Setup dragging
+    pipWindowElement.querySelector('.pip-header').addEventListener('mousedown', (e) => {
+        pipIsDragging = true;
+        const rect = pipWindowElement.getBoundingClientRect();
+        pipDragOffsetX = e.clientX - rect.left;
+        pipDragOffsetY = e.clientY - rect.top;
+        pipWindowElement.classList.add('dragging');
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (pipIsDragging) {
+            pipWindowElement.style.bottom = 'auto';
+            pipWindowElement.style.right = 'auto';
+            pipWindowElement.style.left = (e.clientX - pipDragOffsetX) + 'px';
+            pipWindowElement.style.top = (e.clientY - pipDragOffsetY) + 'px';
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (pipIsDragging) {
+            pipIsDragging = false;
+            pipWindowElement.classList.remove('dragging');
+        }
+    });
+    
+    // Initial update
+    updatePIPWindow();
+}
+
+function updatePIPWindow() {
+    if (!pipWindowElement || document.hidden) return;
+    
+    document.getElementById('pip-gold').textContent = Math.floor(gold).toLocaleString();
+    document.getElementById('pip-level').textContent = level;
+    document.getElementById('pip-rebirth').textContent = rebirthCount;
+    document.getElementById('pip-balls').textContent = balls.length;
+    document.getElementById('pip-bricks').textContent = bricks.length;
+    document.getElementById('pip-idle').textContent = idleGoldPerSecond.toFixed(1);
+}
+
+function closePIPWindow() {
+    if (pipWindowElement) {
+        pipWindowElement.remove();
+        pipWindowElement = null;
+    }
+}
+
 // Game loop
 function gameLoop() {
     let lastTime = performance.now();
@@ -6339,8 +6485,14 @@ function gameLoop() {
         nextLevel();
         updateMilestones();
 
-        // Only render when visible
-        if (!document.hidden) {
+        // Show PIP window when tab is hidden, render normally when visible
+        if (document.hidden) {
+            if (!pipWindowElement) {
+                createPIPWindow();
+            }
+            updatePIPWindow();
+        } else {
+            closePIPWindow();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             balls.forEach(ball => {
                 drawTrail(ball);
@@ -7360,6 +7512,14 @@ function openCustomBallModal() {
         return;
     }
     modal.style.display = 'flex';
+    
+    // Add overlay click to close functionality
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            closeCustomBallModal();
+        }
+    };
+    
     renderCustomBallsModal();
 }
 
@@ -7368,6 +7528,7 @@ function closeCustomBallModal() {
     const modal = document.getElementById('custom-balls-modal');
     if (modal) {
         modal.style.display = 'none';
+        modal.onclick = null; // Clear the click handler
     }
 }
 

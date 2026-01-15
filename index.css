@@ -508,6 +508,77 @@
         .button-group {
             display: flex;
             flex-direction: row;
+        }
+
+        /* PIP Window Styles */
+        .pip-window {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 280px;
+            background: linear-gradient(145deg, #f4eed6, #e9dcaf);
+            border: 3px solid #444;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            font-family: Arial, sans-serif;
+            color: #000;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .pip-window.dragging {
+            cursor: grabbing;
+        }
+
+        .pip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .pip-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #000;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pip-close:hover {
+            color: #0053a6;
+        }
+
+        .pip-stats {
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .pip-stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+
+        .pip-stat-label {
+            font-weight: 600;
+        }
+
+        .pip-stat-value {
+            color: #0053a6;
+            font-weight: bold;
             gap: 8px;
         }
 
@@ -521,6 +592,7 @@
             height: 85px;
             padding: 0;
             box-sizing: border-box;
+            margin-left: 4px;
         }
 
         #my-balls-btn,
