@@ -234,6 +234,10 @@ function showTooast(message) {
 
 // Define Intro.js tutorial
 function startTutorial() {
+    if (typeof introJs === 'undefined') {
+        console.error('introJs library not loaded');
+        return;
+    }
     introJs().setOptions({
         steps: [{
             intro: "Welcome to Bricker! Let's explore the game.",
@@ -303,12 +307,6 @@ function startTutorial() {
         if (user) {
             localStorage.setItem(`tutorialCompleted_${user.uid}`, 'true');
         }
-    }).onbeforechange(() => {
-        const element = introJs()._currentStep > 0 ? introJs()._introItems[introJs()._currentStep].element : null;
-        if (element) element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        });
     }).start();
 }
 
