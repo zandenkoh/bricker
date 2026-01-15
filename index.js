@@ -6317,14 +6317,33 @@ function gameLoop() {
         const deltaTime = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
 
-        if (document.hidden) {
-            generatePassiveGold();
-            updatePlayTime();
-        } else {
+        // Always update game logic
+        balls.forEach(ball => {
+            ball.move();
+        });
+        effects.forEach(effect => {
+            effect.timer--;
+        });
+        effects = effects.filter(effect => effect.timer > 0);
+        powerUps.forEach(powerUp => {
+            if (powerUp.active) {
+                powerUp.collect();
+            }
+        });
+        autoBalls.forEach(autoBall => {
+            autoBall.move();
+        });
+        bricks.forEach(brick => {
+            // Update brick logic if any
+        });
+        nextLevel();
+        updateMilestones();
+
+        // Only render when visible
+        if (!document.hidden) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             balls.forEach(ball => {
                 drawTrail(ball);
-                ball.move();
                 ball.draw();
             });
             effects.forEach(effect => {
@@ -6333,23 +6352,16 @@ function gameLoop() {
                 ctx.fillStyle = `rgba(255, 255, 0, ${effect.timer / 10})`;
                 ctx.fill();
                 ctx.closePath();
-                effect.timer--;
             });
-            effects = effects.filter(effect => effect.timer > 0);
-            powerUps = powerUps.filter(p => p.active);
             powerUps.forEach(powerUp => {
                 if (powerUp.active) {
                     powerUp.draw();
-                    powerUp.collect();
                 }
             });
             autoBalls.forEach(autoBall => {
-                autoBall.move();
                 autoBall.draw();
             });
             bricks.forEach(brick => brick.draw());
-            nextLevel();
-            updateMilestones();
         }
         requestAnimationFrame(loop);
     }

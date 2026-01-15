@@ -7,7 +7,6 @@
 firebase-security-rules.json
 serviceAccountKey.json
 firebase-key.json
-config.js
 
 # IDE
 .vscode/
