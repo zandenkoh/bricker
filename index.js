@@ -82,15 +82,14 @@ style.innerHTML = `
 `;
 document.head.appendChild(style);
 
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyCusXta6VD-G0zanUUPPMhs4Qc9aThb33Q",
-    authDomain: "bricker-by-zlabs.firebaseapp.com",
-    projectId: "bricker-by-zlabs",
-    storageBucket: "bricker-by-zlabs.firebasestorage.app",
-    messagingSenderId: "949608388167",
-    appId: "1:949608388167:web:beff34c82661cf69980362"
-};
+// Firebase configuration loaded from config.js
+const firebaseConfig = window.firebaseConfig;
+
+// Verify config loaded before initializing
+if (!firebaseConfig || !firebaseConfig.apiKey) {
+    console.error("❌ Firebase config not loaded! Make sure config.js is loaded before index.js");
+    throw new Error("Firebase configuration missing");
+}
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -2699,29 +2698,53 @@ function proceedDonation(recipientUid, amount) {
         showLoginPopupForSave();
         return;
     }
-    gold -= amount;
-    database.ref('users/' + user.uid + '/gameState').update({
-        gold: gold
-    }).then(() => {
-        const updates = {};
-        updates['users/' + recipientUid + '/gameState/gold'] = firebase.database.ServerValue.increment(amount);
-        updates['reload/' + recipientUid] = true;
-        database.ref().update(updates)
-            .then(() => {
+    
+    if (gold < amount) {
+        showToast('Not enough gold to donate!');
+        return;
+    }
+    
+    // Use transactions to ensure atomic updates
+    const senderRef = database.ref('users/' + user.uid + '/gameState/gold');
+    const recipientRef = database.ref('users/' + recipientUid + '/gameState/gold');
+    
+    // Update sender
+    senderRef.transaction(currentGold => {
+        if (currentGold === null) return;
+        if (currentGold < amount) return; // Abort if not enough
+        return currentGold - amount;
+    }).then(senderResult => {
+        if (!senderResult.committed) {
+            showToast('Insufficient gold or transaction failed!');
+            return;
+        }
+        
+        // Update recipient
+        recipientRef.transaction(currentGold => {
+            return (currentGold || 0) + amount;
+        }).then(recipientResult => {
+            if (recipientResult.committed) {
+                gold -= amount;
                 showToast(`Successfully donated ${amount} gold!`);
                 updateUI();
                 updateLeaderboard();
                 stats.totalDonated = (stats.totalDonated || 0) + amount;
                 updateMilestones();
-            })
-            .catch(error => {
-                showToast('Failed to donate: ' + error.message);
+                
+                // Notify recipient
+                database.ref('reload/' + recipientUid).set(true).catch(() => {});
+            } else {
+                showToast('Failed to complete donation!');
                 gold += amount;
                 updateUI();
-            });
+            }
+        }).catch(error => {
+            showToast('Donation failed: ' + error.message);
+            gold += amount;
+            updateUI();
+        });
     }).catch(error => {
-        showToast('Failed to update your gold: ' + error.message);
-        gold += amount;
+        showToast('Donation error: ' + error.message);
         updateUI();
     });
 }

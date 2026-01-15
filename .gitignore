@@ -1,0 +1,47 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Firebase & Config
+firebase-credentials.json
+serviceAccountKey.json
+firebase-key.json
+config.js
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+out/
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# Dependencies
+package-lock.json
+yarn.lock
+
+# Sensitive data
+*.key
+*.pem
+.firebase/
