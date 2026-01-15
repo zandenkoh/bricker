@@ -1,0 +1,236 @@
+{
+  "rules": {
+    "users": {
+      ".read": "auth != null",
+      ".write": false,
+
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid",
+
+        "gameState": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.uid === $uid",
+
+          "gold": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999999999"
+          },
+          "level": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 999999"
+          },
+          "rebirthCount": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000"
+          },
+          "ballCounts": {
+            "basic":      { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+            "sniper":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+            "big":        { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+            "explosion":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+            "multiplying": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+            "child":      { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+            "cannonball": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+            "poison":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+            "snowball":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" }
+          },
+          "ballUpgrades": {
+            "$ballType": {
+              "level":  { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 200" },
+              "speed":  { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 50" },
+              "damage": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 1000" },
+              "baseDamage": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 1000" },
+              "damageGrowth": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 10" }
+            }
+          },
+          "ballPrices": {
+            "basic":      { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "sniper":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "big":        { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "explosion":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "multiplying": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "child":      { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "cannonball": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "poison":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "snowball":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" }
+          },
+          "username": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 50"
+          },
+          "autoBalls": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000"
+          },
+          "autoBallPrice": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
+          },
+          "idleGoldPerSecond": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000"
+          },
+          "autoRebirthOwned": {
+            ".validate": "newData.isBoolean()"
+          },
+          "autoRebirthEnabled": {
+            ".validate": "newData.isBoolean()"
+          },
+          "cosmetics": {
+            ".validate": "newData.hasChildren() || newData.val() === null"
+          },
+          "mascotsOwned": {
+            ".validate": "newData.hasChildren() || newData.val() === null"
+          },
+          "selectedMascotId": {
+            ".validate": "newData.isString() || newData.val() === null"
+          },
+          "stats": {
+            "totalPlayTime":       { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "totalBallsPurchased": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "totalUpgrades":       { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "totalBricksBroken":   { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "totalDonated":        { ".validate": "newData.isNumber() && newData.val() >= 0" }
+          },
+          "settings": {
+            "backgroundMusic": { ".validate": "newData.isBoolean() || newData.val() === null" },
+            "backgroundMusicVolume": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1" }
+          },
+          "globalUpgrades": {
+            "speedBoost": {
+              "active": { ".validate": "newData.isBoolean()" },
+              "activationTime": { ".validate": "newData.isNumber() || newData.val() === null" }
+            },
+            "goldBoost": {
+              "active": { ".validate": "newData.isBoolean()" },
+              "activationTime": { ".validate": "newData.isNumber() || newData.val() === null" }
+            }
+          }
+        },
+
+        "invitesLeft": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000"
+        },
+
+        "invitedUsers": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": false,
+          "$invitedUid": {
+            ".read": "auth != null && auth.uid === $uid"
+          }
+        }
+      }
+    },
+
+    "leaderboard": {
+      ".read": true,
+      ".write": false,
+      "$uid": {
+        ".read": true,
+        "rebirthCount": { ".read": true },
+        "stats": { ".read": true },
+        "username": { ".read": true }
+      }
+    },
+
+    "globalChat": {
+      ".read": "auth != null",
+      ".write": false,
+      "$messageId": {
+        ".write": "!root.child('globalChat').child($messageId).exists() && auth != null",
+        ".validate": "newData.hasChildren(['uid', 'message', 'timestamp']) && newData.child('message').isString() && newData.child('message').val().length > 0 && newData.child('message').val().length <= 500 && newData.child('timestamp').isNumber() && newData.child('uid').isString()",
+        "uid": {
+          ".validate": "newData.val() === auth.uid"
+        },
+        "message": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+
+
+    "teams": {
+      ".read": true,
+      ".write": false,
+
+      "$teamId": {
+        ".read": true,
+        ".write": "!root.child('teams').child($teamId).exists() && auth != null",
+
+        "admins": {
+          ".read": true,
+          ".write": false,
+          "$adminUid": {
+            ".write": "root.child('teams').child($teamId).child('admins').child(auth.uid).exists() && auth.uid === $adminUid"
+          }
+        },
+
+        "members": {
+          ".read": true,
+          ".write": false,
+          "$memberUid": {
+            ".write": "root.child('teams').child($teamId).child('admins').child(auth.uid).exists()"
+          }
+        },
+
+        "memberRebirths": {
+          ".read": true,
+          ".write": false,
+          "$memberUid": {
+            ".write": "root.child('teams').child($teamId).child('admins').child(auth.uid).exists() || auth.uid === $memberUid"
+          }
+        },
+
+        "name": {
+          ".read": true,
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+        },
+
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+
+    "userTeams": {
+      ".read": "auth != null",
+      ".write": false,
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).exists())",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "presence": {
+      ".read": "auth != null",
+      ".write": false,
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.isBoolean()"
+      }
+    },
+
+    "reload": {
+      ".read": "auth != null",
+      ".write": false,
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.isBoolean()"
+      }
+    },
+
+    "settings": {
+      ".read": "auth != null",
+      ".write": false
+    },
+
+    "updates": {
+      ".read": "auth != null",
+      ".write": false
+    },
+
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
