@@ -96,13 +96,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
-function startTutorialIfNeeded(userId) {
-    const tutorialCompleted = localStorage.getItem(`tutorialCompleted_${userId}`);
-    if (!tutorialCompleted && document.querySelector('#gameCanvas')) {
-        setTimeout(() => startTutorial(), 500); // Delay to ensure DOM is ready
-    }
-}
-
 function autoScaleMainContainer() {
     const container = document.querySelector(".main-main-container");
     if (!container) return;
@@ -232,84 +225,6 @@ function showTooast(message) {
     return toast;
 }
 
-// Define Intro.js tutorial
-function startTutorial() {
-    if (typeof introJs === 'undefined') {
-        console.error('introJs library not loaded');
-        return;
-    }
-    introJs().setOptions({
-        steps: [{
-            intro: "Welcome to Bricker! Let's explore the game.",
-            position: "center"
-        },
-        {
-            element: document.querySelector('#gameCanvas'),
-            intro: "This is the game canvas where balls bounce to destroy bricks. Click bricks to reduce their health!",
-            position: "top"
-        },
-        {
-            element: document.querySelector('.info-container'),
-            intro: "Track your Gold and Level here. Gold buys balls and upgrades.",
-            position: "right"
-        },
-        {
-            element: document.querySelector('#save-button'),
-            intro: "Click here to save your progress to your account.",
-            position: "right"
-        },
-        {
-            element: document.querySelector('.ball-options'),
-            intro: "Buy different balls like Basic, Sniper, Bomb, Clones, Cannonball, Poison, or Snowball, each with unique abilities.",
-            position: "bottom"
-        },
-        {
-            element: document.querySelector('#my-balls-btn'),
-            intro: "View your balls and upgrade them.",
-            position: "left"
-        },
-        {
-            element: document.querySelector('#settings-btn'),
-            intro: "Update your username or log out in the settings.",
-            position: "left"
-        },
-        {
-            element: document.querySelector('#weapons-btn'),
-            intro: "Use powerful weapons like Nuke or Blackhole for 1000 gold.",
-            position: "left"
-        },
-        {
-            element: document.querySelector('.leaderboard-container'),
-            intro: "Check the leaderboard to see top players' rankings and stats.",
-            position: "left"
-        },
-        {
-            intro: "You're all set! Start destroying bricks and earning gold!",
-            position: "center"
-        }
-        ],
-        showProgress: true,
-        showBullets: false,
-        exitOnOverlayClick: false,
-        disableInteraction: true,
-        tooltipClass: 'custom-tooltip',
-        highlightClass: 'custom-highlight',
-        nextLabel: 'Next',
-        prevLabel: 'Back',
-        doneLabel: 'Done'
-    }).oncomplete(() => {
-        const user = auth.currentUser;
-        if (user) {
-            localStorage.setItem(`tutorialCompleted_${user.uid}`, 'true');
-        }
-    }).onexit(() => {
-        const user = auth.currentUser;
-        if (user) {
-            localStorage.setItem(`tutorialCompleted_${user.uid}`, 'true');
-        }
-    }).start();
-}
-
 let ballCounts = {
     basic: 0,
     sniper: 0,
@@ -361,8 +276,8 @@ const ballUnlocks = {
     snowball: { level: 0, rebirth: 15 }
 };
 
-// Replace existing ballUpgrades entries with these (or add the fields)
-let ballUpgrades = {
+// Default ball upgrades
+const defaultBallUpgrades = {
     basic: {
         level: 1,
         speed: 3.5,
@@ -428,6 +343,9 @@ let ballUpgrades = {
     }
 };
 
+// Current ball upgrades, merged with defaults
+let ballUpgrades = { ...defaultBallUpgrades };
+
 let globalUpgrades = {
     speedBoost: {
         active: false,
@@ -467,7 +385,7 @@ document.addEventListener('visibilitychange', () => {
             const multiplier = globalUpgrades.goldBoost.active ? 2 : 1;
             const idleGoldEarned = idleGoldPerSecond * backgroundDuration * multiplier;
             gold += idleGoldEarned;
-            
+
             // Notify user of idle earnings
             const formattedGold = Math.floor(idleGoldEarned).toLocaleString();
             const timeMinutes = Math.floor(backgroundDuration / 60);
@@ -479,7 +397,7 @@ document.addEventListener('visibilitychange', () => {
                 timeStr = `${timeSecs}s`;
             }
             showToast(`💰 Earned ${formattedGold} gold while away! (${timeStr})`);
-            
+
             updateUI();
             updateMilestones();
             backgroundIdleStart = null;
@@ -753,11 +671,11 @@ let authInitialized = false;
 window.onload = function () {
     auth.onAuthStateChanged(user => {
         const trollsContainer = document.getElementById("troll-container");
-        
+
         if (user && !isGuest) {
             // Remove any lingering login modals
             document.querySelectorAll('.login-overlay').forEach(el => el.remove());
-            
+
             // Only do login actions on first auth change or if previously not logged in
             if (!authStateProcessed || !authInitialized) {
                 authInitialized = true;
@@ -795,7 +713,7 @@ window.onload = function () {
         } else if (!user && !isGuest && !authStateProcessed) {
             // Only show login on initial load if not guest and not logged in
             authStateProcessed = true;
-            
+
             // For guests or not logged in, set button to "Login to save"
             document.getElementById('save-button').textContent = 'Login to save';
             document.getElementById('save-button').onclick = () => showLoginPopupForSave();
@@ -1272,7 +1190,7 @@ function checkForUpdates() {
 
 function waitForElementToDisplay(elementId, callback) {
     let attempts = 0;
-    const maxAttempts = 50; // Prevent infinite loops (5 seconds max)
+    const maxAttempts = 10; // Prevent infinite loops (5 seconds max)
 
     const checkElement = () => {
         attempts++;
@@ -1428,6 +1346,167 @@ document.getElementById('auto-rebirth-toggle')?.addEventListener('change', funct
 });
 
 
+// ============ LOADING SCREEN FUNCTIONS ============
+function showLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.style.display = 'flex';
+    }
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+    }
+}
+
+// ============ TUTORIAL SYSTEM - INTRO.JS ============
+function startTutorial(userId) {
+    // Check if introJs is available
+    if (typeof introJs === 'undefined' && typeof window.introJs === 'undefined') {
+        console.error('❌ intro.js library not loaded yet. Retrying in 500ms...');
+        setTimeout(() => startTutorial(userId), 500);
+        return;
+    }
+    
+    // Use the correct reference to introJs
+    const IntroConstructor = typeof introJs !== 'undefined' ? introJs : window.introJs;
+    const intro = IntroConstructor();
+    
+    intro.setOptions({
+        steps: [
+            {
+                title: "🎮 Welcome to Bricker!",
+                intro: "<div class='intro-welcome'><p>The ultimate brick-breaking game where you collect powerful balls and level up to infinite strength.</p><p><strong>Goal:</strong> Reach Level 100 to unlock Rebirth and grow stronger!</p></div>",
+                position: 'center'
+            },
+            {
+                element: '#gold',
+                title: "💰 Gold - Your Currency",
+                intro: "<div class='intro-step'><p>Earn <strong>Gold</strong> by breaking bricks. Use it to buy better balls or invest in upgrades that carry over forever.</p><p>💡 Tip: Watch your gold grow with passive income!</p></div>",
+                position: 'right'
+            },
+            {
+                element: '#level',
+                title: "📈 Level System",
+                intro: "<div class='intro-step'><p>Your level increases as you break bricks. Each level makes you stronger!</p><p><strong>Reach Level 100</strong> to unlock Rebirth - reset level but keep all upgrades + 3x power boost!</p></div>",
+                position: 'right'
+            },
+            {
+                element: '#basic-option',
+                title: "🎯 Buy Your First Ball",
+                intro: "<div class='intro-step'><p>Click to purchase your first ball! Each ball type has unique abilities:</p><ul style='margin: 8px 0; padding-left: 20px;'><li>🎾 <strong>Basic</strong> - Reliable all-rounder</li><li>⚡ <strong>Sniper</strong> - Precise targeting</li><li>💣 <strong>Bomb</strong> - Splash damage</li></ul></div>",
+                position: 'top'
+            },
+            {
+                element: '#sniper-option',
+                title: "⚡ Ball Variety",
+                intro: "<div class='intro-step'><p><strong>Each ball type is unique:</strong></p><ul style='margin: 8px 0; padding-left: 20px;'><li>🎾 Basic - Standard</li><li>⚡ Sniper - Precise</li><li>💣 Bomb - Area damage</li><li>🔷 Clone - Multiplies</li><li>🤖 Auto - Automatic</li></ul><p>Build your dream arsenal!</p></div>",
+                position: 'top'
+            },
+            {
+                element: '#my-balls-btn',
+                title: "📊 Upgrade System",
+                intro: "<div class='intro-step'><p><strong>Upgrades are permanent!</strong> They carry over after Rebirth.</p><p>Boost:</p><ul style='margin: 8px 0; padding-left: 20px;'><li>⚡ Speed - Faster balls</li><li>💥 Damage - More powerful hits</li></ul><p>Strategic upgrades = Victory!</p></div>",
+                position: 'top'
+            },
+            {
+                element: '#auto-preview',
+                title: "🤖 Auto Balls (Game Changer!)",
+                intro: "<div class='intro-step'><p><strong>Auto Balls are powerful!</strong></p><p>They spawn automatically at the bottom and attack on their own.</p><p>⏰ <strong>Bonus Time:</strong> 10x stronger from 11 AM - 2 PM!</p><p>Start with these for exponential growth!</p></div>",
+                position: 'top'
+            },
+            {
+                element: '#all-milestones-btn',
+                title: "🏆 Milestones & Achievements",
+                intro: "<div class='intro-step'><p>Complete goals to earn <strong>permanent bonuses</strong>:</p><ul style='margin: 8px 0; padding-left: 20px;'><li>Own 50 Sniper Balls → +5% Damage</li><li>Reach Level 50 → +10% Gold</li><li>Break 1M Bricks → +1x Multiplier</li></ul><p>These bonuses stack forever!</p></div>",
+                position: 'top'
+            },
+            {
+                element: '#copyInviteBtn',
+                title: "👥 Invite & Earn Rebirths",
+                intro: "<div class='intro-step'><p>Share your code with friends and both get rewarded!</p><p>✨ You earn: <strong>+1 Rebirth per friend</strong></p><p>🎁 They earn: <strong>50K Gold head start</strong></p><p>Build your squad and dominate!</p></div>",
+                position: 'top'
+            },
+            {
+                element: '#global-tab',
+                title: "🌍 Global Leaderboard",
+                intro: "<div class='intro-step'><p>Compete with players worldwide!</p><p>🏅 Ranked by:</p><ul style='margin: 8px 0; padding-left: 20px;'><li>👑 Gold earned</li><li>🎯 Level reached</li><li>🔄 Total rebirths</li></ul><p>Team up with friends to create a guild!</p></div>",
+                position: 'top'
+            },
+            {
+                title: "🚀 Ready to Dominate?",
+                intro: "<div class='intro-welcome'><p><strong>You're all set!</strong></p><p>Here's your action plan:</p><ul style='margin: 8px 0; padding-left: 20px;'><li>1. Buy Auto Balls first</li><li>2. Upgrade damage & speed</li><li>3. Reach Level 100 & Rebirth</li><li>4. Invite friends for bonuses</li><li>5. Climb the leaderboard</li></ul><p><strong>Now go break those bricks! 💥</strong></p></div>",
+                position: 'center'
+            }
+        ],
+        nextLabel: 'Next',
+        prevLabel: 'Back',
+        skipLabel: 'Skip',
+        doneLabel: 'Let\'s Go!',
+        scrollToElement: true,
+        scrollPadding: 100,
+        showProgress: false,
+        showButtons: true,
+        showSteps: true,
+        highlightClass: 'bricker-highlight',
+        tooltipClass: 'bricker-tooltip',
+        disableInteraction: false
+    });
+
+    // Add custom styling on start
+    intro.onstart(() => {
+        addCustomIntroStyles();
+    });
+
+    // Handle completion
+    intro.oncomplete(() => {
+        completeTutorial(userId);
+    });
+
+    intro.onexit(() => {
+        completeTutorial(userId);
+    });
+
+    // Start the tour
+    intro.start();
+}
+
+
+
+function startTutorialIfNeeded(userId) {
+    // Ensure intro.js is loaded before attempting tutorial
+    function waitForIntroJs(callback, retries = 0) {
+        if (retries > 20) { // 10 seconds max retry
+            console.error('❌ intro.js library failed to load after max retries');
+            return;
+        }
+        
+        if (typeof introJs !== 'undefined' || typeof window.introJs !== 'undefined') {
+            // Library is ready, check if tutorial is needed
+            database.ref('users/' + userId + '/gameState/tutorialCompleted').once('value').then(snap => {
+                if (!snap.val()) {
+                    setTimeout(() => {
+                        callback(userId);
+                    }, 1500);
+                }
+            }).catch(() => {});
+        } else {
+            // Retry in 500ms
+            setTimeout(() => waitForIntroJs(callback, retries + 1), 500);
+        }
+    }
+    
+    waitForIntroJs(startTutorial);
+}
+
+function completeTutorial(userId) {
+    if (userId) {
+        database.ref('users/' + userId + '/gameState/tutorialCompleted').set(true).catch(() => {});
+    }
+}
+
 // Login popup
 function showLoginPopup() {
     // Remove any existing login overlays to prevent stacking
@@ -1437,7 +1516,11 @@ function showLoginPopup() {
     overlay.className = 'login-overlay';
     overlay.innerHTML = `
         <div class="login-popup">
+            <button class="modal-close-btn">&times;</button>
             <h2>Login to Save Progress</h2>
+            <p>Login or sign up to save your progress.<br>Or play as a guest.</p>
+            <button id="google-btn">Sign in with Google</button>
+            <p>or</p>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
             <div class="button-group">
@@ -1450,12 +1533,18 @@ function showLoginPopup() {
     document.body.appendChild(overlay);
     saveToLocalStorage(); // Save progress to local storage
     const loginBtn = overlay.querySelector('#login-btn');
+    const googleBtn = overlay.querySelector('#google-btn');
     const guestBtn = overlay.querySelector('#guest-btn');
     const signupLink = overlay.querySelector('#signup-link');
+    const closeBtn = overlay.querySelector('.modal-close-btn');
 
     loginBtn.addEventListener('click', () => {
         loginBtn.disabled = true;
         login();
+    });
+    googleBtn.addEventListener('click', () => {
+        googleBtn.disabled = true;
+        loginWithGoogle();
     });
     guestBtn.addEventListener('click', () => {
         guestBtn.disabled = true;
@@ -1464,6 +1553,10 @@ function showLoginPopup() {
     signupLink.addEventListener('click', (e) => {
         e.preventDefault();
         showSignUpPopup(overlay);
+    });
+    closeBtn.addEventListener('click', () => {
+        overlay.remove();
+        playAsGuest();
     });
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
@@ -1476,7 +1569,11 @@ function showLoginPopup() {
 function showSignUpPopup(overlay) {
     overlay.innerHTML = `
         <div class="login-popup">
+            <button class="modal-close-btn">&times;</button>
             <h2>Sign Up</h2>
+            <p>Create a new account to save your progress.</p>
+            <button id="google-btn">Sign up with Google</button>
+            <p>or</p>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
             <input type="password" id="confirm-password" placeholder="Confirm Password">
@@ -1487,13 +1584,23 @@ function showSignUpPopup(overlay) {
         </div>
     `;
     const signupBtn = overlay.querySelector('#signup-btn');
+    const googleBtn = overlay.querySelector('#google-btn');
     const backBtn = overlay.querySelector('#back-btn');
+    const closeBtn = overlay.querySelector('.modal-close-btn');
     signupBtn.addEventListener('click', () => {
         signupBtn.disabled = true;
         signUp();
     });
+    googleBtn.addEventListener('click', () => {
+        googleBtn.disabled = true;
+        loginWithGoogle();
+    });
     backBtn.addEventListener('click', () => {
         showLoginPopup();
+    });
+    closeBtn.addEventListener('click', () => {
+        overlay.remove();
+        playAsGuest();
     });
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
@@ -1513,10 +1620,10 @@ function login() {
         .then(userCredential => {
             isGuest = false;
             document.querySelector('.login-overlay').remove();
+            showLoadingScreen();
             loadGameState(userCredential.user.uid); // Only load data, do not save local storage
-            startTutorialIfNeeded(userCredential.user.uid);
             // Reload page to refresh all game state
-            setTimeout(() => location.reload(), 500);
+            setTimeout(() => location.reload(), 800);
         })
         .catch(error => {
             showToast('Login failed: ' + error.message);
@@ -1524,7 +1631,44 @@ function login() {
         });
 }
 
+function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+        .then(result => {
+            isGuest = false;
+            document.querySelector('.login-overlay').remove();
+            showLoadingScreen();
+
+            // If new user, assign anonymous username
+            if (result.additionalUserInfo.isNewUser) {
+                const newUsername = generateAnonymousUsername();
+                database.ref('users/' + result.user.uid + '/gameState').update({
+                    username: newUsername
+                }).catch(() => {});
+            }
+
+            loadGameState(result.user.uid);
+            setTimeout(() => location.reload(), 800);
+        })
+        .catch(error => {
+            showToast('Google sign-in failed: ' + error.message);
+            // Re-enable Google buttons
+            const googleBtns = document.querySelectorAll('#google-btn');
+            googleBtns.forEach(btn => btn.disabled = false);
+        });
+}
+
 // Update signUp function
+// Generate a random unique anonymous username
+function generateAnonymousUsername() {
+    const adjectives = ['Mysterious', 'Silent', 'Quick', 'Clever', 'Brave', 'Bold', 'Cool', 'Lucky', 'Mighty', 'Swift', 'Fierce', 'Grand', 'Noble', 'Royal', 'Shadow', 'Storm', 'Thunder', 'Wild', 'Wise', 'Zany'];
+    const nouns = ['Player', 'Gamer', 'Breaker', 'Bouncer', 'Crusher', 'Dasher', 'Falcon', 'Ghost', 'Hawk', 'Jaguar', 'Knight', 'Lion', 'Ninja', 'Phoenix', 'Racer', 'Shadow', 'Tiger', 'Viper', 'Wolf', 'Zealot'];
+    const randomNum = Math.floor(Math.random() * 1000);
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+    return `${adj}${noun}${randomNum}`;
+}
+
 function signUp() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -1540,10 +1684,31 @@ function signUp() {
         .then(userCredential => {
             isGuest = false;
             document.querySelector('.login-overlay').remove();
+            showLoadingScreen();
+
+            // Generate and set anonymous username
+            const newUsername = generateAnonymousUsername();
+
+            // Save local storage data with the new username
+            const localData = JSON.parse(localStorage.getItem('brickerGameState')) || {};
+            localData.username = newUsername;
+
+            // Update the username in Firebase as well
+            database.ref('users/' + userCredential.user.uid + '/gameState').update({
+                username: newUsername
+            }).catch(() => {});
+
+            localStorage.setItem('brickerGameState', JSON.stringify(localData));
+
             saveGameStateFromLocalStorage(userCredential.user.uid); // Save local storage data for new users
-            startTutorialIfNeeded(userCredential.user.uid);
+            // Mark tutorial as not completed for new users
+            database.ref('users/' + userCredential.user.uid + '/gameState/tutorialCompleted').set(false).catch(() => {});
+            // Clean up URL if coming from invite link
+            if (window.location.search) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
             // Reload page to refresh all game state
-            setTimeout(() => location.reload(), 500);
+            setTimeout(() => location.reload(), 800);
         })
         .catch(error => {
             showToast('Sign up failed: ' + error.message);
@@ -1565,13 +1730,23 @@ document.getElementById("copyInviteBtn").addEventListener("click", copyInviteLin
 function playAsGuest() {
     isGuest = true;
     document.querySelectorAll('.login-overlay').forEach(el => el.remove());
+    // Assign a guest username if not set
+    if (!username || username === '') {
+        username = 'Guest' + Math.floor(Math.random() * 10000);
+    }
     startGame();
 }
 
 // Save game state
 function saveGameState() {
-    if (isGuest) {
+    // Don't show login popup if an auth modal is already open
+    if (isGuest && !document.querySelector('.login-overlay')) {
         showLoginPopupForSave();
+        return;
+    }
+    if (isGuest) {
+        // Just save to local storage without showing popup
+        saveToLocalStorage();
         return;
     }
     const saveBtn = document.getElementById('save-button');
@@ -2746,16 +2921,16 @@ function proceedDonation(recipientUid, amount) {
         showLoginPopupForSave();
         return;
     }
-    
+
     if (gold < amount) {
         showToast('Not enough gold to donate!');
         return;
     }
-    
+
     // Use transactions to ensure atomic updates
     const senderRef = database.ref('users/' + user.uid + '/gameState/gold');
     const recipientRef = database.ref('users/' + recipientUid + '/gameState/gold');
-    
+
     // Update sender
     senderRef.transaction(currentGold => {
         if (currentGold === null) return;
@@ -2766,7 +2941,7 @@ function proceedDonation(recipientUid, amount) {
             showToast('Insufficient gold or transaction failed!');
             return;
         }
-        
+
         // Update recipient
         recipientRef.transaction(currentGold => {
             return (currentGold || 0) + amount;
@@ -2778,9 +2953,9 @@ function proceedDonation(recipientUid, amount) {
                 updateLeaderboard();
                 stats.totalDonated = (stats.totalDonated || 0) + amount;
                 updateMilestones();
-                
+
                 // Notify recipient
-                database.ref('reload/' + recipientUid).set(true).catch(() => {});
+                database.ref('reload/' + recipientUid).set(true).catch(() => { });
             } else {
                 showToast('Failed to complete donation!');
                 gold += amount;
@@ -2806,13 +2981,16 @@ function showLoginPopupForSave() {
     overlay.className = 'login-overlay';
     overlay.innerHTML = `
         <div class="login-popup">
+            <button class="modal-close-btn">&times;</button>
             <h2>Login to Save</h2>
             <p>You are playing as a guest. Login or sign up to save your progress.</p>
+            <button id="google-btn">Sign in with Google</button>
+            <p>or</p>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
             <div class="button-group">
                 <button id="login-btn">Login</button>
-                <button id="cancel-btn">Cancel</button>
+                <button id="cancel-btn">Play as Guest</button>
             </div>
             <p>Don't have an account? <a href="#" id="signup-link">Sign Up</a></p>
         </div>
@@ -2820,11 +2998,17 @@ function showLoginPopupForSave() {
     document.body.appendChild(overlay);
     saveToLocalStorage(); // Save progress to local storage
     const loginBtn = overlay.querySelector('#login-btn');
+    const googleBtn = overlay.querySelector('#google-btn');
     const signupLink = overlay.querySelector('#signup-link');
     const cancelBtn = overlay.querySelector('#cancel-btn');
+    const closeBtn = overlay.querySelector('.modal-close-btn');
     loginBtn.addEventListener('click', () => {
         loginBtn.disabled = true;
         login();
+    });
+    googleBtn.addEventListener('click', () => {
+        googleBtn.disabled = true;
+        loginWithGoogle();
     });
     signupLink.addEventListener('click', (e) => {
         e.preventDefault();
@@ -2832,6 +3016,9 @@ function showLoginPopupForSave() {
     });
     cancelBtn.addEventListener('click', () => {
         cancelBtn.disabled = true;
+        overlay.remove();
+    });
+    closeBtn.addEventListener('click', () => {
         overlay.remove();
     });
     overlay.addEventListener('click', (e) => {
@@ -3908,15 +4095,15 @@ function updateUI() {
 
     // Update tooltips with current speed and damage
     const ballTooltips = {
-        'basic-option': `Basic Ball: Standard ball that bounces off walls and breaks bricks. Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.basic.damage.toFixed(1))}`,
-        'sniper-option': `Sniper Ball: Redirects to nearest brick on wall hit. Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.sniper.damage.toFixed(1))}`,
-        'big-option': `Big Ball: Larger size for more hitting surface. Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.big.damage.toFixed(1))}`,
-        'explosion-option': `Bomb Ball: Deals ${ballUpgrades.explosion.damage.toFixed(1)} damage to hit brick, ${Math.floor(ballUpgrades.explosion.damage / 2).toFixed(1)} to nearby bricks. Speed: ${ballUpgrades.explosion.speed.toFixed(1)}`,
-        'multiplying-option': `Clones Ball: Spawns a small clone on brick hit. Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.multiplying.damage.toFixed(1))}`,
+        'basic-option': `Basic Ball: Standard ball that bounces off walls and breaks bricks. Speed: ${ballUpgrades?.basic?.speed?.toFixed(1) ?? 'N/A'}, Damage: ${formatNumber(ballUpgrades?.basic?.damage?.toFixed(1) ?? 'N/A')}`,
+        'sniper-option': `Sniper Ball: Redirects to nearest brick on wall hit. Speed: ${ballUpgrades?.sniper?.speed?.toFixed(1) ?? 'N/A'}, Damage: ${formatNumber(ballUpgrades?.sniper?.damage?.toFixed(1) ?? 'N/A')}`,
+        'big-option': `Big Ball: Larger size for more hitting surface. Speed: ${ballUpgrades?.big?.speed?.toFixed(1) ?? 'N/A'}, Damage: ${formatNumber(ballUpgrades?.big?.damage?.toFixed(1) ?? 'N/A')}`,
+        'explosion-option': `Bomb Ball: Deals ${ballUpgrades?.explosion?.damage?.toFixed(1) ?? 'N/A'} damage to hit brick, ${ballUpgrades?.explosion?.damage ? Math.floor(ballUpgrades.explosion.damage / 2).toFixed(1) : 'N/A'} to nearby bricks. Speed: ${ballUpgrades?.explosion?.speed?.toFixed(1) ?? 'N/A'}`,
+        'multiplying-option': `Clones Ball: Spawns a small clone on brick hit. Speed: ${ballUpgrades?.multiplying?.speed?.toFixed(1) ?? 'N/A'}, Damage: ${formatNumber(ballUpgrades?.multiplying?.damage?.toFixed(1) ?? 'N/A')}`,
         'auto-option': `Auto Ball: Spawns at bottom, moves up, respawns if no brick hit. Speed: 5, Damage: 1000`,
-        'cannonball-option': `Cannonball: Powerful ball that smashes through bricks. Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.cannonball.damage.toFixed(1))}`,
-        'poison-option': `Poison Ball: Infects bricks to receive double damage. Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.poison.damage.toFixed(1))}`,
-        'snowball-option': `Snowball: Gains power and speed with every bounce. Speed: ${ballUpgrades.snowball.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.snowball.damage.toFixed(1))}`
+        'cannonball-option': `Cannonball: Powerful ball that smashes through bricks. Speed: ${ballUpgrades?.cannonball?.speed?.toFixed(1) ?? 'N/A'}, Damage: ${formatNumber(ballUpgrades?.cannonball?.damage?.toFixed(1) ?? 'N/A')}`,
+        'poison-option': `Poison Ball: Infects bricks to receive double damage. Speed: ${ballUpgrades?.poison?.speed?.toFixed(1) ?? 'N/A'}, Damage: ${formatNumber(ballUpgrades?.poison?.damage?.toFixed(1) ?? 'N/A')}`,
+        'snowball-option': `Snowball: Gains power and speed with every bounce. Speed: ${ballUpgrades?.snowball?.speed?.toFixed(1) ?? 'N/A'}, Damage: ${formatNumber(ballUpgrades?.snowball?.damage?.toFixed(1) ?? 'N/A')}`
     };
     Object.keys(ballTooltips).forEach(id => {
         const element = document.getElementById(id);
@@ -4480,7 +4667,7 @@ function showTeamDetails(teamId, rank) {
                 </div>
                 <h3 style="text-align: left;font-weight: 600;font-size: 15px;margin-bottom: 10px;">Members:</h3>
                 <div id="team-members"></div>
-                <div style="margin-top:15px;">
+                <div style="margin-top:15px;display:flex;">
                     <button id="join-leave-btn"></button>
                     <button id="close-team-btn">Close</button>
                 </div>
@@ -5921,13 +6108,22 @@ function showSettingsPopup() {
                 <div style="flex:1;">
                     <div id="profile-tab" class="tab-content active">
                         <div class="settings-info">
-                            <p>Email: ${email}</p>
-                            <p>Username: <span id="username-display">${username || 'Not set'}</span>
-                                <span class="edit-icon" onclick="editUsername()">✏️</span>
-                            </p>
-                            <div id="username-input" style="display:none;">
-                                <input type="text" id="username-field" value="${username || ''}" placeholder="Enter username">
-                                <button onclick="saveUsername()">Save</button>
+                            <div class="profile-field">
+                                <label>Email</label>
+                                <div class="field-value">${email}</div>
+                            </div>
+                            <div class="profile-field">
+                                <label>Username</label>
+                                <div class="username-row">
+                                    <span id="username-display" class="username-text">${username || 'Not set'}</span>
+                                    <button class="edit-username-btn" onclick="editUsername()" title="Edit username">✏️</button>
+                                </div>
+                            </div>
+                            <div id="username-input" class="username-edit-row" style="display:none;">
+                                <div class="username-field-wrapper">
+                                    <input type="text" id="username-field" value="${username || ''}" placeholder="Enter username" maxlength="20">
+                                </div>
+                                <button class="save-username-btn" onclick="saveUsername()">Save</button>
                             </div>
                         </div>
                     </div>
@@ -6060,7 +6256,8 @@ function showSettingsPopup() {
 function editUsername() {
     document.getElementById('username-display').style.display = 'none';
     document.getElementById('username-input').style.display = 'block';
-    document.querySelector('.edit-icon').style.display = 'none';
+    document.getElementById('username-input').style.boxSizing = 'border-box';
+    document.querySelector('.edit-username-btn').style.display = 'none';
 }
 
 function saveUsername() {
@@ -6068,7 +6265,7 @@ function saveUsername() {
     document.getElementById('username-display').textContent = username || 'Not set';
     document.getElementById('username-display').style.display = 'inline';
     document.getElementById('username-input').style.display = 'none';
-    document.querySelector('.edit-icon').style.display = 'inline';
+    document.querySelector('.edit-username-btn').style.display = 'inline';
     saveGameState();
 }
 
@@ -6367,7 +6564,7 @@ let pipDragOffsetY = 0;
 
 function createPIPWindow() {
     if (pipWindowElement) return; // Already created
-    
+
     pipWindowElement = document.createElement('div');
     pipWindowElement.className = 'pip-window';
     pipWindowElement.innerHTML = `
@@ -6402,12 +6599,12 @@ function createPIPWindow() {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(pipWindowElement);
-    
+
     // Setup close button
     pipWindowElement.querySelector('.pip-close').addEventListener('click', closePIPWindow);
-    
+
     // Setup dragging
     pipWindowElement.querySelector('.pip-header').addEventListener('mousedown', (e) => {
         pipIsDragging = true;
@@ -6416,7 +6613,7 @@ function createPIPWindow() {
         pipDragOffsetY = e.clientY - rect.top;
         pipWindowElement.classList.add('dragging');
     });
-    
+
     document.addEventListener('mousemove', (e) => {
         if (pipIsDragging) {
             pipWindowElement.style.bottom = 'auto';
@@ -6425,21 +6622,21 @@ function createPIPWindow() {
             pipWindowElement.style.top = (e.clientY - pipDragOffsetY) + 'px';
         }
     });
-    
+
     document.addEventListener('mouseup', () => {
         if (pipIsDragging) {
             pipIsDragging = false;
             pipWindowElement.classList.remove('dragging');
         }
     });
-    
+
     // Initial update
     updatePIPWindow();
 }
 
 function updatePIPWindow() {
     if (!pipWindowElement || document.hidden) return;
-    
+
     document.getElementById('pip-gold').textContent = Math.floor(gold).toLocaleString();
     document.getElementById('pip-level').textContent = level;
     document.getElementById('pip-rebirth').textContent = rebirthCount;
@@ -6737,15 +6934,21 @@ function showInviteSignupPopup(inviterId) {
                     <h2>Sign Up</h2>
                     <p>Signing up with <strong>${inviterName}</strong>’s invitation!</p>
                     <p>You’ll start with <strong>50,000 Gold</strong> 🎁</p>
+                    <button id="google-btn">Sign up with Google</button>
+                    <p>or</p>
                     <input type="email" id="invite-email" placeholder="Email">
                     <input type="password" id="invite-password" placeholder="Password">
                     <input type="password" id="invite-confirm" placeholder="Confirm Password">
-                    <button id="invite-signup-btn">Sign Up</button>
+                    <div class="button-group">
+                        <button id="invite-signup-btn">Sign Up</button>
+                    </div>
                 </div>
             `;
             document.body.appendChild(overlay);
 
             const signupBtn = overlay.querySelector("#invite-signup-btn");
+            const googleBtn = overlay.querySelector("#google-btn");
+
             signupBtn.addEventListener("click", () => {
                 const email = overlay.querySelector("#invite-email").value.trim();
                 const pass = overlay.querySelector("#invite-password").value;
@@ -6760,28 +6963,29 @@ function showInviteSignupPopup(inviterId) {
                     return;
                 }
 
+                signupBtn.disabled = true;
                 auth.createUserWithEmailAndPassword(email, pass)
                     .then(cred => {
                         const newUserId = cred.user.uid;
 
-                        // Initialize new user with 50k gold + 5 invites
+                        // Initialize new user with 50k gold + 5 invites + tutorial flag
                         database.ref("users/" + newUserId).set({
                             gameState: {
                                 gold: 50000,
                                 level: 1,
                                 rebirthCount: 0,
-                                username: email.split("@")[0] // temp username
+                                username: email.split("@")[0], // temp username
+                                tutorialCompleted: false
                             },
                             invitesLeft: 5
                         });
 
-                        // Reward inviter with +150k gold and -1 invite
+                        // Reward inviter with +1 rebirth and -1 invite
                         const inviterRef = database.ref("users/" + inviterId);
                         inviterRef.once("value").then(snap => {
                             const inviterData = snap.val();
                             if (!inviterData) return;
 
-                            //const currentGold = inviterData.gameState?.gold || 0;
                             const currentRebirth = inviterData.gameState?.rebirthCount || 0;
                             const invitesLeft = inviterData.invitesLeft || 0;
 
@@ -6795,9 +6999,71 @@ function showInviteSignupPopup(inviterId) {
                         });
 
                         overlay.remove();
-                        alert("Account created! Enjoy your 50,000 gold bonus 🎉");
+                        showLoadingScreen();
+                        showToast("Account created! Enjoy your 50,000 gold bonus 🎉");
+                        
+                        // Clean up URL to remove invite ID
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        
+                        // Reload after brief delay
+                        setTimeout(() => location.reload(), 800);
                     })
-                    .catch(err => alert(err.message));
+                    .catch(err => {
+                        showToast("Sign up failed: " + err.message);
+                        signupBtn.disabled = false;
+                    });
+            });
+
+            googleBtn.addEventListener("click", () => {
+                googleBtn.disabled = true;
+                const provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then(result => {
+                        const newUserId = result.user.uid;
+                        // Check if new user
+                        database.ref("users/" + newUserId).once("value").then(snap => {
+                            if (!snap.val()) {
+                                // New user, initialize with bonus
+                                database.ref("users/" + newUserId).set({
+                                    gameState: {
+                                        gold: 50000,
+                                        level: 1,
+                                        rebirthCount: 0,
+                                        username: result.user.displayName || result.user.email.split("@")[0],
+                                        tutorialCompleted: false
+                                    },
+                                    invitesLeft: 5
+                                });
+                                // Reward inviter
+                                const inviterRef = database.ref("users/" + inviterId);
+                                inviterRef.once("value").then(snap => {
+                                    const inviterData = snap.val();
+                                    if (!inviterData) return;
+                                    const currentRebirth = inviterData.gameState?.rebirthCount || 0;
+                                    const invitesLeft = inviterData.invitesLeft || 0;
+                                    inviterRef.child("gameState").update({
+                                        rebirthCount: currentRebirth + 1
+                                    });
+                                    inviterRef.update({
+                                        invitesLeft: Math.max(invitesLeft - 1, 0)
+                                    });
+                                });
+                            }
+                            overlay.remove();
+                            showLoadingScreen();
+                            showToast("Signed up with Google! Enjoy your 50,000 gold bonus 🎉");
+                            
+                            // Clean up URL to remove invite ID
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                            
+                            // Reload after brief delay
+                            setTimeout(() => location.reload(), 800);
+                        });
+                    })
+                    .catch(err => {
+                        showToast("Google sign-up failed: " + err.message);
+                        googleBtn.disabled = false;
+                    });
             });
         });
 }
@@ -7512,14 +7778,14 @@ function openCustomBallModal() {
         return;
     }
     modal.style.display = 'flex';
-    
+
     // Add overlay click to close functionality
     modal.onclick = (e) => {
         if (e.target === modal) {
             closeCustomBallModal();
         }
     };
-    
+
     renderCustomBallsModal();
 }
 
