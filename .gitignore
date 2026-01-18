@@ -45,3 +45,5 @@ yarn.lock
 *.key
 *.pem
 .firebase/
+
+package.json
