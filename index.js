@@ -473,6 +473,12 @@ const saveButton = document.getElementById('save-button');
 // Authentication state
 let isGuest = false;
 
+// Helper function to check if user is logged in
+function isUserLoggedIn() {
+    const user = auth.currentUser;
+    return user !== null && !isGuest;
+}
+
 // Add tooltips to ball options
 /*const ballTooltips = {
     'sniper-option': 'Sniper Ball: Redirects to nearest brick on wall hit. Speed: 4.5, Damage: 1',
@@ -672,6 +678,7 @@ window.onload = function () {
     auth.onAuthStateChanged(user => {
         const trollsContainer = document.getElementById("troll-container");
 
+        // 🚫 DOUBLE CHECK: Never show login modals if user is already authenticated
         if (user && !isGuest) {
             // Remove any lingering login modals
             document.querySelectorAll('.login-overlay').forEach(el => el.remove());
@@ -711,6 +718,15 @@ window.onload = function () {
             }
 
         } else if (!user && !isGuest && !authStateProcessed) {
+            // 🚫 FINAL CHECK: Verify user is not logged in before showing login modal
+            // The onAuthStateChanged might fire multiple times, so we need to re-check auth.currentUser
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+                // User logged in during async operation, don't show login modal
+                console.log('Login modal blocked: User is now authenticated');
+                return;
+            }
+            
             // Only show login on initial load if not guest and not logged in
             authStateProcessed = true;
 
@@ -1509,6 +1525,12 @@ function completeTutorial(userId) {
 
 // Login popup
 function showLoginPopup() {
+    // 🚫 NEVER show login modal if user is logged in
+    if (isUserLoggedIn()) {
+        console.log('Login popup blocked: User is already logged in');
+        return;
+    }
+
     // Remove any existing login overlays to prevent stacking
     document.querySelectorAll('.login-overlay').forEach(el => el.remove());
 
@@ -1531,33 +1553,44 @@ function showLoginPopup() {
         </div>
     `;
     document.body.appendChild(overlay);
-    saveToLocalStorage(); // Save progress to local storage
+    saveToLocalStorage();
+    
     const loginBtn = overlay.querySelector('#login-btn');
     const googleBtn = overlay.querySelector('#google-btn');
     const guestBtn = overlay.querySelector('#guest-btn');
     const signupLink = overlay.querySelector('#signup-link');
     const closeBtn = overlay.querySelector('.modal-close-btn');
 
-    loginBtn.addEventListener('click', () => {
-        loginBtn.disabled = true;
-        login();
-    });
-    googleBtn.addEventListener('click', () => {
-        googleBtn.disabled = true;
-        loginWithGoogle();
-    });
-    guestBtn.addEventListener('click', () => {
-        guestBtn.disabled = true;
-        playAsGuest();
-    });
-    signupLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        showSignUpPopup(overlay);
-    });
-    closeBtn.addEventListener('click', () => {
-        overlay.remove();
-        playAsGuest();
-    });
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            loginBtn.disabled = true;
+            login();
+        });
+    }
+    if (googleBtn) {
+        googleBtn.addEventListener('click', () => {
+            googleBtn.disabled = true;
+            loginWithGoogle();
+        });
+    }
+    if (guestBtn) {
+        guestBtn.addEventListener('click', () => {
+            guestBtn.disabled = true;
+            playAsGuest();
+        });
+    }
+    if (signupLink) {
+        signupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSignUpPopup(overlay);
+        });
+    }
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            overlay.remove();
+            playAsGuest();
+        });
+    }
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
             overlay.remove();
@@ -1567,6 +1600,8 @@ function showLoginPopup() {
 }
 
 function showSignUpPopup(overlay) {
+    if (!overlay) return;
+    
     overlay.innerHTML = `
         <div class="login-popup">
             <button class="modal-close-btn">&times;</button>
@@ -1587,12 +1622,13 @@ function showSignUpPopup(overlay) {
     const googleBtn = overlay.querySelector('#google-btn');
     const backBtn = overlay.querySelector('#back-btn');
     const closeBtn = overlay.querySelector('.modal-close-btn');
+    
     signupBtn.addEventListener('click', () => {
-        signupBtn.disabled = true;
+        if (signupBtn) signupBtn.disabled = true;
         signUp();
     });
     googleBtn.addEventListener('click', () => {
-        googleBtn.disabled = true;
+        if (googleBtn) googleBtn.disabled = true;
         loginWithGoogle();
     });
     backBtn.addEventListener('click', () => {
@@ -1612,22 +1648,70 @@ function showSignUpPopup(overlay) {
 
 // Login function
 function login() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
     const loginBtn = document.querySelector('#login-btn');
-    loginBtn.disabled = true;
+    
+    // Validate inputs exist
+    if (!emailInput || !passwordInput) {
+        showToast('Error: Login form not found. Please refresh the page.');
+        if (loginBtn) loginBtn.disabled = false;
+        return;
+    }
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    // Validate email format
+    if (!email) {
+        showToast('Please enter your email address.');
+        if (loginBtn) loginBtn.disabled = false;
+        emailInput.focus();
+        return;
+    }
+    
+    if (!password) {
+        showToast('Please enter your password.');
+        if (loginBtn) loginBtn.disabled = false;
+        passwordInput.focus();
+        return;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showToast('Please enter a valid email address.');
+        if (loginBtn) loginBtn.disabled = false;
+        return;
+    }
+    
+    if (loginBtn) loginBtn.disabled = true;
+    
     auth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
             isGuest = false;
-            document.querySelector('.login-overlay').remove();
+            const overlay = document.querySelector('.login-overlay');
+            if (overlay) overlay.remove();
             showLoadingScreen();
-            loadGameState(userCredential.user.uid); // Only load data, do not save local storage
-            // Reload page to refresh all game state
+            loadGameState(userCredential.user.uid);
             setTimeout(() => location.reload(), 800);
         })
         .catch(error => {
-            showToast('Login failed: ' + error.message);
-            loginBtn.disabled = false;
+            // Provide more user-friendly error messages
+            let errorMessage = error.message;
+            if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid email format. Please check your email.';
+            } else if (error.code === 'auth/user-disabled') {
+                errorMessage = 'This account has been disabled. Contact support.';
+            } else if (error.code === 'auth/user-not-found') {
+                errorMessage = 'No account found with this email. Please sign up first.';
+            } else if (error.code === 'auth/wrong-password') {
+                errorMessage = 'Incorrect password. Please try again.';
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage = 'Too many failed attempts. Please try again later or reset your password.';
+            }
+            showToast('Login failed: ' + errorMessage);
+            if (loginBtn) loginBtn.disabled = false;
         });
 }
 
@@ -1670,20 +1754,65 @@ function generateAnonymousUsername() {
 }
 
 function signUp() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirm-password')?.value;
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
     const signupBtn = document.querySelector('#signup-btn');
-    if (password !== confirmPassword) {
-        showToast('Passwords do not match!');
-        signupBtn.disabled = false;
+    
+    // Validate inputs exist
+    if (!emailInput || !passwordInput || !confirmPasswordInput) {
+        showToast('Error: Sign up form not found. Please refresh the page.');
+        if (signupBtn) signupBtn.disabled = false;
         return;
     }
-    signupBtn.disabled = true;
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    
+    // Validate email format
+    if (!email) {
+        showToast('Please enter your email address.');
+        if (signupBtn) signupBtn.disabled = false;
+        emailInput.focus();
+        return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showToast('Please enter a valid email address.');
+        if (signupBtn) signupBtn.disabled = false;
+        return;
+    }
+    
+    if (!password) {
+        showToast('Please enter a password.');
+        if (signupBtn) signupBtn.disabled = false;
+        passwordInput.focus();
+        return;
+    }
+    
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters long.');
+        if (signupBtn) signupBtn.disabled = false;
+        passwordInput.focus();
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showToast('Passwords do not match!');
+        if (signupBtn) signupBtn.disabled = false;
+        confirmPasswordInput.focus();
+        return;
+    }
+    
+    if (signupBtn) signupBtn.disabled = true;
+    
     auth.createUserWithEmailAndPassword(email, password)
         .then(userCredential => {
             isGuest = false;
-            document.querySelector('.login-overlay').remove();
+            const overlay = document.querySelector('.login-overlay');
+            if (overlay) overlay.remove();
             showLoadingScreen();
 
             // Generate and set anonymous username
@@ -1700,19 +1829,27 @@ function signUp() {
 
             localStorage.setItem('brickerGameState', JSON.stringify(localData));
 
-            saveGameStateFromLocalStorage(userCredential.user.uid); // Save local storage data for new users
-            // Mark tutorial as not completed for new users
+            saveGameStateFromLocalStorage(userCredential.user.uid);
             database.ref('users/' + userCredential.user.uid + '/gameState/tutorialCompleted').set(false).catch(() => {});
-            // Clean up URL if coming from invite link
             if (window.location.search) {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
-            // Reload page to refresh all game state
             setTimeout(() => location.reload(), 800);
         })
         .catch(error => {
-            showToast('Sign up failed: ' + error.message);
-            signupBtn.disabled = false;
+            // Provide more user-friendly error messages
+            let errorMessage = error.message;
+            if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid email format. Please check your email.';
+            } else if (error.code === 'auth/email-already-in-use') {
+                errorMessage = 'An account with this email already exists. Please login instead.';
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = 'Password is too weak. Please use at least 6 characters.';
+            } else if (error.code === 'auth/operation-not-allowed') {
+                errorMessage = 'Email/password sign-up is not enabled. Please contact support.';
+            }
+            showToast('Sign up failed: ' + errorMessage);
+            if (signupBtn) signupBtn.disabled = false;
         });
 }
 
@@ -1728,12 +1865,27 @@ document.getElementById("copyInviteBtn").addEventListener("click", copyInviteLin
 
 // Play as guest
 function playAsGuest() {
+    // 🚫 Prevent guest mode if user is already logged in
+    if (isUserLoggedIn()) {
+        console.log('Guest mode blocked: User is already logged in');
+        // Remove any login overlays that might have been shown
+        document.querySelectorAll('.login-overlay').forEach(el => el.remove());
+        return;
+    }
+
     isGuest = true;
     document.querySelectorAll('.login-overlay').forEach(el => el.remove());
     // Assign a guest username if not set
     if (!username || username === '') {
         username = 'Guest' + Math.floor(Math.random() * 10000);
     }
+
+    // Load completed milestones from localStorage if available
+    const localData = JSON.parse(localStorage.getItem('brickerGameState'));
+    if (localData && Array.isArray(localData.completedMilestones)) {
+        completedMilestones = localData.completedMilestones;
+    }
+
     startGame();
 }
 
@@ -1797,7 +1949,8 @@ function saveGameState() {
                     active: globalUpgrades.goldBoost.active,
                     activationTime: globalUpgrades.goldBoost.active ? Date.now() : null
                 }
-            }
+            },
+            completedMilestones: completedMilestones  // Track completed milestone IDs
         };
         database.ref('users/' + user.uid + '/gameState').update(gameState)
             .then(() => {
@@ -2025,13 +2178,15 @@ document.getElementById('all-milestones-btn').addEventListener('click', () => {
 });
 
 
-// Player's active milestones
+// Player's active and completed milestones
 let activeMilestones = [];
+let completedMilestones = []; // Track completed milestone IDs for persistence
 
 // Load milestones based on player progress
 function loadMilestones() {
     activeMilestones = milestoneDefinitions
-        .filter(m => getStatValue(m.stat) < m.goal) // Skip completed
+        .filter(m => !completedMilestones.includes(m.id)) // Skip completed
+        .filter(m => getStatValue(m.stat) < m.goal) // Skip completed (goal reached)
         .slice(0, 3); // Only easiest 3
     renderMilestones();
 }
@@ -2081,10 +2236,17 @@ function renderMilestones() {
 // Check milestones in real-time
 function updateMilestones() {
     let changed = false;
+    let newCompleted = [];
 
     // Loop over a copy so we can modify activeMilestones safely
     [...activeMilestones].forEach(m => {
         if (getStatValue(m.stat) >= m.goal) {
+            // Add to completed milestones if not already there
+            if (!completedMilestones.includes(m.id)) {
+                completedMilestones.push(m.id);
+                newCompleted.push(m.id);
+            }
+
             // Show a toast notification (non-blocking)
             showToast(`Milestone Complete: ${m.title}!`);
 
@@ -2101,6 +2263,25 @@ function updateMilestones() {
             changed = true;
         }
     });
+
+    // Save completed milestones to Firebase if any new ones
+    if (newCompleted.length > 0 && !isGuest && auth.currentUser) {
+        const user = auth.currentUser;
+        database.ref('users/' + user.uid + '/gameState/completedMilestones')
+            .transaction(current => {
+                if (current === null) return completedMilestones;
+                // Merge with existing completed milestones
+                const existing = Array.isArray(current) ? current : [];
+                const uniqueNew = newCompleted.filter(id => !existing.includes(id));
+                return [...existing, ...uniqueNew];
+            })
+            .catch(err => console.error('Error saving milestones:', err));
+    }
+
+    // Also save to localStorage for guests
+    if (newCompleted.length > 0) {
+        saveToLocalStorage();
+    }
 
     // Update the list without interrupting the game
     if (changed) {
@@ -2974,6 +3155,12 @@ function proceedDonation(recipientUid, amount) {
 
 // Show login popup when guest tries to save
 function showLoginPopupForSave() {
+    // 🚫 NEVER show login modal if user is logged in
+    if (isUserLoggedIn()) {
+        console.log('Login popup for save blocked: User is already logged in');
+        return;
+    }
+
     // Remove any existing login overlays to prevent stacking
     document.querySelectorAll('.login-overlay').forEach(el => el.remove());
 
@@ -2996,31 +3183,43 @@ function showLoginPopupForSave() {
         </div>
     `;
     document.body.appendChild(overlay);
-    saveToLocalStorage(); // Save progress to local storage
+    saveToLocalStorage();
+    
     const loginBtn = overlay.querySelector('#login-btn');
     const googleBtn = overlay.querySelector('#google-btn');
     const signupLink = overlay.querySelector('#signup-link');
     const cancelBtn = overlay.querySelector('#cancel-btn');
     const closeBtn = overlay.querySelector('.modal-close-btn');
-    loginBtn.addEventListener('click', () => {
-        loginBtn.disabled = true;
-        login();
-    });
-    googleBtn.addEventListener('click', () => {
-        googleBtn.disabled = true;
-        loginWithGoogle();
-    });
-    signupLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        showSignUpPopup(overlay);
-    });
-    cancelBtn.addEventListener('click', () => {
-        cancelBtn.disabled = true;
-        overlay.remove();
-    });
-    closeBtn.addEventListener('click', () => {
-        overlay.remove();
-    });
+    
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            loginBtn.disabled = true;
+            login();
+        });
+    }
+    if (googleBtn) {
+        googleBtn.addEventListener('click', () => {
+            googleBtn.disabled = true;
+            loginWithGoogle();
+        });
+    }
+    if (signupLink) {
+        signupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSignUpPopup(overlay);
+        });
+    }
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            cancelBtn.disabled = true;
+            overlay.remove();
+        });
+    }
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            overlay.remove();
+        });
+    }
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
             overlay.remove();
@@ -3052,6 +3251,7 @@ function saveToLocalStorage() {
             backgroundMusic: settings.backgroundMusic,
             backgroundMusicVolume: settings.backgroundMusicVolume
         },
+        completedMilestones: completedMilestones,  // Track completed milestone IDs
 
         globalUpgrades: {
             speedBoost: {
@@ -3166,6 +3366,9 @@ function loadGameState(uid) {
                 };
                 mascotsOwned = Array.isArray(data.mascotsOwned) ? data.mascotsOwned : (data.mascotsOwned || []);
                 selectedMascotId = data.selectedMascotId || null;
+
+                // Load completed milestones
+                completedMilestones = Array.isArray(data.completedMilestones) ? data.completedMilestones : [];
 
                 syncBallsWithCounts();
                 autoBalls = [];
@@ -4580,7 +4783,24 @@ document.addEventListener("click", e => {
 
 function fetchTeams() {
     const teamList = document.getElementById("team-list");
+    const createTeamBtn = document.getElementById("create-team-btn");
     teamList.innerHTML = "Loading teams...";
+    
+    // Check if current user is in a team
+    const user = auth.currentUser;
+    if (user) {
+        database.ref("userTeams/" + user.uid).once("value").then(userSnap => {
+            const userTeamId = userSnap.val();
+            // Hide create team button if user is already in a team
+            if (createTeamBtn) {
+                createTeamBtn.style.display = userTeamId ? 'none' : 'block';
+            }
+        });
+    } else if (createTeamBtn) {
+        // User not logged in, show button but they'll need to login first
+        createTeamBtn.style.display = 'block';
+    }
+    
     database.ref("teams").once("value").then(snapshot => {
         const teams = [];
         snapshot.forEach(teamSnap => {
@@ -4911,23 +5131,335 @@ function showTeamDetails(teamId, rank) {
         });
     });
 }
-// Create Team (only if not in a team)
-document.addEventListener("click", e => {
-    if (e.target.id === "create-team-btn") {
-        const user = auth.currentUser;
-        if (!user) return showToast("Login first!");
-        database.ref("userTeams/" + user.uid).once("value").then(snap => {
-            if (snap.val()) return showToast("You already have or are in a team!");
-            const teamName = prompt("Enter team name:");
-            if (!teamName) return;
-            const isPrivate = confirm("Make this team password-protected?");
-            let password = '';
-            if (isPrivate) {
-                password = prompt("Enter team password:");
-                if (!password) return showToast("Password required for private team!");
+// Inject styles for team creation modal
+const teamModalStyle = document.createElement('style');
+teamModalStyle.innerHTML = `
+    .team-create-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10001;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .team-create-modal.show {
+        display: flex;
+    }
+    
+    .team-create-modal .modal-content {
+        background: #f4eed6;
+        border: 2px solid #444;
+        border-radius: 12px;
+        padding: 30px;
+        width: 380px;
+        max-width: 90vw;
+        position: relative;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    .team-create-modal .modal-content h2 {
+        margin: 0 0 20px 0;
+        color: #333;
+        text-align: center;
+        font-family: Arial, sans-serif;
+    }
+    
+    .team-create-modal .form-group {
+        margin-bottom: 18px;
+    }
+    
+    .team-create-modal .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: #333;
+        font-family: Arial, sans-serif;
+        font-weight: 600;
+    }
+    
+    .team-create-modal .form-group input[type="text"],
+    .team-create-modal .form-group input[type="password"] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #444;
+        border-radius: 6px;
+        background: #e9dcaf;
+        color: #000;
+        font-size: 15px;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+    
+    .team-create-modal .form-group input:focus {
+        outline: none;
+        border-color: #000;
+        box-shadow: none;
+    }
+    
+    .team-create-modal .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+    
+    .team-create-modal .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #000;
+    }
+    
+    .team-create-modal .checkbox-group label {
+        color: #333;
+        font-family: Arial, sans-serif;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .team-create-modal .password-section {
+        display: none;
+        margin-top: 10px;
+        animation: fadeIn 0.2s ease;
+    }
+    
+    .team-create-modal .password-section.show {
+        display: block;
+    }
+    
+    .team-create-modal .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+    }
+    
+    .team-create-modal .button-group button {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: Arial, sans-serif;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .team-create-modal .btn-create {
+        background: #000;
+        color: white;
+    }
+    
+    .team-create-modal .btn-create:hover:not(:disabled) {
+        opacity: 0.5;
+        transform: translateY(-1px);
+    }
+    
+    .team-create-modal .btn-create:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .team-create-modal .close-btn {
+        position: absolute;
+        top: 12px;
+        right: 15px;
+        font-size: 28px;
+        color: #666;
+        cursor: pointer;
+        background: none;
+        border: none;
+        line-height: 1;
+        padding: 0;
+    }
+    
+    .team-create-modal .close-btn:hover {
+        color: #333;
+    }
+    
+    .team-create-modal .error-message {
+        color: #f44336;
+        font-size: 13px;
+        margin-top: 5px;
+        display: none;
+        font-family: Arial, sans-serif;
+    }
+    
+    .team-create-modal .error-message.show {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    .team-create-modal .btn-create.loading {
+        animation: pulse 1s infinite;
+        pointer-events: none;
+    }
+`;
+document.head.appendChild(teamModalStyle);
+
+// Team Creation Modal Function
+function showTeamCreateModal() {
+    // Remove any existing team modals
+    document.querySelectorAll('.team-create-modal').forEach(el => el.remove());
+    
+    const user = auth.currentUser;
+    if (!user) {
+        showToast("Login first!");
+        return;
+    }
+    
+    database.ref("userTeams/" + user.uid).once("value").then(snap => {
+        if (snap.val()) {
+            showToast("You already have or are in a team!");
+            return;
+        }
+        
+        // Create modal overlay
+        const modal = document.createElement('div');
+        modal.className = 'team-create-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <button class="close-btn">&times;</button>
+                <h2>Create New Team</h2>
+                
+                <div class="form-group">
+                    <label for="team-name-input">Team Name</label>
+                    <input type="text" id="team-name-input" placeholder="Enter your team name" maxlength="30" autocomplete="off">
+                    <div class="error-message" id="team-name-error"></div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="team-private-checkbox">
+                    <label for="team-private-checkbox">Make team password protected</label>
+                </div>
+                
+                <div class="password-section" id="password-section">
+                    <div class="form-group">
+                        <label for="team-password-input">Team Password</label>
+                        <input type="password" id="team-password-input" placeholder="Enter password" maxlength="20" autocomplete="new-password">
+                        <div class="error-message" id="team-password-error"></div>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn-cancel" id="cancel-team-btn">Cancel</button>
+                    <button class="btn-create" id="create-team-confirm-btn" disabled>Create Team</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Elements
+        const teamNameInput = modal.querySelector('#team-name-input');
+        const teamPrivateCheckbox = modal.querySelector('#team-private-checkbox');
+        const passwordSection = modal.querySelector('#password-section');
+        const teamPasswordInput = modal.querySelector('#team-password-input');
+        const createBtn = modal.querySelector('#create-team-confirm-btn');
+        const cancelBtn = modal.querySelector('#cancel-team-btn');
+        const closeBtn = modal.querySelector('.close-btn');
+        const nameError = modal.querySelector('#team-name-error');
+        const passwordError = modal.querySelector('#team-password-error');
+        
+        // Show modal with animation
+        requestAnimationFrame(() => {
+            modal.classList.add('show');
+        });
+        
+        // Focus on team name input
+        setTimeout(() => teamNameInput.focus(), 100);
+        
+        // Toggle password section
+        teamPrivateCheckbox.addEventListener('change', () => {
+            passwordSection.classList.toggle('show', teamPrivateCheckbox.checked);
+            if (teamPrivateCheckbox.checked) {
+                setTimeout(() => teamPasswordInput.focus(), 100);
             }
+        });
+        
+        // Validation
+        function validateForm() {
+            let isValid = true;
+            nameError.classList.remove('show');
+            passwordError.classList.remove('show');
+            
+            const teamName = teamNameInput.value.trim();
+            if (!teamName) {
+                nameError.textContent = 'Team name is required!';
+                nameError.classList.add('show');
+                isValid = false;
+            } else if (teamName.length < 3) {
+                nameError.textContent = 'Team name must be at least 3 characters!';
+                nameError.classList.add('show');
+                isValid = false;
+            } else if (teamName.length > 30) {
+                nameError.textContent = 'Team name must be less than 30 characters!';
+                nameError.classList.add('show');
+                isValid = false;
+            }
+            
+            if (teamPrivateCheckbox.checked) {
+                const password = teamPasswordInput.value;
+                if (!password) {
+                    passwordError.textContent = 'Password is required for private teams!';
+                    passwordError.classList.add('show');
+                    isValid = false;
+                } else if (password.length < 4) {
+                    passwordError.textContent = 'Password must be at least 4 characters!';
+                    passwordError.classList.add('show');
+                    isValid = false;
+                }
+            }
+            
+            createBtn.disabled = !isValid;
+            return isValid;
+        }
+        
+        // Input event listeners for real-time validation
+        teamNameInput.addEventListener('input', validateForm);
+        teamPasswordInput.addEventListener('input', validateForm);
+        
+        // Close modal functions
+        function closeModal() {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 200);
+        }
+        
+        cancelBtn.addEventListener('click', closeModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        // Create team
+        createBtn.addEventListener('click', () => {
+            if (!validateForm()) return;
+            
+            createBtn.disabled = true;
+            createBtn.classList.add('loading');
+            createBtn.textContent = 'Creating...';
+            
+            const teamName = teamNameInput.value.trim();
+            const isPrivate = teamPrivateCheckbox.checked;
+            const password = teamPasswordInput.value;
+            
             const newTeamRef = database.ref("teams").push();
-            newTeamRef.set({
+            const teamData = {
                 name: teamName,
                 members: {
                     [user.uid]: username
@@ -4939,18 +5471,36 @@ document.addEventListener("click", e => {
                     [user.uid]: 'creator'
                 },
                 maxMembers: 15,
-                isPrivate: isPrivate,
-                ...(isPrivate && {
-                    password: password
+                isPrivate: isPrivate
+            };
+            
+            if (isPrivate) {
+                teamData.password = password;
+            }
+            
+            newTeamRef.set(teamData)
+                .then(() => {
+                    return database.ref("userTeams/" + user.uid).set(newTeamRef.key);
                 })
-            }).then(() => {
-                database.ref("userTeams/" + user.uid).set(newTeamRef.key);
-                showToast("Team created!");
-                fetchTeams();
-            }).catch(error => {
-                showToast("Error creating team: " + error.message);
-            });
+                .then(() => {
+                    closeModal();
+                    showToast('Team created successfully!');
+                    fetchTeams();
+                })
+                .catch(error => {
+                    showToast('Error creating team: ' + error.message);
+                    createBtn.disabled = false;
+                    createBtn.classList.remove('loading');
+                    createBtn.textContent = 'Create Team';
+                });
         });
+    });
+}
+
+// Create Team (only if not in a team) - Updated to use modal
+document.addEventListener("click", e => {
+    if (e.target.id === "create-team-btn") {
+        showTeamCreateModal();
     }
 });
 
@@ -6095,9 +6645,9 @@ function showSettingsPopup() {
                 </svg>
             </button>
 
-            <div style="display:flex; gap:15px;">
+            <div class="settings-main-layout">
                 <!-- Sidebar -->
-                <div class="nav-tabs" style="flex-direction:column; min-width:120px;">
+                <div class="nav-tabs">
                     <button class="active" data-tab="profile-tab">Profile</button>
                     <button data-tab="stats-tab">Stats</button>
                     <button data-tab="theme-tab">Theme</button>
@@ -6105,7 +6655,7 @@ function showSettingsPopup() {
                 </div>
 
                 <!-- Tab Content -->
-                <div style="flex:1;">
+                <div class="tab-contents-wrapper">
                     <div id="profile-tab" class="tab-content active">
                         <div class="settings-info">
                             <div class="profile-field">
@@ -6255,7 +6805,7 @@ function showSettingsPopup() {
 // Edit username
 function editUsername() {
     document.getElementById('username-display').style.display = 'none';
-    document.getElementById('username-input').style.display = 'block';
+    document.getElementById('username-input').style.display = 'flex';
     document.getElementById('username-input').style.boxSizing = 'border-box';
     document.querySelector('.edit-username-btn').style.display = 'none';
 }
@@ -6265,7 +6815,7 @@ function saveUsername() {
     document.getElementById('username-display').textContent = username || 'Not set';
     document.getElementById('username-display').style.display = 'inline';
     document.getElementById('username-input').style.display = 'none';
-    document.querySelector('.edit-username-btn').style.display = 'inline';
+    document.querySelector('.edit-username-btn').style.display = 'flex';
     saveGameState();
 }
 
@@ -7529,7 +8079,7 @@ function showTrollsPopup() {
     overlay.innerHTML = `
       <div class="login-popup" style="max-width:520px">
         <h2>👹 Trolls</h2>
-        <p style="margin-top:6px">Set a background on everyone's canvas for <b>5 seconds</b>.<br><b>Cost: 1 rebirth</b>.</p>
+        <p style="margin-top:6px">Set a background on everyone's canvas for <b>10 seconds</b>.<br><b>Cost: 1 rebirth</b>.</p>
 
         <div style="margin:10px 0">
           <label style="font-weight:600;">Image/GIF URL</label>
@@ -7545,7 +8095,7 @@ function showTrollsPopup() {
           <button id="troll-buy-btn" style="width:100%;padding:10px;border-radius:8px;">Buy (1 rebirth)</button>
         </div>
 
-        <div class="button-group" style="margin-top:16px;display: flex; align-items: center; justify-content:center;">
+        <div class="button-group" style="margin-top:0;display: flex; align-items: center; justify-content:center;">
           <button id="troll-close">Close</button>
         </div>
       </div>
@@ -7607,7 +8157,7 @@ function purchaseCanvasTroll(url, overlay) {
         // After server sets createdAt, schedule auto-hide (creator only)
         database.ref('trolls/' + trollsRef.key + '/createdAt').once('value').then(s => {
             const t = s.val();
-            const remaining = 5000 - Math.max(0, Date.now() - (typeof t === 'number' ? t : Date.now()));
+            const remaining = 10000 - Math.max(0, Date.now() - (typeof t === 'number' ? t : Date.now()));
             setTimeout(() => {
                 // Only the creator flips visibility to false
                 database.ref('trolls/' + trollsRef.key + '/visibility').set(false);
