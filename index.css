@@ -751,21 +751,23 @@
             flex: 0 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            min-width: 110px;
+            gap: 4px;
+            min-width: 140px;
             justify-content: center;
             align-self: start;
+            padding: 0;
+            padding-left: 6px;
         }
 
         .settings-popup .nav-tabs button {
-            padding: 10px 14px;
+            padding: 10px 20px;
             font-size: 15px;
             cursor: pointer;
             background: #f4eed6;
             border: 1px solid #000;
             border-radius: 0;
             color: #000;
-            text-align: left;
+            text-align: center;
             transition: none;
             white-space: nowrap;
             font-weight: 600;
@@ -803,6 +805,8 @@
             font-size: 15px;
             line-height: 1.5;
             color: #111;
+            align-self: center;
+            justify-self: center;
         }
 
         .settings-popup .settings-info p {
@@ -2932,4 +2936,106 @@
         #troll-close:hover,
         #cancel-team-btn:hover {
             opacity: 0.5;
+        }
+        
+        /* ============================================
+           LOW-END DEVICE OPTIMIZATIONS
+           ============================================ */
+        
+        /* Reduced animations for low-end devices */
+        .reduced-animations * {
+            animation-duration: 0.001s !important;
+            transition-duration: 0.001s !important;
+        }
+        
+        /* Fallback layout when CSS transforms are not supported */
+        .no-css-transforms .main-main-container {
+            transform: none !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+        
+        .no-css-transforms .main-container {
+            flex-wrap: wrap;
+            height: auto !important;
+            min-height: auto !important;
+        }
+        
+        /* Performance optimizations for animations */
+        .cursor-trail {
+            will-change: transform, opacity;
+        }
+        
+        /* Hardware acceleration hints for smooth animations */
+        .toast {
+            will-change: opacity, transform;
+        }
+        
+        #afkOverlay {
+            will-change: transform, opacity;
+        }
+        
+        /* Optimize modal overlays */
+        .modal,
+        .login-overlay {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        
+        /* Reduce repaints on scrollable elements */
+        .leaderboard-list,
+        .sidebar-container,
+        .my-balls-popup,
+        .settings-popup {
+            contain: strict;
+        }
+        
+        /* Optimize canvas rendering */
+        canvas {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+        
+        /* Touch device optimizations */
+        @media (pointer: coarse) {
+            .ball-option {
+                min-height: 70px;
+            }
+            
+            button {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            .close-btn {
+                width: 44px;
+                height: 44px;
+            }
+        }
+        
+        /* Responsive adjustments for small screens */
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-wrap: wrap;
+                height: auto;
+            }
+            
+            .sidebar-container {
+                width: 100%;
+                max-height: 200px;
+            }
+            
+            .leaderboard-container {
+                width: 100%;
+            }
+            
+            .together {
+                width: 100%;
+            }
+            
+            canvas {
+                max-width: 100%;
+                height: auto;
+            }
         }

@@ -1,5 +1,11 @@
 
+// Track cursor trail enabled state (can be disabled for performance)
+window.cursorTrailEnabled = true;
+
 document.addEventListener("mousemove", e => {
+    // Skip on low-end devices or if disabled
+    if (!window.cursorTrailEnabled) return;
+    
     const trail = document.createElement("div");
     trail.className = "cursor-trail";
     trail.style.left = e.clientX + "px";
