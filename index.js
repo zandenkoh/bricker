@@ -91,6 +91,7 @@ style.innerHTML = `
         box-shadow: none !important;
         border: none !important;
     }
+    
 `;
 document.head.appendChild(style);
 
@@ -377,13 +378,13 @@ const maxPowerUps = 10;
 const maxBricks = 66;
 const ballPrices = {
     basic: 25,
-    sniper: 100,
-    big: 250,
-    explosion: 500,
-    multiplying: 1000,
-    cannonball: 2000,
-    poison: 4000,
-    snowball: 8000
+    sniper: 150,
+    big: 500,
+    explosion: 1500,
+    multiplying: 250,
+    cannonball: 2500,
+    poison: 7500,
+    snowball: 20000
 };
 const ballUnlocks = {
     basic: { level: 0, rebirth: 0 },
@@ -408,7 +409,8 @@ const ballUnlockOrder = [
     'big',         // Unlocks after buying Sniper
     'explosion',   // Unlocks after buying Big
     'multiplying', // Unlocks after buying Explosion
-    'cannonball',  // Unlocks after buying Multiplying
+    'auto',        // Unlocks after buying Clones
+    'cannonball',  // Unlocks after buying Auto
     'poison',      // Unlocks after buying Cannonball
     'snowball'     // Unlocks after buying Poison
 ];
@@ -663,22 +665,82 @@ function isBallUnlocked(type) {
 }
 
 
+/**
+ * Get the next locked ball in the unlock sequence
+ * Returns the ball type that should be shown as a preview
+ */
+function getNextLockedBall() {
+    // Ensure ballCounts is initialized before checking
+    if (!ballCounts) {
+        ballCounts = {
+            basic: 0,
+            sniper: 0,
+            big: 0,
+            explosion: 0,
+            multiplying: 0,
+            child: 0,
+            cannonball: 0,
+            poison: 0,
+            snowball: 0
+        };
+    }
+    
+    for (const ballType of ballUnlockOrder) {
+        // Check if this ball is NOT owned yet
+        if (ballCounts[ballType] === 0) {
+            return ballType;
+        }
+    }
+    return null; // All balls unlocked
+}
+
+/**
+ * Check if a ball is the next one in sequence (preview state)
+ */
+function isNextPreviewBall(type) {
+    // Basic ball is never a preview
+    if (type === 'basic') return false;
+    
+    // Find the next locked ball
+    const nextLocked = getNextLockedBall();
+    return nextLocked === type;
+}
+
 function updateBallOptionsUI() {
+    // Find the next locked ball (preview)
+    const nextLockedBall = getNextLockedBall();
+    
     Object.keys(ballUnlocks).forEach(type => {
         const optionEl = document.getElementById(`${type}-option`);
         if (!optionEl) return;
 
-        if (isBallUnlocked(type)) {
-            // Ball is unlocked - show it
+        const isOwned = ballCounts[type] > 0;
+
+        // Basic ball is ALWAYS visible - check this FIRST
+        if (type === 'basic') {
             optionEl.style.display = "flex";
-            optionEl.classList.remove('ball-locked');
+            optionEl.classList.remove('ball-locked', 'ball-preview', 'ball-hidden');
             optionEl.style.opacity = "1";
             optionEl.style.cursor = "pointer";
             optionEl.style.pointerEvents = "auto";
+        } else if (isOwned) {
+            // Ball is owned - show it normally (always visible)
+            optionEl.style.display = "flex";
+            optionEl.classList.remove('ball-locked', 'ball-preview', 'ball-hidden');
+            optionEl.style.opacity = "1";
+            optionEl.style.cursor = "pointer";
+            optionEl.style.pointerEvents = "auto";
+        } else if (type === nextLockedBall) {
+            // Ball is the next in sequence - show as preview (grayed out) BUT STILL CLICKABLE
+            optionEl.style.display = "flex";
+            optionEl.classList.remove('ball-hidden');
+            optionEl.style.cursor = "pointer";
+            optionEl.style.pointerEvents = "auto";
         } else {
-            // Ball is not yet unlocked - hide completely (progressive unlock)
+            // Ball is locked (future) - hide completely
             optionEl.style.display = "none";
             optionEl.classList.add('ball-hidden');
+            optionEl.classList.remove('ball-preview', 'ball-locked');
         }
     });
 
@@ -2267,13 +2329,13 @@ function playAsGuest() {
         
         // Restore ball prices
         ballPrices.basic = localData.ballPrices?.basic ?? 25;
-        ballPrices.sniper = localData.ballPrices?.sniper ?? 100;
-        ballPrices.big = localData.ballPrices?.big ?? 250;
-        ballPrices.explosion = localData.ballPrices?.explosion ?? 500;
-        ballPrices.multiplying = localData.ballPrices?.multiplying ?? 1000;
-        ballPrices.cannonball = localData.ballPrices?.cannonball ?? 2000;
-        ballPrices.poison = localData.ballPrices?.poison ?? 4000;
-        ballPrices.snowball = localData.ballPrices?.snowball ?? 8000;
+        ballPrices.sniper = localData.ballPrices?.sniper ?? 150;
+        ballPrices.big = localData.ballPrices?.big ?? 500;
+        ballPrices.explosion = localData.ballPrices?.explosion ?? 1500;
+        ballPrices.multiplying = localData.ballPrices?.multiplying ?? 250;
+        ballPrices.cannonball = localData.ballPrices?.cannonball ?? 2500;
+        ballPrices.poison = localData.ballPrices?.poison ?? 7500;
+        ballPrices.snowball = localData.ballPrices?.snowball ?? 20000;
         
         autoBallPrice = localData.autoBallPrice || 200;
         
@@ -2568,53 +2630,351 @@ let milestoneDefinitions = [
 
 
 
-document.getElementById('all-milestones-btn').addEventListener('click', () => {
+// ============================================
+// MILESTONES MODAL WITH TABS AND CLAIM SYSTEM
+// ============================================
+
+/**
+ * Update the notification badge with unclaimed milestone count
+ */
+function updateMilestoneBadge() {
+    const badge = document.getElementById('milestone-badge');
+    const unclaimedCount = Object.keys(unclaimedMilestoneRewards).length;
+    
+    if (badge) {
+        badge.textContent = unclaimedCount;
+        if (unclaimedCount > 0) {
+            badge.classList.add('show');
+        } else {
+            badge.classList.remove('show');
+        }
+    }
+    
+    // Also update tab badge in modal if it exists
+    const modalBadge = document.querySelector('.milestones-nav-tab .milestone-badge');
+    if (modalBadge) {
+        modalBadge.textContent = unclaimedCount > 0 ? unclaimedCount : '';
+    }
+}
+
+/**
+ * Create and show the enhanced milestones modal with tabs
+ */
+function showMilestonesModal() {
+    // Remove any existing modal
+    const existingModal = document.querySelector('.milestones-modal-overlay');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
     const overlay = document.createElement('div');
-    overlay.className = 'login-overlay'; // we can reuse your existing dark overlay style
+    overlay.className = 'milestones-modal-overlay';
 
-    const popup = document.createElement('div');
-    popup.className = 'all-milestones-popup';
-    popup.style.maxHeight = '80vh';
-    popup.style.overflowY = 'auto';
+    const modal = document.createElement('div');
+    modal.className = 'milestones-modal';
 
-    popup.innerHTML = `
-        <button class="close-btn">&times;</button>
-        <h2>All Milestones</h2>
-        <div id="all-milestones-list"></div>
+    modal.innerHTML = `
+        <div class="milestones-modal-header">
+            <h2>🏆 Milestones</h2>
+            <button class="milestones-modal-close" onclick="closeMilestonesModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" 
+                        d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="milestones-nav-tabs">
+            <button class="milestones-nav-tab active" data-tab="all-milestones" onclick="switchMilestonesTab('all-milestones')">
+                All Milestones
+            </button>
+            <button class="milestones-nav-tab" data-tab="completed" onclick="switchMilestonesTab('completed')">
+                Completed
+                <span class="milestone-badge" id="modal-completed-badge"></span>
+            </button>
+        </div>
+        <div class="milestones-modal-body" id="milestones-modal-body">
+            <!-- Content will be dynamically loaded -->
+        </div>
     `;
 
-    overlay.appendChild(popup);
+    overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
-    // Fill the milestone list with all milestones (sorted)
-    const listContainer = popup.querySelector('#all-milestones-list');
-    milestoneDefinitions
-        .sort((a, b) => a.goal - b.goal)
-        .forEach(m => {
-            const current = getStatValue(m.stat);
-            const progress = Math.min((current / m.goal) * 100, 100);
-            const milestoneEl = document.createElement('div');
-            milestoneEl.className = 'milestone';
-            milestoneEl.innerHTML = `
-      <div class="tooltip">${m.benefit || 'No benefit'}</div>
-  <div class="milestone-title">
-      ${m.title}
-  </div>
-  <div>${m.description}</div>
-  <div class="milestone-progress">
-    <div class="milestone-progress-bar" style="width:${progress}%"></div>
-  </div>
-`;
+    // Update badges
+    updateMilestoneBadge();
 
+    // Load default tab
+    switchMilestonesTab('all-milestones');
 
-            listContainer.appendChild(milestoneEl);
-        });
-
-    // Close events
-    popup.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
+    // Close on overlay click
     overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) overlay.remove();
+        if (e.target === overlay) {
+            closeMilestonesModal();
+        }
     });
+
+    // Close on Escape key
+    document.addEventListener('keydown', handleMilestonesModalEscape);
+}
+
+/**
+ * Close the milestones modal
+ */
+function closeMilestonesModal() {
+    const modal = document.querySelector('.milestones-modal-overlay');
+    if (modal) {
+        modal.style.animation = 'modalFadeIn 0.2s ease reverse';
+        setTimeout(() => {
+            modal.remove();
+        }, 200);
+    }
+    document.removeEventListener('keydown', handleMilestonesModalEscape);
+}
+
+/**
+ * Handle Escape key to close modal
+ */
+function handleMilestonesModalEscape(e) {
+    if (e.key === 'Escape') {
+        closeMilestonesModal();
+    }
+}
+
+/**
+ * Switch between milestones tabs
+ */
+function switchMilestonesTab(tabName) {
+    // Update tab styles
+    document.querySelectorAll('.milestones-nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.tab === tabName) {
+            tab.classList.add('active');
+        }
+    });
+
+    // Update content
+    const body = document.getElementById('milestones-modal-body');
+    if (!body) return;
+
+    if (tabName === 'all-milestones') {
+        renderAllMilestones(body);
+    } else if (tabName === 'completed') {
+        renderCompletedMilestones(body);
+    }
+}
+
+/**
+ * Render all milestones in the modal
+ */
+function renderAllMilestones(container) {
+    const sortedMilestones = [...milestoneDefinitions].sort((a, b) => a.goal - b.goal);
+    
+    let html = '<div class="all-milestones-list">';
+    
+    sortedMilestones.forEach(m => {
+        const current = getStatValue(m.stat);
+        const progress = Math.min((current / m.goal) * 100, 100);
+        const isCompleted = current >= m.goal;
+        const isClaimable = isCompleted && unclaimedMilestoneRewards[m.id];
+        const statusClass = isClaimable ? 'claimable' : (isCompleted ? 'completed' : 'active');
+        const statusText = isClaimable ? 'Claim Reward!' : (isCompleted ? 'Completed' : 'Active');
+        
+        html += `
+            <div class="milestone-card ${statusClass}">
+                <div class="milestone-card-header">
+                    <span class="milestone-card-title">${m.title}</span>
+                    <span class="milestone-card-status ${statusClass}">${statusText}</span>
+                </div>
+                <div class="milestone-card-description">${m.description}</div>
+                <div class="milestone-card-progress">
+                    <div class="milestone-card-progress-bar" style="width: ${progress}%"></div>
+                </div>
+                <div class="milestone-card-footer">
+                    <span class="milestone-card-benefit">${m.benefit || 'No benefit'}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+/**
+ * Render completed milestones with claim buttons
+ */
+function renderCompletedMilestones(container) {
+    // Get all milestones that are either:
+    // 1. In completedMilestones array (already marked as complete)
+    // 2. Have their goal reached but not yet in completedMilestones
+    const completedDefs = milestoneDefinitions.filter(m => {
+        const current = getStatValue(m.stat);
+        const isComplete = current >= m.goal;
+        return completedMilestones.includes(m.id) || isComplete;
+    });
+    
+    if (completedDefs.length === 0) {
+        container.innerHTML = `
+            <div class="milestones-empty-state">
+                <div class="milestones-empty-state-icon">🏆</div>
+                <div class="milestones-empty-state-text">No completed milestones yet!</div>
+                <p style="margin-top: 10px; font-size: 13px; color: #888;">Keep playing to complete milestones and earn rewards!</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '<div class="completed-milestones-list">';
+    
+    completedDefs.forEach(m => {
+        const current = getStatValue(m.stat);
+        const isComplete = current >= m.goal;
+        const wasPreviouslyCompleted = completedMilestones.includes(m.id);
+        const reward = unclaimedMilestoneRewards[m.id];
+        const isClaimable = isComplete && !wasPreviouslyCompleted && reward;
+        const statusClass = isClaimable ? 'claimable' : 'completed';
+        const statusText = isClaimable ? 'Claim Reward!' : (wasPreviouslyCompleted ? 'Claimed' : 'Completed');
+        
+        const rewardText = m.reward 
+            ? (m.reward.type === 'gold' ? `+${formatNumber(m.reward.amount)} Gold` : `+${m.reward.amount} Rebirth${m.reward.amount > 1 ? 's' : ''}`)
+            : 'No reward';
+        
+        html += `
+            <div class="milestone-card ${statusClass}">
+                <div class="milestone-card-header">
+                    <span class="milestone-card-title">${m.title}</span>
+                    <span class="milestone-card-status ${statusClass}">${statusText}</span>
+                </div>
+                <div class="milestone-card-description">${m.description}</div>
+                <div class="milestone-card-progress">
+                    <div class="milestone-card-progress-bar" style="width: 100%"></div>
+                </div>
+                <div class="milestone-card-footer">
+                    <span class="milestone-card-benefit">${m.benefit || 'No benefit'}</span>
+                    <div class="milestone-card-reward">
+                        <span class="milestone-card-reward-text">${rewardText}</span>
+                        ${isClaimable 
+                            ? `<button class="milestone-claim-btn" onclick="claimMilestoneRewardWithAnimation('${m.id}')">Claim</button>`
+                            : `<button class="milestone-claim-btn" disabled>✓ Claimed</button>`
+                        }
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+/**
+ * Claim milestone reward with power-up animation
+ */
+function claimMilestoneRewardWithAnimation(milestoneId) {
+    const reward = unclaimedMilestoneRewards[milestoneId];
+    if (!reward) {
+        showToast('Reward not found or already claimed!');
+        return;
+    }
+    
+    const milestone = milestoneDefinitions.find(m => m.id === milestoneId);
+    if (!milestone) return;
+
+    // Play power-up animation
+    playPowerupAnimation();
+
+    // Delay actual claim for animation effect
+    setTimeout(() => {
+        // Claim the reward
+        if (reward.type === 'gold') {
+            gold += reward.amount;
+            showToast(`🎉 Claimed ${formatNumber(reward.amount)} gold from ${milestone.title}!`);
+        } else if (reward.type === 'rebirth') {
+            rebirthCount += reward.amount;
+            showToast(`🎉 Claimed ${reward.amount} rebirth${reward.amount > 1 ? 's' : ''} from ${milestone.title}!`);
+        }
+        
+        // Remove from unclaimed
+        delete unclaimedMilestoneRewards[milestoneId];
+        
+        // Save to Firebase
+        if (!isGuest && auth.currentUser) {
+            database.ref('users/' + auth.currentUser.uid + '/gameState').update({
+                gold: gold,
+                rebirthCount: rebirthCount,
+                unclaimedMilestoneRewards: unclaimedMilestoneRewards
+            }).catch(err => console.error('Error claiming reward:', err));
+        }
+        
+        // Update UI
+        updateUI();
+        updateMilestoneBadge();
+        
+        // Refresh the completed tab if modal is open
+        const completedTab = document.querySelector('.milestones-nav-tab[data-tab="completed"]');
+        if (completedTab && completedTab.classList.contains('active')) {
+            const body = document.getElementById('milestones-modal-body');
+            if (body) {
+                renderCompletedMilestones(body);
+            }
+        }
+        
+        // Refresh sidebar milestones
+        renderMilestones();
+        
+    }, 800);
+}
+
+/**
+ * Play power-up animation effect
+ */
+function playPowerupAnimation() {
+    // Create splash effect
+    const splash = document.createElement('div');
+    splash.className = 'powerup-splash';
+    document.body.appendChild(splash);
+
+    // Create burst effect
+    const burst = document.createElement('div');
+    burst.className = 'powerup-burst';
+    burst.innerHTML = '✨';
+    document.body.appendChild(burst);
+
+    // Create particle container
+    const container = document.createElement('div');
+    container.className = 'powerup-animation-container';
+    document.body.appendChild(container);
+
+    // Create particles
+    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'powerup-particle';
+        
+        // Random starting position near center
+        const startX = window.innerWidth / 2 + (Math.random() - 0.5) * 200;
+        const startY = window.innerHeight / 2 + (Math.random() - 0.5) * 200;
+        
+        particle.style.left = startX + 'px';
+        particle.style.top = startY + 'px';
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.animationDelay = Math.random() * 0.3 + 's';
+        
+        container.appendChild(particle);
+    }
+
+    // Clean up after animation
+    setTimeout(() => {
+        splash.remove();
+        burst.remove();
+        container.remove();
+    }, 1500);
+}
+
+// Event listener for the milestones button
+document.getElementById('all-milestones-btn').addEventListener('click', () => {
+    showMilestonesModal();
 });
 
 
@@ -2630,6 +2990,7 @@ function loadMilestones() {
         .filter(m => getStatValue(m.stat) < m.goal) // Skip completed (goal reached)
         .slice(0, 3); // Only easiest 3
     renderMilestones();
+    updateMilestoneBadge();
 }
 
 function getStatValue(stat) {
@@ -2693,13 +3054,16 @@ function renderMilestones() {
             rewardEl.innerHTML = `
                 <div class="reward-title">✨ ${milestone.title}</div>
                 <div class="reward-info">${reward.type === 'gold' ? `+${formatNumber(reward.amount)} Gold` : `+${reward.amount} Rebirth${reward.amount > 1 ? 's' : ''}`}</div>
-                <button class="claim-reward-btn" onclick="claimMilestoneReward('${milestoneId}')">Claim</button>
+                <button class="claim-reward-btn" onclick="claimMilestoneRewardWithAnimation('${milestoneId}')">Claim</button>
             `;
             unclaimedContainer.appendChild(rewardEl);
         });
         
         container.parentElement.insertBefore(unclaimedContainer, container.nextSibling);
     }
+    
+    // Update notification badge
+    updateMilestoneBadge();
 }
 
 // Claim a milestone reward
@@ -2734,6 +3098,7 @@ function claimMilestoneReward(milestoneId) {
     
     updateUI();
     renderMilestones();
+    updateMilestoneBadge();
 }
 
 // Check milestones in real-time
@@ -2800,10 +3165,10 @@ function updateMilestones() {
 const leaderboardStyle = document.createElement('style');
 leaderboardStyle.innerHTML = `
 .leaderboard-list {
-    overflow-y: visible;
+    overflow-y: scroll;
     padding: 10px;
     height: 100%;
-        padding-bottom: 30px;
+    padding-bottom: 0;
 
 }
 
@@ -3810,14 +4175,14 @@ function loadGameState(uid) {
                 gold = data.gold || 20;
                 level = data.level || 1;
                 ballPrices.basic = data.ballPrices?.basic || 25;
-                ballPrices.sniper = data.ballPrices?.sniper || 50;
-                ballPrices.big = data.ballPrices?.big || 75;
-                ballPrices.explosion = data.ballPrices?.explosion || 100;
-                ballPrices.multiplying = data.ballPrices?.multiplying || 125;
-                ballPrices.cannonball = data.ballPrices?.cannonball || 150;
-                ballPrices.poison = data.ballPrices?.poison || 175;
-                ballPrices.snowball = data.ballPrices?.snowball || 200;
-                autoBallPrice = data.autoBallPrice || 200;
+                ballPrices.sniper = data.ballPrices?.sniper || 150;
+                ballPrices.big = data.ballPrices?.big || 500;
+                ballPrices.explosion = data.ballPrices?.explosion || 1500;
+                ballPrices.multiplying = data.ballPrices?.multiplying || 250;
+                ballPrices.cannonball = data.ballPrices?.cannonball || 2500;
+                ballPrices.poison = data.ballPrices?.poison || 7500;
+                ballPrices.snowball = data.ballPrices?.snowball || 20000;
+                autoBallPrice = data.autoBallPrice || 750;
                 idleGoldPerSecond = data.idleGoldPerSecond || 0.5;
                 rebirthCount = data.rebirthCount || 0;
                 autoRebirthOwned = data.autoRebirthOwned || false;
@@ -3913,6 +4278,10 @@ function loadGameState(uid) {
                 ballsUnlocked.basic = true;
 
                 syncBallsWithCounts();
+                
+                // Ensure ball options UI is properly updated with owned balls
+                updateBallOptionsUI();
+                
                 autoBalls = [];
                 for (let i = 0; i < (data.autoBalls || 0); i++) {
                     autoBalls.push(new AutoBall());
@@ -4956,7 +5325,7 @@ function buyBall(type) {
         updateUI();
         updateMilestones();
 
-        // Refresh ball options UI to reveal newly unlocked balls
+        // Refresh ball options UI to show next preview ball
         updateBallOptionsUI();
         
         // Check if a new ball option was just unlocked and show notification
@@ -5137,14 +5506,14 @@ function rebirth(skipConfirm = false, silent = false) {
         balls = [];
         autoBalls = [];
         ballPrices.basic = 25;
-        ballPrices.sniper = 50;
-        ballPrices.big = 75;
-        ballPrices.explosion = 100;
-        ballPrices.multiplying = 125;
-        ballPrices.cannonball = 150;
-        ballPrices.poison = 175;
-        ballPrices.snowball = 200;
-        autoBallPrice = 200;
+        ballPrices.sniper = 150;
+        ballPrices.big = 500;
+        ballPrices.explosion = 1500;
+        ballPrices.multiplying = 250;
+        ballPrices.cannonball = 2500;
+        ballPrices.poison = 7500;
+        ballPrices.snowball = 20000;
+        autoBallPrice = 750;
         idleGoldPerSecond *= 1.2;
         globalUpgrades.speedBoost.active = false;
         globalUpgrades.goldBoost.active = false;
@@ -5173,13 +5542,13 @@ function rebirth(skipConfirm = false, silent = false) {
                 },
                 ballPrices: {
                     basic: 25,
-                    sniper: 50,
-                    big: 75,
-                    explosion: 100,
-                    multiplying: 125,
-                    cannonball: 150,
-                    poison: 175,
-                    snowball: 200
+                    sniper: 150,
+                    big: 500,
+                    explosion: 1500,
+                    multiplying: 250,
+                    cannonball: 2500,
+                    poison: 7500,
+                    snowball: 20000
                 },
                 gold: gold,
                 autoRebirthOwned: autoRebirthOwned,
@@ -6895,10 +7264,23 @@ Ball.prototype.draw = function () {
 };
 
 function showMyBallsPopup() {
+    // FIX: Ensure rebirthCount is initialized before use
+    // This prevents NaN issues if accessed before global initialization completes
+    if (typeof rebirthCount === 'undefined' || isNaN(rebirthCount)) {
+        rebirthCount = 0;
+    }
+    
     const maxUpgradeLevel = rebirthCount * 2 + 10;
 
-    // Remove any existing my-balls popups first
+    // FIX: Remove ALL existing overlays and popups first to prevent duplicate overlays
+    // This includes login-overlay, my-balls-popup, and any other modal overlays
+    document.querySelectorAll('.login-overlay').forEach(el => el.remove());
     document.querySelectorAll('.my-balls-popup').forEach(el => el.remove());
+    document.querySelectorAll('[class*="overlay"]').forEach(el => {
+        if (el.className.includes('login-overlay') || el.className.includes('spinner-overlay')) {
+            el.remove();
+        }
+    });
 
     const overlay = document.createElement('div');
     overlay.className = 'login-overlay';
@@ -8154,7 +8536,7 @@ function migrateNewBalls() {
             ballPrices.basic = ballPrices.basic || 25;
             ballPrices.cannonball = ballPrices.cannonball || 150;
             ballPrices.poison = ballPrices.poison || 175;
-            ballPrices.snowball = ballPrices.snowball || 200;
+        ballPrices.snowball = ballPrices.snowball || 20000;
 
             // Set default upgrades
             ballUpgrades.basic = ballUpgrades.basic || {
