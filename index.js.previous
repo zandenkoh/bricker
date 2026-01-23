@@ -5,7 +5,7 @@ window.cursorTrailEnabled = true;
 document.addEventListener("mousemove", e => {
     // Skip on low-end devices or if disabled
     if (!window.cursorTrailEnabled) return;
-
+    
     const trail = document.createElement("div");
     trail.className = "cursor-trail";
     trail.style.left = e.clientX + "px";
@@ -50,7 +50,7 @@ style.innerHTML = `
     border-radius: 5px;
     font-family: Arial, sans-serif;
     font-size: 14px;
-    z-index: 999999;
+    z-index: 9999;
     opacity: 0;
     min-width: 200px;
     max-width: 300px;
@@ -84,12 +84,6 @@ style.innerHTML = `
     .upgrade-btn.disabled, .rebirth-btn.disabled {
         background: #ccc;
         cursor: not-allowed;
-    }
-    
-    /* Ball unlock highlight animation */
-    .ball-just-unlocked {
-        box-shadow: none !important;
-        border: none !important;
     }
 `;
 document.head.appendChild(style);
@@ -133,38 +127,6 @@ function autoScaleMainContainer() {
 // Run on load and resize
 window.addEventListener("load", autoScaleMainContainer);
 window.addEventListener("resize", autoScaleMainContainer);
-
-// ============ PAGE LEAVE CONFIRMATION ============
-// Show confirmation dialog when user tries to leave/reload the page
-// Only for guests who have made progress (not just fresh page load)
-let hasGameProgress = false;
-
-function updateGameProgress() {
-    // Mark that the user has made some game progress
-    hasGameProgress = true;
-}
-
-// Check for unsaved progress before page unload
-window.addEventListener('beforeunload', (e) => {
-    // Only show confirmation if:
-    // 1. User is playing as guest
-    // 2. Has made some game progress
-    // 3. Hasn't saved recently (within last 5 seconds)
-    if (isGuest && hasGameProgress) {
-        const timeSinceLastSave = window.lastSaveTime ? (Date.now() - window.lastSaveTime) / 1000 : Infinity;
-
-        if (timeSinceLastSave > 5) {
-            // Show confirmation dialog
-            const confirmationMessage = 'You have unsaved progress! Your game is saved locally, but consider logging in to save to the cloud. Are you sure you want to leave?';
-            e.preventDefault();
-            e.returnValue = confirmationMessage;
-            return confirmationMessage;
-        }
-    }
-});
-
-// Track game progress starts
-updateGameProgress();
 
 
 let originalTitle = document.title;
@@ -280,82 +242,6 @@ let ballCounts = {
     poison: 0,
     snowball: 0
 };
-
-// ============================================
-// BALL UNLOCK TRACKING SYSTEM
-// ============================================
-// Explicitly track which ball types the user has unlocked
-// This is separate from ownership (ballCounts) - unlocks determine what's shown in shop
-let ballsUnlocked = {
-    basic: true,    // Always unlocked by default
-    sniper: false,
-    big: false,
-    explosion: false,
-    multiplying: false,
-    cannonball: false,
-    poison: false,
-    snowball: false
-};
-
-/**
- * Unlock a ball type and show notification
- */
-function unlockBall(type) {
-    // Use ballDisplayNames from later in the file
-    const displayNames = {
-        basic: 'Basic',
-        sniper: 'Sniper',
-        big: 'Big',
-        explosion: 'Bomb',
-        multiplying: 'Clone',
-        cannonball: 'Cannonball',
-        poison: 'Poison',
-        snowball: 'Snowball'
-    };
-    
-    if (!ballsUnlocked[type]) {
-        ballsUnlocked[type] = true;
-        
-        // Show unlock notification
-        const displayName = displayNames[type] || type;
-        showToast(`🎉 ${displayName} Ball unlocked! Check the shop!`);
-        
-        // Trigger visual highlight on the shop option
-        const optionEl = document.getElementById(`${type}-option`);
-        if (optionEl) {
-            optionEl.classList.add('ball-just-unlocked');
-            setTimeout(() => {
-                optionEl.classList.remove('ball-just-unlocked');
-            }, 3000);
-        }
-        
-        return true;
-    }
-    return false;
-}
-
-/**
- * Get list of unlocked ball types
- */
-function getUnlockedBalls() {
-    return Object.entries(ballsUnlocked)
-        .filter(([_, unlocked]) => unlocked)
-        .map(([type, _]) => type);
-}
-
-/**
- * Get list of locked ball types
- */
-function getLockedBalls() {
-    return Object.entries(ballsUnlocked)
-        .filter(([_, unlocked]) => !unlocked)
-        .map(([type, _]) => type);
-}
-
-// ============================================
-// END BALL UNLOCK TRACKING SYSTEM
-// ============================================
-
 let gold = 20;
 let idleGoldPerSecond = 0.5;
 let autoBallPrice = 200;
@@ -377,13 +263,13 @@ const maxPowerUps = 10;
 const maxBricks = 66;
 const ballPrices = {
     basic: 25,
-    sniper: 100,
-    big: 250,
-    explosion: 500,
-    multiplying: 1000,
-    cannonball: 2000,
-    poison: 4000,
-    snowball: 8000
+    sniper: 50,
+    big: 75,
+    explosion: 100,
+    multiplying: 125,
+    cannonball: 150,
+    poison: 175,
+    snowball: 200
 };
 const ballUnlocks = {
     basic: { level: 0, rebirth: 0 },
@@ -395,122 +281,6 @@ const ballUnlocks = {
     poison: { level: 0, rebirth: 10 },
     snowball: { level: 0, rebirth: 15 }
 };
-
-// ============================================
-// NEW USER EXPERIENCE - PROGRESSIVE UNLOCKS
-// ============================================
-
-// Progressive unlock order - new users only see balls in this order
-// A ball becomes visible only after owning the previous ball
-const ballUnlockOrder = [
-    'basic',       // Always visible
-    'sniper',      // Unlocks after buying Basic
-    'big',         // Unlocks after buying Sniper
-    'explosion',   // Unlocks after buying Big
-    'multiplying', // Unlocks after buying Explosion
-    'cannonball',  // Unlocks after buying Multiplying
-    'poison',      // Unlocks after buying Cannonball
-    'snowball'     // Unlocks after buying Poison
-];
-
-// Feature unlock conditions
-const FEATURE_UNLOCKS = {
-    SETS_BUTTON: {
-        condition: () => rebirthCount >= 100 && !isGuest,
-        elementId: 'custom-option'
-    },
-    MILESTONES: {
-        condition: () => level >= 5 || completedMilestones.length > 0,
-        elementId: 'milestones-container'
-    }
-};
-
-/**
- * Check if a ball should be visible in the shop
- * Uses progressive unlock system - need to own previous ball type first
- */
-function isBallVisible(type) {
-    const index = ballUnlockOrder.indexOf(type);
-    if (index === -1) return true; // Unknown ball types always visible
-
-    if (index === 0) return true; // Basic is always visible
-
-    // Check if previous ball in the sequence is owned
-    const previousBall = ballUnlockOrder[index - 1];
-    return ballCounts[previousBall] > 0;
-}
-
-/**
- * Get the number of different ball types owned
- */
-function getOwnedBallTypesCount() {
-    return Object.values(ballCounts).filter(count => count > 0).length;
-}
-
-/**
- * Show a previously hidden element (with fade-in animation)
- */
-function showElement(elementId, animate = true) {
-    const element = document.getElementById(elementId);
-    if (!element) return false;
-
-    if (element.classList.contains('hidden-for-new-users')) {
-        element.classList.remove('hidden-for-new-users');
-        if (animate) {
-            element.classList.add('fade-in');
-            setTimeout(() => element.classList.remove('fade-in'), 300);
-        }
-        return true;
-    }
-    return false;
-}
-
-/**
- * Hide an element for new users
- */
-function hideElement(elementId) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    element.classList.add('hidden-for-new-users');
-}
-
-/**
- * Check and update feature visibility based on unlock conditions
- */
-function updateFeatureVisibility() {
-    Object.values(FEATURE_UNLOCKS).forEach(feature => {
-        if (feature.condition()) {
-            showElement(feature.elementId);
-        } else {
-            hideElement(feature.elementId);
-        }
-    });
-}
-
-/**
- * Check if milestones section should be shown
- */
-function shouldShowMilestones() {
-    return level >= 5 || completedMilestones.length > 0;
-}
-
-/**
- * Initialize UI for new users
- */
-function initializeNewUserUI() {
-    updateBallOptionsUI();
-    updateFeatureVisibility();
-
-    // Update milestones visibility
-    const milestonesContainer = document.getElementById('milestones-container');
-    if (milestonesContainer) {
-        if (shouldShowMilestones()) {
-            milestonesContainer.classList.remove('hidden-for-new-users');
-        } else {
-            milestonesContainer.classList.add('hidden-for-new-users');
-        }
-    }
-}
 
 // Default ball upgrades
 const defaultBallUpgrades = {
@@ -642,23 +412,19 @@ document.addEventListener('visibilitychange', () => {
 });
 
 function isBallUnlocked(type) {
-    // First check if ball is explicitly unlocked
-    if (ballsUnlocked[type] === true) {
+    const unlock = ballUnlocks[type];
+
+    // Case 1: unlocked by level
+    if (level >= unlock.level && rebirthCount >= unlock.rebirth) {
         return true;
     }
-    
-    // For progressive unlock system: unlock if previous ball type is owned
-    // This allows unlocking by purchasing previous balls
-    const index = ballUnlockOrder.indexOf(type);
-    if (index > 0) {
-        const previousBall = ballUnlockOrder[index - 1];
-        if (ballCounts[previousBall] > 0) {
-            // Auto-unlock the next ball in sequence when previous is owned
-            unlockBall(type);
-            return true;
-        }
+
+    // Case 2: rebirth "skips" some level locks
+    if (rebirthCount > 0) {
+        // At rebirth 1 → keep basic, sniper, big automatically
+        if (["basic", "sniper", "big"].includes(type)) return true;
     }
-    
+
     return false;
 }
 
@@ -669,63 +435,13 @@ function updateBallOptionsUI() {
         if (!optionEl) return;
 
         if (isBallUnlocked(type)) {
-            // Ball is unlocked - show it
-            optionEl.style.display = "flex";
-            optionEl.classList.remove('ball-locked');
             optionEl.style.opacity = "1";
             optionEl.style.cursor = "pointer";
             optionEl.style.pointerEvents = "auto";
         } else {
-            // Ball is not yet unlocked - hide completely (progressive unlock)
-            optionEl.style.display = "none";
-            optionEl.classList.add('ball-hidden');
-        }
-    });
-
-    // Update feature visibility
-    updateFeatureVisibility();
-
-    // Update price progress bars based on current gold
-    updatePriceProgress();
-}
-
-/**
- * Update the price progress bars to show how much gold the user has
- * relative to each ball's price. Green fill slides in from left to right.
- */
-function updatePriceProgress() {
-    // Define all purchasable items with their prices
-    const purchasableItems = [
-        { id: 'basic', price: ballPrices.basic },
-        { id: 'sniper', price: ballPrices.sniper },
-        { id: 'big', price: ballPrices.big },
-        { id: 'explosion', price: ballPrices.explosion },
-        { id: 'multiplying', price: ballPrices.multiplying },
-        { id: 'auto', price: autoBallPrice },
-        { id: 'cannonball', price: ballPrices.cannonball },
-        { id: 'poison', price: ballPrices.poison },
-        { id: 'snowball', price: ballPrices.snowball },
-        { id: 'weapons', price: 1000 } // Mass Destruction
-    ];
-
-    purchasableItems.forEach(item => {
-        const optionEl = document.getElementById(item.id === 'auto' ? 'auto-option' :
-            item.id === 'weapons' ? 'weapons-btn' :
-                `${item.id}-option`);
-        if (!optionEl) return;
-
-        const progressBar = optionEl.querySelector('.price-progress');
-        if (!progressBar) return;
-
-        // Calculate percentage (capped at 100%)
-        const percentage = Math.min((gold / item.price) * 100, 100);
-        progressBar.style.width = `${percentage}%`;
-
-        // Add/remove cannot-afford styling
-        if (gold < item.price) {
-            optionEl.classList.add('cannot-afford');
-        } else {
-            optionEl.classList.remove('cannot-afford');
+            optionEl.style.opacity = "0.4";
+            optionEl.style.cursor = "not-allowed";
+            optionEl.style.pointerEvents = "auto";
         }
     });
 }
@@ -1016,7 +732,7 @@ window.onload = function () {
                 console.log('Login modal blocked: User is now authenticated');
                 return;
             }
-
+            
             // Only show login on initial load if not guest and not logged in
             authStateProcessed = true;
 
@@ -1024,9 +740,12 @@ window.onload = function () {
             document.getElementById('save-button').textContent = 'Login to save';
             document.getElementById('save-button').onclick = () => showLoginPopupForSave();
 
-            // Auto-play as guest - don't show login modal
-            // If user wants to login, they can click the save button
-            playAsGuest();
+            // Only show login/signup modal if not playing as guest
+            if (inviterId) {
+                showInviteSignupPopup(inviterId);
+            } else {
+                showLoginPopup();
+            }
 
             // Load local settings for guests and apply once
             const localData = JSON.parse(localStorage.getItem("brickerGameState"));
@@ -1672,11 +1391,11 @@ function startTutorial(userId) {
         setTimeout(() => startTutorial(userId), 500);
         return;
     }
-
+    
     // Use the correct reference to introJs
     const IntroConstructor = typeof introJs !== 'undefined' ? introJs : window.introJs;
     const intro = IntroConstructor();
-
+    
     intro.setOptions({
         steps: [
             {
@@ -1785,7 +1504,7 @@ function startTutorialIfNeeded(userId) {
             console.error('❌ intro.js library failed to load after max retries');
             return;
         }
-
+        
         if (typeof introJs !== 'undefined' || typeof window.introJs !== 'undefined') {
             // Library is ready, check if tutorial is needed
             database.ref('users/' + userId + '/gameState/tutorialCompleted').once('value').then(snap => {
@@ -1794,19 +1513,19 @@ function startTutorialIfNeeded(userId) {
                         callback(userId);
                     }, 1500);
                 }
-            }).catch(() => { });
+            }).catch(() => {});
         } else {
             // Retry in 500ms
             setTimeout(() => waitForIntroJs(callback, retries + 1), 500);
         }
     }
-
+    
     waitForIntroJs(startTutorial);
 }
 
 function completeTutorial(userId) {
     if (userId) {
-        database.ref('users/' + userId + '/gameState/tutorialCompleted').set(true).catch(() => { });
+        database.ref('users/' + userId + '/gameState/tutorialCompleted').set(true).catch(() => {});
     }
 }
 
@@ -1841,7 +1560,7 @@ function showLoginPopup() {
     `;
     document.body.appendChild(overlay);
     saveToLocalStorage();
-
+    
     const loginBtn = overlay.querySelector('#login-btn');
     const googleBtn = overlay.querySelector('#google-btn');
     const guestBtn = overlay.querySelector('#guest-btn');
@@ -1888,7 +1607,7 @@ function showLoginPopup() {
 
 function showSignUpPopup(overlay) {
     if (!overlay) return;
-
+    
     overlay.innerHTML = `
         <div class="login-popup">
             <button class="modal-close-btn">&times;</button>
@@ -1909,7 +1628,7 @@ function showSignUpPopup(overlay) {
     const googleBtn = overlay.querySelector('#google-btn');
     const backBtn = overlay.querySelector('#back-btn');
     const closeBtn = overlay.querySelector('.modal-close-btn');
-
+    
     signupBtn.addEventListener('click', () => {
         if (signupBtn) signupBtn.disabled = true;
         signUp();
@@ -1938,17 +1657,17 @@ function login() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const loginBtn = document.querySelector('#login-btn');
-
+    
     // Validate inputs exist
     if (!emailInput || !passwordInput) {
         showToast('Error: Login form not found. Please refresh the page.');
         if (loginBtn) loginBtn.disabled = false;
         return;
     }
-
+    
     const email = emailInput.value.trim();
     const password = passwordInput.value;
-
+    
     // Validate email format
     if (!email) {
         showToast('Please enter your email address.');
@@ -1956,14 +1675,14 @@ function login() {
         emailInput.focus();
         return;
     }
-
+    
     if (!password) {
         showToast('Please enter your password.');
         if (loginBtn) loginBtn.disabled = false;
         passwordInput.focus();
         return;
     }
-
+    
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -1971,54 +1690,17 @@ function login() {
         if (loginBtn) loginBtn.disabled = false;
         return;
     }
-
+    
     if (loginBtn) loginBtn.disabled = true;
-
+    
     auth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
             isGuest = false;
             const overlay = document.querySelector('.login-overlay');
             if (overlay) overlay.remove();
             showLoadingScreen();
-            
-            // Check for local guest progress and migrate if exists
-            const localData = JSON.parse(localStorage.getItem('brickerGameState'));
-            
-            if (localData) {
-                // Merge local guest progress with Firebase data
-                // Local progress takes precedence for game state, but we keep Firebase username
-                database.ref('users/' + userCredential.user.uid + '/gameState').once('value')
-                    .then(snapshot => {
-                        const firebaseData = snapshot.val();
-                        
-                        // Create merged game state - local data with Firebase username
-                        const mergedGameState = {
-                            ...localData,
-                            username: firebaseData?.username || localData.username || 'Player'
-                        };
-                        
-                        // Save merged state to Firebase
-                        return database.ref('users/' + userCredential.user.uid + '/gameState').set(mergedGameState);
-                    })
-                    .then(() => {
-                        // Clear localStorage after successful migration
-                        localStorage.removeItem('brickerGameState');
-                        console.log('Guest progress migrated successfully!');
-                        showToast('Progress loaded successfully!');
-                        loadGameState(userCredential.user.uid);
-                        setTimeout(() => location.reload(), 800);
-                    })
-                    .catch(error => {
-                        console.error('Error migrating guest progress:', error);
-                        // If migration fails, just load from Firebase
-                        loadGameState(userCredential.user.uid);
-                        setTimeout(() => location.reload(), 800);
-                    });
-            } else {
-                // No local data, just load from Firebase
-                loadGameState(userCredential.user.uid);
-                setTimeout(() => location.reload(), 800);
-            }
+            loadGameState(userCredential.user.uid);
+            setTimeout(() => location.reload(), 800);
         })
         .catch(error => {
             // Provide more user-friendly error messages
@@ -2052,45 +1734,11 @@ function loginWithGoogle() {
                 const newUsername = generateAnonymousUsername();
                 database.ref('users/' + result.user.uid + '/gameState').update({
                     username: newUsername
-                }).catch(() => { });
+                }).catch(() => {});
             }
 
-            // Check for local guest progress and migrate if exists
-            const localData = JSON.parse(localStorage.getItem('brickerGameState'));
-            
-            if (localData) {
-                // Merge local guest progress with Firebase data
-                database.ref('users/' + result.user.uid + '/gameState').once('value')
-                    .then(snapshot => {
-                        const firebaseData = snapshot.val();
-                        
-                        // Create merged game state - local data with Firebase username
-                        const mergedGameState = {
-                            ...localData,
-                            username: firebaseData?.username || localData.username || result.additionalUserInfo?.isNewUser ? generateAnonymousUsername() : 'Player'
-                        };
-                        
-                        // Save merged state to Firebase
-                        return database.ref('users/' + result.user.uid + '/gameState').set(mergedGameState);
-                    })
-                    .then(() => {
-                        // Clear localStorage after successful migration
-                        localStorage.removeItem('brickerGameState');
-                        console.log('Guest progress migrated successfully via Google!');
-                        showToast('Progress loaded successfully!');
-                        loadGameState(result.user.uid);
-                        setTimeout(() => location.reload(), 800);
-                    })
-                    .catch(error => {
-                        console.error('Error migrating guest progress:', error);
-                        loadGameState(result.user.uid);
-                        setTimeout(() => location.reload(), 800);
-                    });
-            } else {
-                // No local data, just load from Firebase
-                loadGameState(result.user.uid);
-                setTimeout(() => location.reload(), 800);
-            }
+            loadGameState(result.user.uid);
+            setTimeout(() => location.reload(), 800);
         })
         .catch(error => {
             showToast('Google sign-in failed: ' + error.message);
@@ -2116,18 +1764,18 @@ function signUp() {
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirm-password');
     const signupBtn = document.querySelector('#signup-btn');
-
+    
     // Validate inputs exist
     if (!emailInput || !passwordInput || !confirmPasswordInput) {
         showToast('Error: Sign up form not found. Please refresh the page.');
         if (signupBtn) signupBtn.disabled = false;
         return;
     }
-
+    
     const email = emailInput.value.trim();
     const password = passwordInput.value;
     const confirmPassword = confirmPasswordInput.value;
-
+    
     // Validate email format
     if (!email) {
         showToast('Please enter your email address.');
@@ -2135,37 +1783,37 @@ function signUp() {
         emailInput.focus();
         return;
     }
-
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         showToast('Please enter a valid email address.');
         if (signupBtn) signupBtn.disabled = false;
         return;
     }
-
+    
     if (!password) {
         showToast('Please enter a password.');
         if (signupBtn) signupBtn.disabled = false;
         passwordInput.focus();
         return;
     }
-
+    
     if (password.length < 6) {
         showToast('Password must be at least 6 characters long.');
         if (signupBtn) signupBtn.disabled = false;
         passwordInput.focus();
         return;
     }
-
+    
     if (password !== confirmPassword) {
         showToast('Passwords do not match!');
         if (signupBtn) signupBtn.disabled = false;
         confirmPasswordInput.focus();
         return;
     }
-
+    
     if (signupBtn) signupBtn.disabled = true;
-
+    
     auth.createUserWithEmailAndPassword(email, password)
         .then(userCredential => {
             isGuest = false;
@@ -2176,26 +1824,23 @@ function signUp() {
             // Generate and set anonymous username
             const newUsername = generateAnonymousUsername();
 
-            // Migrate guest progress from localStorage to new account
+            // Save local storage data with the new username
             const localData = JSON.parse(localStorage.getItem('brickerGameState')) || {};
             localData.username = newUsername;
 
-            // Transfer guest progress to Firebase
-            database.ref('users/' + userCredential.user.uid + '/gameState').set(localData)
-                .then(() => {
-                    // Clear localStorage after successful migration
-                    localStorage.removeItem('brickerGameState');
-                    database.ref('users/' + userCredential.user.uid + '/gameState/tutorialCompleted').set(false).catch(() => { });
-                    if (window.location.search) {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                    setTimeout(() => location.reload(), 800);
-                })
-                .catch(error => {
-                    console.error('Error migrating guest progress:', error);
-                    showToast('Error saving progress: ' + error.message);
-                    if (signupBtn) signupBtn.disabled = false;
-                });
+            // Update the username in Firebase as well
+            database.ref('users/' + userCredential.user.uid + '/gameState').update({
+                username: newUsername
+            }).catch(() => {});
+
+            localStorage.setItem('brickerGameState', JSON.stringify(localData));
+
+            saveGameStateFromLocalStorage(userCredential.user.uid);
+            database.ref('users/' + userCredential.user.uid + '/gameState/tutorialCompleted').set(false).catch(() => {});
+            if (window.location.search) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            setTimeout(() => location.reload(), 800);
         })
         .catch(error => {
             // Provide more user-friendly error messages
@@ -2241,72 +1886,10 @@ function playAsGuest() {
         username = 'Guest' + Math.floor(Math.random() * 10000);
     }
 
-    // Load full game state from localStorage if available
+    // Load completed milestones from localStorage if available
     const localData = JSON.parse(localStorage.getItem('brickerGameState'));
-    if (localData) {
-        // Restore all game state for returning guests
-        gold = localData.gold || 20;
-        level = localData.level || 1;
-        idleGoldPerSecond = localData.idleGoldPerSecond || 0.5;
-        rebirthCount = localData.rebirthCount || 0;
-        autoRebirthOwned = localData.autoRebirthOwned || false;
-        autoRebirthEnabled = !!localData.autoRebirthEnabled;
-        
-        // Restore ball counts - ensure ALL ball types are included
-        ballCounts = {
-            basic: localData.ballCounts?.basic ?? 0,
-            sniper: localData.ballCounts?.sniper ?? 0,
-            big: localData.ballCounts?.big ?? 0,
-            explosion: localData.ballCounts?.explosion ?? 0,
-            multiplying: localData.ballCounts?.multiplying ?? 0,
-            child: localData.ballCounts?.child ?? 0,
-            cannonball: localData.ballCounts?.cannonball ?? 0,
-            poison: localData.ballCounts?.poison ?? 0,
-            snowball: localData.ballCounts?.snowball ?? 0
-        };
-        
-        // Restore ball prices
-        ballPrices.basic = localData.ballPrices?.basic ?? 25;
-        ballPrices.sniper = localData.ballPrices?.sniper ?? 100;
-        ballPrices.big = localData.ballPrices?.big ?? 250;
-        ballPrices.explosion = localData.ballPrices?.explosion ?? 500;
-        ballPrices.multiplying = localData.ballPrices?.multiplying ?? 1000;
-        ballPrices.cannonball = localData.ballPrices?.cannonball ?? 2000;
-        ballPrices.poison = localData.ballPrices?.poison ?? 4000;
-        ballPrices.snowball = localData.ballPrices?.snowball ?? 8000;
-        
-        autoBallPrice = localData.autoBallPrice || 200;
-        
-        // Restore ball upgrades
-        ballUpgrades = localData.ballUpgrades || ballUpgrades;
-        
-        // Restore stats
-        stats = localData.stats || stats;
-        
-        // Restore cosmetics and mascots
-        cosmetics = localData.cosmetics || cosmetics;
-        mascotsOwned = Array.isArray(localData.mascotsOwned) ? localData.mascotsOwned : (localData.mascotsOwned || {});
-        selectedMascotId = localData.selectedMascotId || null;
-        
-        // Restore milestones and rewards
-        completedMilestones = Array.isArray(localData.completedMilestones) ? localData.completedMilestones : [];
-        unclaimedMilestoneRewards = localData.unclaimedMilestoneRewards || {};
-        
-        // Restore global upgrades
-        if (localData.globalUpgrades) {
-            globalUpgrades = localData.globalUpgrades;
-        }
-        
-        // Restore ball unlock tracking (with fallback for existing guests)
-        if (localData.ballsUnlocked) {
-            ballsUnlocked = { ...ballsUnlocked, ...localData.ballsUnlocked };
-        }
-        // Ensure basic ball is always unlocked
-        ballsUnlocked.basic = true;
-
-        // CRITICAL: Update ball options UI immediately to show unlocked balls
-        // This must be called BEFORE startGame() to ensure correct display on reload
-        updateBallOptionsUI();
+    if (localData && Array.isArray(localData.completedMilestones)) {
+        completedMilestones = localData.completedMilestones;
     }
 
     startGame();
@@ -2314,19 +1897,21 @@ function playAsGuest() {
 
 // Save game state
 function saveGameState() {
+    // Don't show login popup if an auth modal is already open
+    if (isGuest && !document.querySelector('.login-overlay')) {
+        showLoginPopupForSave();
+        return;
+    }
     if (isGuest) {
         // Just save to local storage without showing popup
         saveToLocalStorage();
-        // Update the "last saved" timestamp for beforeunload confirmation
-        window.lastSaveTime = Date.now();
         return;
     }
     const saveBtn = document.getElementById('save-button');
     saveBtn.disabled = true;
     const user = auth.currentUser;
     if (user) {
-        // Build ballCounts from the balls array - includes ALL ball types
-        const ballCountsToSave = {
+        const ballCounts = {
             basic: balls.filter(b => b.type === 'basic').length,
             sniper: balls.filter(b => b.type === 'sniper').length,
             big: balls.filter(b => b.type === 'big').length,
@@ -2337,11 +1922,10 @@ function saveGameState() {
             poison: balls.filter(b => b.type === 'poison').length,
             snowball: balls.filter(b => b.type === 'snowball').length
         };
-        
         const gameState = {
             gold,
             level,
-            ballCounts: ballCountsToSave,
+            ballCounts,
             autoBalls: autoBalls.length,
             ballPrices,
             autoBallPrice,
@@ -2349,16 +1933,15 @@ function saveGameState() {
             ballUpgrades,
             stats: {
                 ...stats,
-                totalBricksBroken: stats.totalBricksBroken || 0
+                totalBricksBroken: stats.totalBricksBroken || 0  // <-- add this
             },
             username,
             rebirthCount,
             cosmetics,
             autoRebirthOwned,
             autoRebirthEnabled,
-            mascotsOwned,
-            selectedMascotId,
-            ballsUnlocked,  // Save ball unlock tracking
+            mascotsOwned,          // array of owned mascot entries
+            selectedMascotId,      // equipped mascot (optional)
             settings: {
                 backgroundMusic: settings.backgroundMusic,
                 backgroundMusicVolume: settings.backgroundMusicVolume
@@ -2373,8 +1956,7 @@ function saveGameState() {
                     activationTime: globalUpgrades.goldBoost.active ? Date.now() : null
                 }
             },
-            completedMilestones: completedMilestones,
-            unclaimedMilestoneRewards: unclaimedMilestoneRewards
+            completedMilestones: completedMilestones  // Track completed milestone IDs
         };
         database.ref('users/' + user.uid + '/gameState').update(gameState)
             .then(() => {
@@ -2411,8 +1993,7 @@ let milestoneDefinitions = [
         description: 'Own 50 Basic Balls.',
         goal: 50,
         stat: 'basicBalls',
-        benefit: '+5% basic ball speed',
-        reward: { type: 'gold', amount: 5000 }
+        benefit: '+5% basic ball speed'
     },
     {
         id: 'balls_sniper_50',
@@ -2420,8 +2001,7 @@ let milestoneDefinitions = [
         description: 'Own 50 Sniper Balls.',
         goal: 50,
         stat: 'sniperBalls',
-        benefit: '+5% sniper accuracy',
-        reward: { type: 'gold', amount: 5000 }
+        benefit: '+5% sniper accuracy'
     },
     {
         id: 'balls_big_50',
@@ -2429,8 +2009,7 @@ let milestoneDefinitions = [
         description: 'Own 50 Big Balls.',
         goal: 50,
         stat: 'bigBalls',
-        benefit: '+10% big ball size',
-        reward: { type: 'gold', amount: 5000 }
+        benefit: '+10% big ball size'
     },
     {
         id: 'balls_explosion_50',
@@ -2438,8 +2017,7 @@ let milestoneDefinitions = [
         description: 'Own 50 Bomb Balls.',
         goal: 50,
         stat: 'explosionBalls',
-        benefit: '+1 explosion radius',
-        reward: { type: 'gold', amount: 5000 }
+        benefit: '+1 explosion radius'
     },
     {
         id: 'balls_multiplying_50',
@@ -2447,8 +2025,7 @@ let milestoneDefinitions = [
         description: 'Own 50 Clones Balls.',
         goal: 50,
         stat: 'multiplyingBalls',
-        benefit: '+5% clone spawn chance',
-        reward: { type: 'gold', amount: 5000 }
+        benefit: '+5% clone spawn chance'
     },
     {
         id: 'balls_cannonball_50',
@@ -2456,8 +2033,7 @@ let milestoneDefinitions = [
         description: 'Own 50 Cannonballs.',
         goal: 50,
         stat: 'cannonballBalls',
-        benefit: '+2 cannonball damage',
-        reward: { type: 'gold', amount: 7500 }
+        benefit: '+2 cannonball damage'
     },
     {
         id: 'balls_poison_50',
@@ -2465,8 +2041,7 @@ let milestoneDefinitions = [
         description: 'Own 50 Poison Balls.',
         goal: 50,
         stat: 'poisonBalls',
-        benefit: '+5% poison duration',
-        reward: { type: 'gold', amount: 7500 }
+        benefit: '+5% poison duration'
     },
     {
         id: 'balls_snowball_50',
@@ -2474,8 +2049,7 @@ let milestoneDefinitions = [
         description: 'Own 50 Snowballs.',
         goal: 50,
         stat: 'snowballBalls',
-        benefit: '+5% snowball speed growth',
-        reward: { type: 'gold', amount: 7500 }
+        benefit: '+5% snowball speed growth'
     },
 
     // === Upgrade milestones ===
@@ -2485,8 +2059,7 @@ let milestoneDefinitions = [
         description: 'Upgrade Basic Ball to level 5.',
         goal: 5,
         stat: 'basicUpgrade',
-        benefit: '+10% basic ball damage',
-        reward: { type: 'gold', amount: 3000 }
+        benefit: '+10% basic ball damage'
     },
     {
         id: 'upgrade_sniper_5',
@@ -2494,9 +2067,9 @@ let milestoneDefinitions = [
         description: 'Upgrade Sniper Ball to level 5.',
         goal: 5,
         stat: 'sniperUpgrade',
-        benefit: '+10% sniper ball damage',
-        reward: { type: 'gold', amount: 3000 }
+        benefit: '+10% sniper ball damage'
     },
+    // Add similar ones for each ball type...
 
     // === Donation milestones ===
     {
@@ -2505,8 +2078,7 @@ let milestoneDefinitions = [
         description: 'Donate 1,000 gold to other players.',
         goal: 1000,
         stat: 'totalDonated',
-        benefit: '+2% idle gold gain',
-        reward: { type: 'gold', amount: 2000 }
+        benefit: '+2% idle gold gain'
     },
     {
         id: 'donate_10000',
@@ -2514,19 +2086,17 @@ let milestoneDefinitions = [
         description: 'Donate 10,000 gold to other players.',
         goal: 10000,
         stat: 'totalDonated',
-        benefit: '+5% idle gold gain',
-        reward: { type: 'rebirth', amount: 1 }
+        benefit: '+5% idle gold gain'
     },
 
-    // === Old milestones ===
+    // Keep your old ones
     {
         id: 'balls_100',
         title: 'Ball Master',
         description: 'Own 100 balls.',
         goal: 100,
         stat: 'totalBalls',
-        benefit: '+2% all ball speed',
-        reward: { type: 'gold', amount: 10000 }
+        benefit: '+2% all ball speed'
     },
     {
         id: 'balls_500',
@@ -2534,8 +2104,7 @@ let milestoneDefinitions = [
         description: 'Own 500 balls.',
         goal: 500,
         stat: 'totalBalls',
-        benefit: '+5% all ball speed',
-        reward: { type: 'gold', amount: 25000 }
+        benefit: '+5% all ball speed'
     },
     {
         id: 'balls_1000',
@@ -2543,8 +2112,7 @@ let milestoneDefinitions = [
         description: 'Own 1,000 balls.',
         goal: 1000,
         stat: 'totalBalls',
-        benefit: '+10% all ball speed',
-        reward: { type: 'rebirth', amount: 2 }
+        benefit: '+10% all ball speed'
     },
     {
         id: 'upgrade_10',
@@ -2552,8 +2120,7 @@ let milestoneDefinitions = [
         description: 'Buy 10 upgrades.',
         goal: 10,
         stat: 'totalUpgrades',
-        benefit: '+2% damage',
-        reward: { type: 'gold', amount: 5000 }
+        benefit: '+2% damage'
     },
     {
         id: 'upgrade_100',
@@ -2561,8 +2128,7 @@ let milestoneDefinitions = [
         description: 'Buy 100 upgrades.',
         goal: 100,
         stat: 'totalUpgrades',
-        benefit: '+10% damage',
-        reward: { type: 'rebirth', amount: 1 }
+        benefit: '+10% damage'
     }
 ];
 
@@ -2621,7 +2187,6 @@ document.getElementById('all-milestones-btn').addEventListener('click', () => {
 // Player's active and completed milestones
 let activeMilestones = [];
 let completedMilestones = []; // Track completed milestone IDs for persistence
-let unclaimedMilestoneRewards = {}; // Track unclaimed rewards by milestone ID
 
 // Load milestones based on player progress
 function loadMilestones() {
@@ -2672,68 +2237,6 @@ function renderMilestones() {
     `;
         container.appendChild(milestoneEl);
     });
-    
-    // Show unclaimed rewards
-    // Remove any existing unclaimed rewards container to avoid duplicates
-    const existingUnclaimedContainer = container.parentElement?.querySelector('#unclaimed-rewards-container');
-    if (existingUnclaimedContainer) {
-        existingUnclaimedContainer.remove();
-    }
-    
-    // Show unclaimed rewards
-    if (Object.keys(unclaimedMilestoneRewards).length > 0) {
-        const unclaimedContainer = document.createElement('div');
-        unclaimedContainer.id = 'unclaimed-rewards-container';
-        Object.entries(unclaimedMilestoneRewards).forEach(([milestoneId, reward]) => {
-            const milestone = milestoneDefinitions.find(m => m.id === milestoneId);
-            if (!milestone) return;
-            
-            const rewardEl = document.createElement('div');
-            rewardEl.className = 'unclaimed-milestone-reward';
-            rewardEl.innerHTML = `
-                <div class="reward-title">✨ ${milestone.title}</div>
-                <div class="reward-info">${reward.type === 'gold' ? `+${formatNumber(reward.amount)} Gold` : `+${reward.amount} Rebirth${reward.amount > 1 ? 's' : ''}`}</div>
-                <button class="claim-reward-btn" onclick="claimMilestoneReward('${milestoneId}')">Claim</button>
-            `;
-            unclaimedContainer.appendChild(rewardEl);
-        });
-        
-        container.parentElement.insertBefore(unclaimedContainer, container.nextSibling);
-    }
-}
-
-// Claim a milestone reward
-function claimMilestoneReward(milestoneId) {
-    const reward = unclaimedMilestoneRewards[milestoneId];
-    if (!reward) {
-        showToast('Reward not found!');
-        return;
-    }
-    
-    const milestone = milestoneDefinitions.find(m => m.id === milestoneId);
-    
-    if (reward.type === 'gold') {
-        gold += reward.amount;
-        showToast(`🎉 Claimed ${formatNumber(reward.amount)} gold from ${milestone.title}!`);
-    } else if (reward.type === 'rebirth') {
-        rebirthCount += reward.amount;
-        showToast(`🎉 Claimed ${reward.amount} rebirth${reward.amount > 1 ? 's' : ''} from ${milestone.title}!`);
-    }
-    
-    // Remove from unclaimed
-    delete unclaimedMilestoneRewards[milestoneId];
-    
-    // Save to Firebase
-    if (!isGuest && auth.currentUser) {
-        database.ref('users/' + auth.currentUser.uid + '/gameState').update({
-            gold: gold,
-            rebirthCount: rebirthCount,
-            unclaimedMilestoneRewards: unclaimedMilestoneRewards
-        }).catch(err => console.error('Error claiming reward:', err));
-    }
-    
-    updateUI();
-    renderMilestones();
 }
 
 // Check milestones in real-time
@@ -2748,15 +2251,10 @@ function updateMilestones() {
             if (!completedMilestones.includes(m.id)) {
                 completedMilestones.push(m.id);
                 newCompleted.push(m.id);
-                
-                // Mark reward as unclaimed
-                if (m.reward) {
-                    unclaimedMilestoneRewards[m.id] = m.reward;
-                }
             }
 
             // Show a toast notification (non-blocking)
-            showToast(`🏆 Milestone Complete: ${m.title}! Claim your reward!`);
+            showToast(`Milestone Complete: ${m.title}!`);
 
             // Optionally find and visually update the milestone in the DOM
             const milestoneEls = document.querySelectorAll('.milestone');
@@ -2772,13 +2270,18 @@ function updateMilestones() {
         }
     });
 
-    // Save completed milestones and unclaimed rewards to Firebase if any new ones
+    // Save completed milestones to Firebase if any new ones
     if (newCompleted.length > 0 && !isGuest && auth.currentUser) {
         const user = auth.currentUser;
-        database.ref('users/' + user.uid + '/gameState').update({
-            completedMilestones: completedMilestones,
-            unclaimedMilestoneRewards: unclaimedMilestoneRewards
-        }).catch(err => console.error('Error saving milestones:', err));
+        database.ref('users/' + user.uid + '/gameState/completedMilestones')
+            .transaction(current => {
+                if (current === null) return completedMilestones;
+                // Merge with existing completed milestones
+                const existing = Array.isArray(current) ? current : [];
+                const uniqueNew = newCompleted.filter(id => !existing.includes(id));
+                return [...existing, ...uniqueNew];
+            })
+            .catch(err => console.error('Error saving milestones:', err));
     }
 
     // Also save to localStorage for guests
@@ -3105,8 +2608,6 @@ function setUserRankBadge(rank) {
 
 let currentLeaders = [];
 let previousRanks = {};
-let rankChangeQueue = null; // Track pending rank change notifications
-let rankChangeTimeout = null; // Timeout for debouncing rank changes
 
 function updateLeaderboard() {
     console.log('Updating leaderboard from users/...');
@@ -3160,12 +2661,9 @@ function updateLeaderboard() {
                 const newRank = index + 1;
                 const oldRank = previousRanks[leader.uid];
 
-                // 🔥 Detect rank improvement (only show latest/best rank change)
+                // 🔥 Detect rank improvement
                 if (oldRank && newRank < oldRank) {
-                    // Store only the latest rank change (highest improvement)
-                    if (!rankChangeQueue || newRank < rankChangeQueue.newRank) {
-                        rankChangeQueue = { username: leader.username, newRank: newRank };
-                    }
+                    showNewRankToast(leader.username, newRank);
                 }
 
                 previousRanks[leader.uid] = newRank;
@@ -3190,20 +2688,6 @@ function updateLeaderboard() {
                 if (idx !== -1) userRank = idx + 1;
             }
             setUserRankBadge(userRank);
-
-            // Show the queued rank change toast (only 1 at a time, the latest/best)
-            if (rankChangeQueue) {
-                // Clear existing timeout
-                if (rankChangeTimeout) {
-                    clearTimeout(rankChangeTimeout);
-                }
-                // Remove any existing rank change toasts
-                const existingRankToasts = document.querySelectorAll('.newranktoast');
-                existingRankToasts.forEach(toast => toast.remove());
-                
-                showNewRankToast(rankChangeQueue.username, rankChangeQueue.newRank);
-                rankChangeQueue = null; // Reset for next update
-            }
 
             currentLeaders = newLeaders;
         })
@@ -3706,13 +3190,13 @@ function showLoginPopupForSave() {
     `;
     document.body.appendChild(overlay);
     saveToLocalStorage();
-
+    
     const loginBtn = overlay.querySelector('#login-btn');
     const googleBtn = overlay.querySelector('#google-btn');
     const signupLink = overlay.querySelector('#signup-link');
     const cancelBtn = overlay.querySelector('#cancel-btn');
     const closeBtn = overlay.querySelector('.modal-close-btn');
-
+    
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
             loginBtn.disabled = true;
@@ -3750,23 +3234,16 @@ function showLoginPopupForSave() {
 }
 
 function saveToLocalStorage() {
-    // Build ballCounts from the balls array - includes ALL ball types
-    const ballCountsToSave = {
-        basic: balls.filter(b => b.type === 'basic').length,
-        sniper: balls.filter(b => b.type === 'sniper').length,
-        big: balls.filter(b => b.type === 'big').length,
-        explosion: balls.filter(b => b.type === 'explosion').length,
-        multiplying: balls.filter(b => b.type === 'multiplying').length,
-        child: balls.filter(b => b.type === 'child').length,
-        cannonball: balls.filter(b => b.type === 'cannonball').length,
-        poison: balls.filter(b => b.type === 'poison').length,
-        snowball: balls.filter(b => b.type === 'snowball').length
-    };
-
     const gameState = {
         gold,
         level,
-        ballCounts: ballCountsToSave,
+        ballCounts: {
+            sniper: balls.filter(b => b.type === 'sniper').length,
+            big: balls.filter(b => b.type === 'big').length,
+            explosion: balls.filter(b => b.type === 'explosion').length,
+            multiplying: balls.filter(b => b.type === 'multiplying').length,
+            child: balls.filter(b => b.type === 'child').length
+        },
         autoBalls: autoBalls.length,
         ballPrices,
         autoBallPrice,
@@ -3776,17 +3253,12 @@ function saveToLocalStorage() {
         username,
         rebirthCount,
         cosmetics,
-        mascotsOwned,
-        selectedMascotId,
-        ballsUnlocked,  // Save ball unlock tracking
         settings: {
             backgroundMusic: settings.backgroundMusic,
             backgroundMusicVolume: settings.backgroundMusicVolume
         },
-        completedMilestones: completedMilestones,
-        unclaimedMilestoneRewards: unclaimedMilestoneRewards,
-        autoRebirthOwned,
-        autoRebirthEnabled,
+        completedMilestones: completedMilestones,  // Track completed milestone IDs
+
         globalUpgrades: {
             speedBoost: {
                 active: globalUpgrades.speedBoost.active,
@@ -3901,16 +3373,8 @@ function loadGameState(uid) {
                 mascotsOwned = Array.isArray(data.mascotsOwned) ? data.mascotsOwned : (data.mascotsOwned || []);
                 selectedMascotId = data.selectedMascotId || null;
 
-                // Load completed milestones and unclaimed rewards
+                // Load completed milestones
                 completedMilestones = Array.isArray(data.completedMilestones) ? data.completedMilestones : [];
-                unclaimedMilestoneRewards = data.unclaimedMilestoneRewards || {};
-
-                // Load ball unlock tracking (with fallback for existing players)
-                if (data.ballsUnlocked) {
-                    ballsUnlocked = { ...ballsUnlocked, ...data.ballsUnlocked };
-                }
-                // Ensure basic ball is always unlocked
-                ballsUnlocked.basic = true;
 
                 syncBallsWithCounts();
                 autoBalls = [];
@@ -4067,10 +3531,6 @@ function startGame() {
             }
         });
         updateLeaderboard();
-
-        // Initialize new user UI - hide elements until unlocked
-        initializeNewUserUI();
-
         gameStarted = true;
     }
 }
@@ -4869,66 +4329,6 @@ function updateUI() {
         autoToggle.disabled = isGuest || !autoRebirthOwned;
     }
 
-    // Update price progress bars based on current gold
-    updatePriceProgress();
-}
-
-// Ball type display names for notifications
-const ballDisplayNames = {
-    basic: 'Basic',
-    sniper: 'Sniper',
-    big: 'Big',
-    explosion: 'Bomb',
-    multiplying: 'Clone',
-    cannonball: 'Cannonball',
-    poison: 'Poison',
-    snowball: 'Snowball'
-};
-
-/**
- * Check if a ball type was just unlocked and show notification
- * Returns the name of the newly unlocked ball type if any, null otherwise
- */
-function checkForNewBallUnlock() {
-    // Check each ball in the unlock order (skip first which is always visible)
-    for (let i = 1; i < ballUnlockOrder.length; i++) {
-        const ballType = ballUnlockOrder[i];
-        const previousBall = ballUnlockOrder[i - 1];
-        
-        // Check if previous ball is now owned (count just became > 0)
-        // and the current ball wasn't visible before
-        if (ballCounts[previousBall] > 0) {
-            // The next ball in the sequence should now be visible
-            const nextBall = ballUnlockOrder[i];
-            const optionEl = document.getElementById(`${nextBall}-option`);
-            
-            if (optionEl) {
-                // Check if element was previously hidden (display: none)
-                const wasHidden = optionEl.style.display === 'none' || 
-                                  optionEl.classList.contains('ball-hidden');
-                
-                if (wasHidden) {
-                    // Ball was just unlocked!
-                    
-                    // Make it visible immediately
-                    optionEl.style.display = "flex";
-                    optionEl.classList.remove('ball-hidden');
-                    optionEl.style.opacity = "1";
-                    optionEl.style.cursor = "pointer";
-                    optionEl.style.pointerEvents = "auto";
-                    
-                    // Add highlight animation class
-                    optionEl.classList.add('ball-just-unlocked');
-                    setTimeout(() => {
-                        optionEl.classList.remove('ball-just-unlocked');
-                    }, 3000);
-                    
-                    return ballDisplayNames[nextBall] || nextBall;
-                }
-            }
-        }
-    }
-    return null;
 }
 
 // Buy ball
@@ -4955,15 +4355,6 @@ function buyBall(type) {
         balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, dx, dy, color, type));
         updateUI();
         updateMilestones();
-
-        // Refresh ball options UI to reveal newly unlocked balls
-        updateBallOptionsUI();
-        
-        // Check if a new ball option was just unlocked and show notification
-        const newlyUnlocked = checkForNewBallUnlock();
-        if (newlyUnlocked) {
-            showToast(`🎉 ${newlyUnlocked} Ball unlocked! Check the shop scroll!`);
-        }
     } else {
         showToast(balls.length >= maxBalls ? 'Max balls reached!' : 'Not enough gold!');
     }
@@ -5016,8 +4407,8 @@ function buyAutoBall() {
 function upgradeBall(type) {
     const cost = getUpgradeCost(type);
 
-    // Max upgrade level: scales with rebirths
-    const maxUpgradeLevel = rebirthCount * 2 + 10;
+    // Max upgrade level: scales with rebirths (5 levels per rebirth)
+    const maxUpgradeLevel = rebirthCount * 5;
     if (ballUpgrades[type].level >= maxUpgradeLevel) {
         showToast(`Max upgrade level (${maxUpgradeLevel}) reached for ${type} ball!`);
         return;
@@ -5400,7 +4791,7 @@ function fetchTeams() {
     const teamList = document.getElementById("team-list");
     const createTeamBtn = document.getElementById("create-team-btn");
     teamList.innerHTML = "Loading teams...";
-
+    
     // Check if current user is in a team
     const user = auth.currentUser;
     if (user) {
@@ -5415,7 +4806,7 @@ function fetchTeams() {
         // User not logged in, show button but they'll need to login first
         createTeamBtn.style.display = 'block';
     }
-
+    
     database.ref("teams").once("value").then(snapshot => {
         const teams = [];
         snapshot.forEach(teamSnap => {
@@ -5931,19 +5322,19 @@ document.head.appendChild(teamModalStyle);
 function showTeamCreateModal() {
     // Remove any existing team modals
     document.querySelectorAll('.team-create-modal').forEach(el => el.remove());
-
+    
     const user = auth.currentUser;
     if (!user) {
         showToast("Login first!");
         return;
     }
-
+    
     database.ref("userTeams/" + user.uid).once("value").then(snap => {
         if (snap.val()) {
             showToast("You already have or are in a team!");
             return;
         }
-
+        
         // Create modal overlay
         const modal = document.createElement('div');
         modal.className = 'team-create-modal';
@@ -5977,9 +5368,9 @@ function showTeamCreateModal() {
                 </div>
             </div>
         `;
-
+        
         document.body.appendChild(modal);
-
+        
         // Elements
         const teamNameInput = modal.querySelector('#team-name-input');
         const teamPrivateCheckbox = modal.querySelector('#team-private-checkbox');
@@ -5990,15 +5381,15 @@ function showTeamCreateModal() {
         const closeBtn = modal.querySelector('.close-btn');
         const nameError = modal.querySelector('#team-name-error');
         const passwordError = modal.querySelector('#team-password-error');
-
+        
         // Show modal with animation
         requestAnimationFrame(() => {
             modal.classList.add('show');
         });
-
+        
         // Focus on team name input
         setTimeout(() => teamNameInput.focus(), 100);
-
+        
         // Toggle password section
         teamPrivateCheckbox.addEventListener('change', () => {
             passwordSection.classList.toggle('show', teamPrivateCheckbox.checked);
@@ -6006,13 +5397,13 @@ function showTeamCreateModal() {
                 setTimeout(() => teamPasswordInput.focus(), 100);
             }
         });
-
+        
         // Validation
         function validateForm() {
             let isValid = true;
             nameError.classList.remove('show');
             passwordError.classList.remove('show');
-
+            
             const teamName = teamNameInput.value.trim();
             if (!teamName) {
                 nameError.textContent = 'Team name is required!';
@@ -6027,7 +5418,7 @@ function showTeamCreateModal() {
                 nameError.classList.add('show');
                 isValid = false;
             }
-
+            
             if (teamPrivateCheckbox.checked) {
                 const password = teamPasswordInput.value;
                 if (!password) {
@@ -6040,39 +5431,39 @@ function showTeamCreateModal() {
                     isValid = false;
                 }
             }
-
+            
             createBtn.disabled = !isValid;
             return isValid;
         }
-
+        
         // Input event listeners for real-time validation
         teamNameInput.addEventListener('input', validateForm);
         teamPasswordInput.addEventListener('input', validateForm);
-
+        
         // Close modal functions
         function closeModal() {
             modal.classList.remove('show');
             setTimeout(() => modal.remove(), 200);
         }
-
+        
         cancelBtn.addEventListener('click', closeModal);
         closeBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
         });
-
+        
         // Create team
         createBtn.addEventListener('click', () => {
             if (!validateForm()) return;
-
+            
             createBtn.disabled = true;
             createBtn.classList.add('loading');
             createBtn.textContent = 'Creating...';
-
+            
             const teamName = teamNameInput.value.trim();
             const isPrivate = teamPrivateCheckbox.checked;
             const password = teamPasswordInput.value;
-
+            
             const newTeamRef = database.ref("teams").push();
             const teamData = {
                 name: teamName,
@@ -6088,11 +5479,11 @@ function showTeamCreateModal() {
                 maxMembers: 15,
                 isPrivate: isPrivate
             };
-
+            
             if (isPrivate) {
                 teamData.password = password;
             }
-
+            
             newTeamRef.set(teamData)
                 .then(() => {
                     return database.ref("userTeams/" + user.uid).set(newTeamRef.key);
@@ -6895,74 +6286,22 @@ Ball.prototype.draw = function () {
 };
 
 function showMyBallsPopup() {
-    const maxUpgradeLevel = rebirthCount * 2 + 10;
-
-    // Remove any existing my-balls popups first
-    document.querySelectorAll('.my-balls-popup').forEach(el => el.remove());
-
+    const maxUpgradeLevel = rebirthCount;
     const overlay = document.createElement('div');
     overlay.className = 'login-overlay';
-    overlay.style.zIndex = '10001';
-
-    // Get costs
     const basicCost = getUpgradeCost('basic');
     const sniperCost = getUpgradeCost('sniper');
     const bigCost = getUpgradeCost('big');
     const explosionCost = getUpgradeCost('explosion');
     const multiplyingCost = getUpgradeCost('multiplying');
+    const childCost = getUpgradeCost('child');
     const cannonballCost = getUpgradeCost('cannonball');
     const poisonCost = getUpgradeCost('poison');
     const snowballCost = getUpgradeCost('snowball');
-
-    // Generate ball stats HTML
-    const ballTypes = [
-        { type: 'basic', name: 'Basic', cost: basicCost, color: 'gray', radius: 8 },
-        { type: 'sniper', name: 'Sniper', cost: sniperCost, color: 'blue', radius: 8 },
-        { type: 'big', name: 'Big', cost: bigCost, color: 'green', radius: 12 },
-        { type: 'explosion', name: 'Bomb', cost: explosionCost, color: 'orange', radius: 8 },
-        { type: 'multiplying', name: 'Clones', cost: multiplyingCost, color: 'purple', radius: 8 },
-        { type: 'cannonball', name: 'Cannon', cost: cannonballCost, color: 'darkgray', radius: 8 },
-        { type: 'poison', name: 'Poison', cost: poisonCost, color: 'lime', radius: 8 },
-        { type: 'snowball', name: 'Snowball', cost: snowballCost, color: 'white', radius: 8 }
-    ];
-
-    let ballStatsHTML = '';
-    ballTypes.forEach(ball => {
-        if (isBallVisible(ball.type)) {
-            const ballCount = balls.filter(b => b.type === ball.type).length;
-            const canUpgrade = gold >= ball.cost && ballUpgrades[ball.type].level < maxUpgradeLevel;
-            ballStatsHTML += `
-                <div class="ball-stat-row" data-ball-type="${ball.type}">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <canvas id="stats-${ball.type}-preview" width="40" height="40"></canvas>
-                        <span><b>${ball.name}</b>: ${ballCount} balls, Level: ${ballUpgrades[ball.type].level}/${maxUpgradeLevel}, Speed: ${ballUpgrades[ball.type].speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades[ball.type].damage.toFixed(1))}</span>
-                    </div>
-                    <button class="upgrade-btn ${canUpgrade ? '' : 'disabled'}" data-action="upgrade" data-type="${ball.type}">Upgrade<br>(${formatNumber(ball.cost)})</button>
-                </div>
-            `;
-        }
-    });
-
-    // Auto balls section
-    ballStatsHTML += `
-        <div class="ball-stat-row">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <canvas id="stats-auto-preview" width="40" height="40"></canvas>
-                <span><b>Auto</b>: ${autoBalls.length} balls, Speed: 10, Damage: Instant Destroy</span>
-            </div>
-        </div>
-    `;
-
     overlay.innerHTML = `
         <div class="my-balls-popup">
             <h2>Upgrades (Max Level: ${maxUpgradeLevel})</h2>
-            <button class="close-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
-                    stroke-width="1.5" stroke="currentColor" class="size-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" 
-                        d="M6 18 18 6M6 6l12 12" />
-                </svg>
-            </button>
+            <button class="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /> </svg></button>
             <div class="nav-tabs">
                 <button class="tab-btn active" data-tab="my-balls">My Balls</button>
                 <button class="tab-btn" data-tab="upgrades">Boosts</button>
@@ -6971,20 +6310,88 @@ function showMyBallsPopup() {
             </div>
             <div class="tab-content active" id="my-balls">
                 <div class="ball-stats">
-                    ${ballStatsHTML}
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="basic-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Basic</b>: ${balls.filter(b => b.type === 'basic').length} balls, Level: ${ballUpgrades.basic.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.basic.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.basic.damage.toFixed(1))}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < basicCost || ballUpgrades.basic.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('basic')">Upgrade<br>(${formatNumber(basicCost)})</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="sniper-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Sniper</b>: ${balls.filter(b => b.type === 'sniper').length} balls, Level: ${ballUpgrades.sniper.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.sniper.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.sniper.damage.toFixed(1))}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < sniperCost || ballUpgrades.sniper.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('sniper')">Upgrade<br>(${formatNumber(sniperCost)})</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="big-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Big</b>: ${balls.filter(b => b.type === 'big').length} balls, Level: ${ballUpgrades.big.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.big.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.big.damage.toFixed(1))}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < bigCost || ballUpgrades.big.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('big')">Upgrade<br>(${formatNumber(bigCost)})</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="explosion-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Bomb</b>: ${balls.filter(b => b.type === 'explosion').length} balls, Level: ${ballUpgrades.explosion.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.explosion.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.explosion.damage.toFixed(1))}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < explosionCost || ballUpgrades.explosion.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('explosion')">Upgrade<br>(${formatNumber(explosionCost)})</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="multiplying-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Clones</b>: ${balls.filter(b => b.type === 'multiplying').length} balls, Level: ${ballUpgrades.multiplying.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.multiplying.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.multiplying.damage.toFixed(1))}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < multiplyingCost || ballUpgrades.multiplying.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('multiplying')">Upgrade<br>(${formatNumber(multiplyingCost)})</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="child-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Child</b>: ${balls.filter(b => b.type === 'child').length} balls, Level: ${ballUpgrades.child.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.child.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.child.damage.toFixed(1))}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < childCost || ballUpgrades.child.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('child')">Upgrade<br>(${formatNumber(childCost)})</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="cannonball-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Cannon</b>: ${balls.filter(b => b.type === 'cannonball').length} balls, Level: ${ballUpgrades.cannonball.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.cannonball.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.cannonball.damage.toFixed(1))}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < cannonballCost || ballUpgrades.cannonball.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('cannonball')">Upgrade<br>(${formatNumber(cannonballCost)})</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="poison-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Poison</b>: ${balls.filter(b => b.type === 'poison').length} balls, Level: ${ballUpgrades.poison.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.poison.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.poison.damage.toFixed(1))}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < poisonCost || ballUpgrades.poison.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('poison')">Upgrade<br>(${formatNumber(poisonCost)})</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="snowball-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Snowball</b>: ${balls.filter(b => b.type === 'snowball').length} balls, Level: ${ballUpgrades.snowball.level}/${maxUpgradeLevel}, Speed: ${ballUpgrades.snowball.speed.toFixed(1)}, Damage: ${formatNumber(ballUpgrades.snowball.damage)}</span>
+                        </div>
+                        <button class="upgrade-btn" ${gold < snowballCost || ballUpgrades.snowball.level >= maxUpgradeLevel ? 'disabled' : ''} onclick="upgradeBall('snowball')">Upgrade<br>(${formatNumber(snowballCost)})</button>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <canvas id="auto-stats-preview" width="40" height="40"></canvas>
+                            <span><b>Auto</b>: ${autoBalls.length} balls, Speed: 10, Damage: Instant Destroy</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="tab-content" id="upgrades">
                 <div class="upgrades-list">
-                    <div class="upgrade-row">
-                        <div class="upgrade-icon">🚀</div>
-                        <span class="upgrade-desc">Speed Boost: Increase all ball speed by 2x for 1 minute</span>
-                        <button class="upgrade-btn ${globalUpgrades.speedBoost.active || gold < globalUpgrades.speedBoost.cost ? 'disabled' : ''}" data-action="global-upgrade" data-type="speedBoost">${globalUpgrades.speedBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.speedBoost.cost} gold)</button>
+                    <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(145deg, #f4eed6, #e9dcaf); padding: 12px; border-radius: 8px; border: 0 solid #333;">
+                        <div style="width: 40px; height: 40px; background: cyan; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🚀</div>
+                        <span style="flex: 1;">Speed Boost: Increase all ball speed by 2x for 1 minute</span>
+                        <button class="upgrade-btn" ${globalUpgrades.speedBoost.active || gold < globalUpgrades.speedBoost.cost ? 'disabled' : ''} onclick="applyGlobalUpgrade('speedBoost')">${globalUpgrades.speedBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.speedBoost.cost} gold)</button>
                     </div>
-                    <div class="upgrade-row">
-                        <div class="upgrade-icon">💰</div>
-                        <span class="upgrade-desc">Gold Boost: Increase gold production by 2x for 1 minute</span>
-                        <button class="upgrade-btn ${globalUpgrades.goldBoost.active || gold < globalUpgrades.goldBoost.cost ? 'disabled' : ''}" data-action="global-upgrade" data-type="goldBoost">${globalUpgrades.goldBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.goldBoost.cost} gold)</button>
+                    <div style="display: flex; align-items: center; gap: 10px; background: linear-gradient(145deg, #f4eed6, #e9dcaf); padding: 12px; border-radius: 8px; border: 0 solid #333;">
+                        <div style="width: 40px; height: 40px; background: gold; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">💰</div>
+                        <span style="flex: 1;">Gold Boost: Increase gold production by 2x for 1 minute</span>
+                        <button class="upgrade-btn" ${globalUpgrades.goldBoost.active || gold < globalUpgrades.goldBoost.cost ? 'disabled' : ''} onclick="applyGlobalUpgrade('goldBoost')">${globalUpgrades.goldBoost.active ? 'Active' : 'Activate'}<br>(${globalUpgrades.goldBoost.cost} gold)</button>
                     </div>
                 </div>
             </div>
@@ -6992,124 +6399,128 @@ function showMyBallsPopup() {
                 <div class="rebirth-info">
                     <p>Rebirth at level 100 to start from level 1, losing all balls and gold but keeping ball upgrades.</p>
                     <p>Current Idle Gold Per Second: <b>${formatNumber(idleGoldPerSecond)}</b></p>
-                    <p>Each rebirth increases idle gold per second by 1.2 times and max upgrade level by 2.</p>
-                    <button class="rebirth-btn ${level < 100 ? 'disabled' : ''}" data-action="rebirth">Rebirth (Level ${level}/100)</button>
+                    <p>Each rebirth increases idle gold per second by 1.2 times and max upgrade level by 5.</p>
+                    <button class="rebirth-btn" ${level < 100 ? 'disabled' : ''} onclick="rebirth()">Rebirth (Level ${level}/100)</button>
                 </div>
             </div>
             <div class="tab-content" id="shop">
-                <div class="shop-option">
-                    <span>Auto Rebirth (Cost: 10 rebirths)</span>
-                    <button id="buy-auto-rebirth-btn">Buy</button>
-                </div>
-                <div id="auto-rebirth-toggle-container" style="display:none; margin-top:10px;">
-                    <label>
-                        <input type="checkbox" id="auto-rebirth-toggle">
-                        Enable Auto Rebirth
-                    </label>
-                </div>
+<div class="shop-option">
+    <span>Auto Rebirth (Cost: 10 rebirths)</span>
+    <button id="buy-auto-rebirth-btn">Buy</button>
+</div>
+<div id="auto-rebirth-toggle-container" style="display:none; margin-top:10px;">
+    <label>
+        <input type="checkbox" id="auto-rebirth-toggle">
+        Enable Auto Rebirth
+    </label>
+</div>
                 <div class="shop-options">
                     <h3>Powerups</h3>
                     <div class="shop-option">
                         <span>🎲 Random Powerup</span>
                         <span class="tooltip">Grants 1 random powerup (e.g., Thunder Strike, Shield Boost).</span>
-                        <button data-action="buy-powerup" data-cost="1" ${rebirthCount < 1 ? 'disabled' : ''}>Buy (1 Rebirth)</button>
+                        <button onclick="buyPowerup(1, 1)" ${rebirthCount < 1 ? 'disabled' : ''}>Buy (1 Rebirth)</button>
                     </div>
                     <div class="shop-option">
                         <span>💰 Idle Gold Boost</span>
                         <span class="tooltip">Permanently increases idle gold by +0.5/sec.</span>
-                        <button data-action="buy-idle-boost" ${gold < Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1))) ? 'disabled' : ''}>Buy (${formatNumber(Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1))))} Gold)</button>
+                        <button onclick="buyIdleGoldBoost()" ${gold < Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1))) ? 'disabled' : ''}>Buy (${formatNumber(Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1))))} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🌌 Cosmic Barrage</span>
                         <span class="tooltip">Destroys 15 bricks and triples ball speed for 30 seconds.</span>
-                        <button data-action="buy-cosmic" data-cost="5" ${rebirthCount < 5 ? 'disabled' : ''}>Buy (5 Rebirths)</button>
+                        <button onclick="buyPowerup(5, 1, 'cosmicBarrage')" ${rebirthCount < 5 ? 'disabled' : ''}>Buy (5 Rebirths)</button>
                     </div>
                     <h3>Skins & Trails</h3>
                     <div class="shop-option">
                         <span>🌌 Nebula Ball Skin</span>
                         <span class="tooltip">Cosmic-themed ball skin with a starry gradient.</span>
-                        <button class="cosmetic-btn" data-action="cosmetic" data-cosmetic="nebulaSkin" data-cost="10rebirths" ${!cosmetics.nebulaSkin && rebirthCount < 10 ? 'disabled' : ''}>${cosmetics.nebulaSkin ? 'Delete' : 'Buy (10 Rebirths)'}</button>
+                        <button class="cosmetic-btn" data-cosmetic="nebulaSkin" onmouseenter="toggleCosmeticButton(this, 'nebulaSkin')" onmouseleave="toggleCosmeticButton(this, 'nebulaSkin')" onclick="${cosmetics.nebulaSkin ? "deleteCosmetic('nebulaSkin')" : "buyCosmetic('nebulaSkin')"}" ${!cosmetics.nebulaSkin && rebirthCount < 10 ? 'disabled' : ''}>${cosmetics.nebulaSkin ? 'Delete' : 'Buy (10 Rebirths)'}</button>
                     </div>
                     <div class="shop-option">
                         <span>🔥 Fire Trail</span>
                         <span class="tooltip">Leaves a fiery trail behind balls.</span>
-                        <button class="cosmetic-btn" data-action="cosmetic" data-cosmetic="fireTrail" data-cost="500gold" ${!cosmetics.fireTrail && gold < 500 ? 'disabled' : ''}>${cosmetics.fireTrail ? 'Delete' : 'Buy (500 Gold)'}</button>
+                        <button class="cosmetic-btn" data-cosmetic="fireTrail" onmouseenter="toggleCosmeticButton(this, 'fireTrail')" onmouseleave="toggleCosmeticButton(this, 'fireTrail')" onclick="${cosmetics.fireTrail ? "deleteCosmetic('fireTrail')" : "buyCosmetic('fireTrail')"}" ${!cosmetics.fireTrail && gold < 500 ? 'disabled' : ''}>${cosmetics.fireTrail ? 'Delete' : 'Buy (500 Gold)'}</button>
                     </div>
                     <div class="shop-option">
                         <span>❄️ Ice Trail</span>
                         <span class="tooltip">Leaves a frosty trail behind balls.</span>
-                        <button class="cosmetic-btn" data-action="cosmetic" data-cosmetic="iceTrail" data-cost="500gold" ${!cosmetics.iceTrail && gold < 500 ? 'disabled' : ''}>${cosmetics.iceTrail ? 'Delete' : 'Buy (500 Gold)'}</button>
+                        <button class="cosmetic-btn" data-cosmetic="iceTrail" onmouseenter="toggleCosmeticButton(this, 'iceTrail')" onmouseleave="toggleCosmeticButton(this, 'iceTrail')" onclick="${cosmetics.iceTrail ? "deleteCosmetic('iceTrail')" : "buyCosmetic('iceTrail')"}" ${!cosmetics.iceTrail && gold < 500 ? 'disabled' : ''}>${cosmetics.iceTrail ? 'Delete' : 'Buy (500 Gold)'}</button>
                     </div>
                     <div class="shop-option">
                         <span>🌈 Rainbow Ball Skin</span>
                         <span class="tooltip">Vibrant, color-shifting ball skin.</span>
-                        <button class="cosmetic-btn" data-action="cosmetic" data-cosmetic="rainbowSkin" data-cost="15rebirths" ${!cosmetics.rainbowSkin && rebirthCount < 15 ? 'disabled' : ''}>${cosmetics.rainbowSkin ? 'Delete' : 'Buy (15 Rebirths)'}</button>
+                        <button class="cosmetic-btn" data-cosmetic="rainbowSkin" onmouseenter="toggleCosmeticButton(this, 'rainbowSkin')" onmouseleave="toggleCosmeticButton(this, 'rainbowSkin')" onclick="${cosmetics.rainbowSkin ? "deleteCosmetic('rainbowSkin')" : "buyCosmetic('rainbowSkin')"}" ${!cosmetics.rainbowSkin && rebirthCount < 15 ? 'disabled' : ''}>${cosmetics.rainbowSkin ? 'Delete' : 'Buy (15 Rebirths)'}</button>
                     </div>
                     <h3>Bundles</h3>
                     <div class="shop-option">
                         <span>🥈 Silver Bundle</span>
                         <span class="tooltip">Includes Nebula Skin and 2 Random Powerups.</span>
-                        <button class="cosmetic-btn" data-action="cosmetic" data-cosmetic="bundleSilver" data-cost="20rebirths" ${!cosmetics.bundleSilver && rebirthCount < 20 ? 'disabled' : ''}>${cosmetics.bundleSilver ? 'Delete' : 'Buy (20 Rebirths)'}</button>
+                        <button class="cosmetic-btn" data-cosmetic="bundleSilver" onmouseenter="toggleCosmeticButton(this, 'bundleSilver')" onmouseleave="toggleCosmeticButton(this, 'bundleSilver')" onclick="${cosmetics.bundleSilver ? "deleteCosmetic('bundleSilver')" : "buyCosmetic('bundleSilver')"}" ${!cosmetics.bundleSilver && rebirthCount < 20 ? 'disabled' : ''}>${cosmetics.bundleSilver ? 'Delete' : 'Buy (20 Rebirths)'}</button>
                     </div>
                     <div class="shop-option">
                         <span>🥇 Gold Bundle</span>
                         <span class="tooltip">Includes Nebula Skin, Fire Trail, and 3 Random Powerups.</span>
-                        <button class="cosmetic-btn" data-action="cosmetic" data-cosmetic="bundleGold" data-cost="30rebirths" ${!cosmetics.bundleGold && rebirthCount < 30 ? 'disabled' : ''}>${cosmetics.bundleGold ? 'Delete' : 'Buy (30 Rebirths)'}</button>
+                        <button class="cosmetic-btn" data-cosmetic="bundleGold" onmouseenter="toggleCosmeticButton(this, 'bundleGold')" onmouseleave="toggleCosmeticButton(this, 'bundleGold')" onclick="${cosmetics.bundleGold ? "deleteCosmetic('bundleGold')" : "buyCosmetic('bundleGold')"}" ${!cosmetics.bundleGold && rebirthCount < 30 ? 'disabled' : ''}>${cosmetics.bundleGold ? 'Delete' : 'Buy (30 Rebirths)'}</button>
                     </div>
                     <div class="shop-option">
                         <span>💎 Platinum Bundle</span>
                         <span class="tooltip">Includes Nebula Skin, Fire Trail, Ice Trail, Rainbow Skin, and 5 Random Powerups.</span>
-                        <button class="cosmetic-btn" data-action="cosmetic" data-cosmetic="bundlePlatinum" data-cost="50rebirths" ${!cosmetics.bundlePlatinum && rebirthCount < 50 ? 'disabled' : ''}>${cosmetics.bundlePlatinum ? 'Delete' : 'Buy (50 Rebirths)'}</button>
+                        <button class="cosmetic-btn" data-cosmetic="bundlePlatinum" onmouseenter="toggleCosmeticButton(this, 'bundlePlatinum')" onmouseleave="toggleCosmeticButton(this, 'bundlePlatinum')" onclick="${cosmetics.bundlePlatinum ? "deleteCosmetic('bundlePlatinum')" : "buyCosmetic('bundlePlatinum')"}" ${!cosmetics.bundlePlatinum && rebirthCount < 50 ? 'disabled' : ''}>${cosmetics.bundlePlatinum ? 'Delete' : 'Buy (50 Rebirths)'}</button>
                     </div>
                     <h3>Boosts</h3>
                     <div class="shop-option">
                         <span>💥 Instant Brick Destroy</span>
-                        <span class="tooltip">Destroys 1 random brick instantly.</span>
-                        <button data-action="buy-instant-destroy" data-price="${getDynamicPrice(100)}">Buy (${formatNumber(getDynamicPrice(100))} Gold)</button>
+                        <span class="tooltip">Destroys 3 random bricks instantly, grants 5 gold each.</span>
+                        <button onclick="buyInstantBrickDestroy()" ${gold < getDynamicPrice(basePrices.instantBrickDestroy) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.instantBrickDestroy))} Gold)</button>
                     </div>
                     <div class="shop-option">
-                        <span>⚔️ Double Damage</span>
-                        <span class="tooltip">Doubles ball damage for 30 seconds.</span>
-                        <button data-action="buy-double-damage" data-price="${getDynamicPrice(150)}">Buy (${formatNumber(getDynamicPrice(150))} Gold)</button>
+                        <span>⚡ Double Damage</span>
+                        <span class="tooltip">Increases all ball damage by 2.5x for 60 seconds.</span>
+                        <button onclick="buyDoubleDamage()" ${gold < getDynamicPrice(basePrices.doubleDamage) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.doubleDamage))} Gold)</button>
                     </div>
                     <div class="shop-option">
-                        <span>⚡ Extra Ball</span>
-                        <span class="tooltip">Spawns an extra ball instantly.</span>
-                        <button data-action="buy-extra-ball" data-price="${getDynamicPrice(200)}">Buy (${formatNumber(getDynamicPrice(200))} Gold)</button>
+                        <span>🏀 Extra Ball</span>
+                        <span class="tooltip">Adds 1 random ball (Sniper, Big, Bomb, or Clones).</span>
+                        <button onclick="buyExtraBall()" ${gold < getDynamicPrice(basePrices.extraBall) || balls.length >= maxBalls ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.extraBall))} Gold)</button>
                     </div>
                     <div class="shop-option">
                         <span>🧲 Gold Magnet</span>
-                        <span class="tooltip">Collects 2x gold from bricks for 30 seconds.</span>
-                        <button data-action="buy-gold-magnet" data-price="${getDynamicPrice(250)}">Buy (${formatNumber(getDynamicPrice(250))} Gold)</button>
+                        <span class="tooltip">Collects all gold power-ups for 30 seconds, 100 gold each.</span>
+                        <button onclick="buyGoldMagnet()" ${gold < getDynamicPrice(basePrices.goldMagnet) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.goldMagnet))} Gold)</button>
                     </div>
                     <div class="shop-option">
-                        <span>💪 Brick Health Reduction</span>
-                        <span class="tooltip">Reduces all brick health by 15% for 30 seconds.</span>
-                        <button data-action="buy-health-reduction" data-price="${getDynamicPrice(300)}">Buy (${formatNumber(getDynamicPrice(300))} Gold)</button>
+                        <span>🛠️ Brick Health Reduction</span>
+                        <span class="tooltip">Reduces all brick health to 30% (minimum 1).</span>
+                        <button onclick="buyBrickHealthReduction()" ${gold < getDynamicPrice(basePrices.brickHealthReduction) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.brickHealthReduction))} Gold)</button>
                     </div>
                     <div class="shop-option">
-                        <span>💨 Speed Surge</span>
-                        <span class="tooltip">Increases ball speed by 50% for 30 seconds.</span>
-                        <button data-action="buy-speed-surge" data-price="${getDynamicPrice(350)}">Buy (${formatNumber(getDynamicPrice(350))} Gold)</button>
+                        <span>🚀 Speed Surge</span>
+                        <span class="tooltip">Increases ball speed by 4x for 30 seconds.</span>
+                        <button onclick="buySpeedSurge()" ${gold < getDynamicPrice(basePrices.speedSurge) ? 'disabled' : ''}>Buy (${formatNumber(getDynamicPrice(basePrices.speedSurge))} Gold)</button>
                     </div>
                 </div>
             </div>
         </div>
+        <style>
+            .cosmetic-btn:hover:not(:disabled) {
+                background: #ff4d4d;
+                color: white;
+            }
+        </style>
     `;
-
     document.body.appendChild(overlay);
+    drawBallPreview('basic-stats-preview', 'gray', 8);
+    drawBallPreview('sniper-stats-preview', 'blue', 8);
+    drawBallPreview('big-stats-preview', 'green', 12);
+    drawBallPreview('explosion-stats-preview', 'orange', 8);
+    drawBallPreview('multiplying-stats-preview', 'purple', 8);
+    drawBallPreview('child-stats-preview', 'purple', 4);
+    drawBallPreview('cannonball-stats-preview', 'darkgray', 8);
+    drawBallPreview('poison-stats-preview', 'lime', 8);
+    drawBallPreview('snowball-stats-preview', 'white', 8);
+    drawBallPreview('auto-stats-preview', 'black', 8);
 
-    // Draw preview canvases
-    ballTypes.forEach(ball => {
-        if (isBallVisible(ball.type)) {
-            const canvas = overlay.querySelector(`#stats-${ball.type}-preview`);
-            if (canvas) drawBallPreviewOnCanvas(canvas, ball.color, ball.radius);
-        }
-    });
-    const autoCanvas = overlay.querySelector('#stats-auto-preview');
-    if (autoCanvas) drawBallPreviewOnCanvas(autoCanvas, 'black', 8);
-
-    // Tab switching
     const tabs = overlay.querySelectorAll('.tab-btn');
     const contents = overlay.querySelectorAll('.tab-content');
     tabs.forEach(tab => {
@@ -7120,173 +6531,11 @@ function showMyBallsPopup() {
             overlay.querySelector(`#${tab.dataset.tab}`).classList.add('active');
         });
     });
-
-    // Close button
-    const closeBtn = overlay.querySelector('.close-btn');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            overlay.remove();
-        });
-    }
-
-    // Close on overlay click
+    overlay.querySelector('.close-btn').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) overlay.remove();
     });
-
-    // Upgrade buttons in My Balls tab
-    overlay.querySelectorAll('[data-action="upgrade"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const type = btn.dataset.type;
-            if (type) {
-                upgradeBall(type);
-                // Refresh the popup after upgrade
-                overlay.remove();
-                showMyBallsPopup();
-            }
-        });
-    });
-
-    // Global upgrade buttons
-    overlay.querySelectorAll('[data-action="global-upgrade"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const type = btn.dataset.type;
-            if (type) {
-                applyGlobalUpgrade(type);
-                // Refresh the popup after upgrade
-                overlay.remove();
-                showMyBallsPopup();
-            }
-        });
-    });
-
-    // Rebirth button
-    const rebirthBtn = overlay.querySelector('[data-action="rebirth"]');
-    if (rebirthBtn) {
-        rebirthBtn.addEventListener('click', () => {
-            if (level >= 100) {
-                rebirth();
-                overlay.remove();
-            }
-        });
-    }
-
-    // Auto rebirth button
     document.getElementById('buy-auto-rebirth-btn')?.addEventListener('click', buyAutoRebirth);
-
-    // Auto rebirth toggle
-    const autoToggle = document.getElementById('auto-rebirth-toggle');
-    if (autoToggle) {
-        autoToggle.checked = !!autoRebirthEnabled;
-        autoToggle.disabled = isGuest || !autoRebirthOwned;
-        autoToggle.addEventListener('change', function (e) {
-            autoRebirthEnabled = !!e.target.checked;
-            const user = auth.currentUser;
-            if (user && !isGuest) {
-                database.ref('users/' + user.uid + '/gameState').update({
-                    autoRebirthEnabled
-                }).catch(() => { });
-            }
-        });
-    }
-
-    // Show auto rebirth toggle if owned
-    const autoToggleContainer = document.getElementById('auto-rebirth-toggle-container');
-    if (autoToggleContainer) {
-        autoToggleContainer.style.display = autoRebirthOwned ? 'block' : 'none';
-    }
-
-    // Shop buttons
-    overlay.querySelectorAll('[data-action="buy-powerup"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const cost = parseInt(btn.dataset.cost) || 1;
-            buyPowerup(cost, 1);
-            overlay.remove();
-            showMyBallsPopup();
-        });
-    });
-
-    overlay.querySelectorAll('[data-action="buy-idle-boost"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            buyIdleGoldBoost();
-            overlay.remove();
-            showMyBallsPopup();
-        });
-    });
-
-    overlay.querySelectorAll('[data-action="buy-cosmic"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const cost = parseInt(btn.dataset.cost) || 5;
-            buyPowerup(cost, 1, 'cosmicBarrage');
-            overlay.remove();
-            showMyBallsPopup();
-        });
-    });
-
-    overlay.querySelectorAll('[data-action="cosmetic"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const cosmetic = btn.dataset.cosmetic;
-            if (cosmetic) {
-                if (cosmetics[cosmetic]) {
-                    deleteCosmetic(cosmetic);
-                } else {
-                    buyCosmetic(cosmetic);
-                }
-                overlay.remove();
-                showMyBallsPopup();
-            }
-        });
-    });
-
-    overlay.querySelectorAll('[data-action="buy-instant-destroy"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            buyInstantBrickDestroy();
-            overlay.remove();
-            showMyBallsPopup();
-        });
-    });
-
-    overlay.querySelectorAll('[data-action="buy-double-damage"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            buyDoubleDamage();
-            overlay.remove();
-            showMyBallsPopup();
-        });
-    });
-
-    overlay.querySelectorAll('[data-action="buy-extra-ball"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            buyExtraBall();
-            overlay.remove();
-            showMyBallsPopup();
-        });
-    });
-
-    overlay.querySelectorAll('[data-action="buy-gold-magnet"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            buyGoldMagnet();
-            overlay.remove();
-            showMyBallsPopup();
-        });
-    });
-
-    overlay.querySelectorAll('[data-action="buy-health-reduction"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            buyBrickHealthReduction();
-            overlay.remove();
-            showMyBallsPopup();
-        });
-    });
-
-    overlay.querySelectorAll('[data-action="buy-speed-surge"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            buySpeedSurge();
-            overlay.remove();
-            showMyBallsPopup();
-        });
-    });
 }
 
 function toggleCosmeticButton(button, cosmeticName) {
@@ -7853,7 +7102,6 @@ function nextLevel() {
     if (bricks.length === 0) {
         level++;
         updateBallOptionsUI();
-        updateFeatureVisibility();
         updateUI();
         if (level >= 100 && autoRebirthOwned && autoRebirthEnabled) {
             rebirth(true, true); // skipConfirm=true, silent=true
@@ -8309,10 +7557,10 @@ function showInviteSignupPopup(inviterId) {
                         overlay.remove();
                         showLoadingScreen();
                         showToast("Account created! Enjoy your 50,000 gold bonus 🎉");
-
+                        
                         // Clean up URL to remove invite ID
                         window.history.replaceState({}, document.title, window.location.pathname);
-
+                        
                         // Reload after brief delay
                         setTimeout(() => location.reload(), 800);
                     })
@@ -8360,10 +7608,10 @@ function showInviteSignupPopup(inviterId) {
                             overlay.remove();
                             showLoadingScreen();
                             showToast("Signed up with Google! Enjoy your 50,000 gold bonus 🎉");
-
+                            
                             // Clean up URL to remove invite ID
                             window.history.replaceState({}, document.title, window.location.pathname);
-
+                            
                             // Reload after brief delay
                             setTimeout(() => location.reload(), 800);
                         });
@@ -9394,274 +8642,3 @@ function unlockCustomSets() {
             updateUI();
         });
 }
-
-// Helper function to draw ball preview on canvas
-function drawBallPreviewOnCanvas(canvas, color, radius) {
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d'); // ← Added quotes around 2d
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.closePath();
-}
-
-// Buy Instant Brick Destroy
-function buyInstantBrickDestroy() {
-    const price = getDynamicPrice(100);
-    if (gold >= price && bricks.length > 0) {
-        gold -= price;
-        // Destroy 3 random bricks
-        for (let i = 0; i < 3 && bricks.length > 0; i++) {
-            const randomIndex = Math.floor(Math.random() * bricks.length);
-            bricks[randomIndex].health = 0;
-            gold += 5;
-        }
-        updateUI();
-        saveGameState();
-        showToast("Destroyed 3 bricks! +15 gold");
-    } else {
-        showToast(gold < price ? "Not enough gold!" : "No bricks to destroy!");
-    }
-}
-
-// Buy Double Damage
-function buyDoubleDamage() {
-    const price = getDynamicPrice(150);
-    if (gold >= price) {
-        gold -= price;
-        ballUpgrades.basic.damage *= 2;
-        ballUpgrades.sniper.damage *= 2;
-        ballUpgrades.big.damage *= 2;
-        ballUpgrades.explosion.damage *= 2;
-        ballUpgrades.multiplying.damage *= 2;
-        ballUpgrades.cannonball.damage *= 2;
-        ballUpgrades.poison.damage *= 2;
-        ballUpgrades.snowball.damage *= 2;
-        setTimeout(() => {
-            ballUpgrades.basic.damage /= 2;
-            ballUpgrades.sniper.damage /= 2;
-            ballUpgrades.big.damage /= 2;
-            ballUpgrades.explosion.damage /= 2;
-            ballUpgrades.multiplying.damage /= 2;
-            ballUpgrades.cannonball.damage /= 2;
-            ballUpgrades.poison.damage /= 2;
-            ballUpgrades.snowball.damage /= 2;
-            showToast("Double damage effect ended!");
-            updateUI();
-        }, 30000);
-        updateUI();
-        saveGameState();
-        showToast("Double damage activated for 30 seconds!");
-    } else {
-        showToast("Not enough gold!");
-    }
-}
-
-// Buy Extra Ball
-function buyExtraBall() {
-    const price = getDynamicPrice(200);
-    if (gold >= price && balls.length < maxBalls) {
-        gold -= price;
-        const radius = 8;
-        const speed = 3.5;
-        balls.push(new Ball(canvas.width / 2, canvas.height / 2, radius, speed * (Math.random() > 0.5 ? 1 : -1), speed * (Math.random() > 0.5 ? 1 : -1), 'gray', 'basic'));
-        updateUI();
-        saveGameState();
-        showToast("Extra ball spawned!");
-    } else {
-        showToast(balls.length >= maxBalls ? "Max balls reached!" : "Not enough gold!");
-    }
-}
-
-// Buy Gold Magnet
-function buyGoldMagnet() {
-    const price = getDynamicPrice(250);
-    if (gold >= price) {
-        gold -= price;
-        const originalGoldPerSecond = idleGoldPerSecond;
-        idleGoldPerSecond *= 2;
-        setTimeout(() => {
-            idleGoldPerSecond = originalGoldPerSecond;
-            showToast("Gold magnet effect ended!");
-            updateUI();
-        }, 30000);
-        updateUI();
-        saveGameState();
-        showToast("Gold magnet activated for 30 seconds! (2x gold)");
-    } else {
-        showToast("Not enough gold!");
-    }
-}
-
-// Buy Brick Health Reduction
-function buyBrickHealthReduction() {
-    const price = getDynamicPrice(300);
-    if (gold >= price) {
-        gold -= price;
-        bricks.forEach(brick => {
-            brick.health = Math.ceil(brick.health * 0.85);
-        });
-        updateUI();
-        saveGameState();
-        showToast("Brick health reduced by 15%!");
-    } else {
-        showToast("Not enough gold!");
-    }
-}
-
-// Buy Speed Surge
-function buySpeedSurge() {
-    const price = getDynamicPrice(350);
-    if (gold >= price) {
-        gold -= price;
-        ballUpgrades.basic.speed *= 1.5;
-        ballUpgrades.sniper.speed *= 1.5;
-        ballUpgrades.big.speed *= 1.5;
-        ballUpgrades.explosion.speed *= 1.5;
-        ballUpgrades.multiplying.speed *= 1.5;
-        ballUpgrades.cannonball.speed *= 1.5;
-        ballUpgrades.poison.speed *= 1.5;
-        ballUpgrades.snowball.speed *= 1.5;
-        setTimeout(() => {
-            ballUpgrades.basic.speed /= 1.5;
-            ballUpgrades.sniper.speed /= 1.5;
-            ballUpgrades.big.speed /= 1.5;
-            ballUpgrades.explosion.speed /= 1.5;
-            ballUpgrades.multiplying.speed /= 1.5;
-            ballUpgrades.cannonball.speed /= 1.5;
-            ballUpgrades.poison.speed /= 1.5;
-            ballUpgrades.snowball.speed /= 1.5;
-            showToast("Speed surge effect ended!");
-            updateUI();
-        }, 30000);
-        updateUI();
-        saveGameState();
-        showToast("Speed surge activated for 30 seconds! (1.5x speed)");
-    } else {
-        showToast("Not enough gold!");
-    }
-}
-
-// Buy Idle Gold Boost
-function buyIdleGoldBoost() {
-    const price = Math.floor(1500 * Math.max(1, Math.floor(idleGoldPerSecond / 0.5)) * 1.5 * (0.5 / (idleGoldPerSecond * 0.2 || 0.1)));
-    if (gold >= price) {
-        gold -= price;
-        idleGoldPerSecond += 0.5;
-        updateUI();
-        saveGameState();
-        showToast("Idle gold increased to " + formatNumber(idleGoldPerSecond) + "/sec!");
-    } else {
-        showToast("Not enough gold!");
-    }
-}
-
-// Buy Cosmetic
-function buyCosmetic(cosmeticName) {
-    if (isGuest) {
-        showLoginPopupForSave();
-        return;
-    }
-    let costRebirths = 0;
-    let costGold = 0;
-
-    switch (cosmeticName) {
-        case 'nebulaSkin': costRebirths = 10; break;
-        case 'fireTrail':
-        case 'iceTrail': costGold = 500; break;
-        case 'rainbowSkin': costRebirths = 15; break;
-        case 'bundleSilver': costRebirths = 20; break;
-        case 'bundleGold': costRebirths = 30; break;
-        case 'bundlePlatinum': costRebirths = 50; break;
-    }
-
-    if (costRebirths > 0 && rebirthCount >= costRebirths) {
-        rebirthCount -= costRebirths;
-        cosmetics[cosmeticName] = true;
-        if (cosmeticName === 'bundleSilver') cosmetics.nebulaSkin = true;
-        if (cosmeticName === 'bundleGold') { cosmetics.nebulaSkin = true; cosmetics.fireTrail = true; }
-        if (cosmeticName === 'bundlePlatinum') { cosmetics.nebulaSkin = true; cosmetics.fireTrail = true; cosmetics.iceTrail = true; cosmetics.rainbowSkin = true; }
-        const user = auth.currentUser;
-        if (user) {
-            database.ref('users/' + user.uid + '/gameState').update({
-                rebirthCount,
-                cosmetics
-            }).then(() => {
-                showToast("Cosmetic purchased!");
-                updateUI();
-                updateLeaderboard();
-            }).catch(() => {
-                rebirthCount += costRebirths;
-                cosmetics[cosmeticName] = false;
-                showToast("Purchase failed!");
-            });
-        }
-    } else if (costGold > 0 && gold >= costGold) {
-        gold -= costGold;
-        cosmetics[cosmeticName] = true;
-        updateUI();
-        saveGameState();
-        showToast("Cosmetic purchased!");
-    } else {
-        showToast(costRebirths > 0 ? "Not enough rebirths!" : "Not enough gold!");
-    }
-}
-
-function closeCustomBallModal() {
-    const modal = document.querySelector('.custom-ball-modal');
-    if (modal) modal.remove();
-}
-
-// Add event listener to the custom balls button
-document.getElementById('custom-option')?.addEventListener('click', showCustomBallModal);
-
-// Game Loop
-function gameLoop() {
-    if (canvas && ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        balls.forEach(ball => {
-            ball.move();
-            ball.draw();
-        });
-
-        autoBalls.forEach(autoBall => {
-            autoBall.move();
-            autoBall.draw();
-        });
-
-        bricks.forEach(brick => {
-            brick.draw();
-        });
-
-        powerUps.forEach(powerUp => {
-            powerUp.draw();
-            powerUp.collect();
-        });
-
-        // Remove inactive power-ups
-        powerUps = powerUps.filter(p => p.active);
-
-        // Spawn new bricks if needed
-        if (bricks.length === 0) {
-            level++;
-            spawnBricks();
-            updateUI();
-        }
-
-        requestAnimationFrame(gameLoop);
-    }
-}
-
-// Start game loop when game is ready
-function startGameLoop() {
-    if (!gameStarted) {
-        gameLoop();
-        gameStarted = true;
-    }
-}
-
-// Call startGameLoop when the page loads
-window.addEventListener('load', startGameLoop);

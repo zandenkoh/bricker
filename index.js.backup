@@ -88,8 +88,8 @@ style.innerHTML = `
     
     /* Ball unlock highlight animation */
     .ball-just-unlocked {
-        box-shadow: none !important;
-        border: none !important;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.8) !important;
+        border: 2px solid #ffd700 !important;
     }
 `;
 document.head.appendChild(style);
@@ -280,82 +280,6 @@ let ballCounts = {
     poison: 0,
     snowball: 0
 };
-
-// ============================================
-// BALL UNLOCK TRACKING SYSTEM
-// ============================================
-// Explicitly track which ball types the user has unlocked
-// This is separate from ownership (ballCounts) - unlocks determine what's shown in shop
-let ballsUnlocked = {
-    basic: true,    // Always unlocked by default
-    sniper: false,
-    big: false,
-    explosion: false,
-    multiplying: false,
-    cannonball: false,
-    poison: false,
-    snowball: false
-};
-
-/**
- * Unlock a ball type and show notification
- */
-function unlockBall(type) {
-    // Use ballDisplayNames from later in the file
-    const displayNames = {
-        basic: 'Basic',
-        sniper: 'Sniper',
-        big: 'Big',
-        explosion: 'Bomb',
-        multiplying: 'Clone',
-        cannonball: 'Cannonball',
-        poison: 'Poison',
-        snowball: 'Snowball'
-    };
-    
-    if (!ballsUnlocked[type]) {
-        ballsUnlocked[type] = true;
-        
-        // Show unlock notification
-        const displayName = displayNames[type] || type;
-        showToast(`🎉 ${displayName} Ball unlocked! Check the shop!`);
-        
-        // Trigger visual highlight on the shop option
-        const optionEl = document.getElementById(`${type}-option`);
-        if (optionEl) {
-            optionEl.classList.add('ball-just-unlocked');
-            setTimeout(() => {
-                optionEl.classList.remove('ball-just-unlocked');
-            }, 3000);
-        }
-        
-        return true;
-    }
-    return false;
-}
-
-/**
- * Get list of unlocked ball types
- */
-function getUnlockedBalls() {
-    return Object.entries(ballsUnlocked)
-        .filter(([_, unlocked]) => unlocked)
-        .map(([type, _]) => type);
-}
-
-/**
- * Get list of locked ball types
- */
-function getLockedBalls() {
-    return Object.entries(ballsUnlocked)
-        .filter(([_, unlocked]) => !unlocked)
-        .map(([type, _]) => type);
-}
-
-// ============================================
-// END BALL UNLOCK TRACKING SYSTEM
-// ============================================
-
 let gold = 20;
 let idleGoldPerSecond = 0.5;
 let autoBallPrice = 200;
@@ -642,24 +566,15 @@ document.addEventListener('visibilitychange', () => {
 });
 
 function isBallUnlocked(type) {
-    // First check if ball is explicitly unlocked
-    if (ballsUnlocked[type] === true) {
-        return true;
+    // First check if ball is visible (progressive unlock system)
+    // Only if the player owns the previous ball type in the sequence
+    if (!isBallVisible(type)) {
+        return false;
     }
-    
-    // For progressive unlock system: unlock if previous ball type is owned
-    // This allows unlocking by purchasing previous balls
-    const index = ballUnlockOrder.indexOf(type);
-    if (index > 0) {
-        const previousBall = ballUnlockOrder[index - 1];
-        if (ballCounts[previousBall] > 0) {
-            // Auto-unlock the next ball in sequence when previous is owned
-            unlockBall(type);
-            return true;
-        }
-    }
-    
-    return false;
+
+    // For progressive unlock system: always unlock if visible (previous ball owned)
+    // The ball becomes visible after owning the previous ball
+    return true;
 }
 
 
@@ -1980,45 +1895,8 @@ function login() {
             const overlay = document.querySelector('.login-overlay');
             if (overlay) overlay.remove();
             showLoadingScreen();
-            
-            // Check for local guest progress and migrate if exists
-            const localData = JSON.parse(localStorage.getItem('brickerGameState'));
-            
-            if (localData) {
-                // Merge local guest progress with Firebase data
-                // Local progress takes precedence for game state, but we keep Firebase username
-                database.ref('users/' + userCredential.user.uid + '/gameState').once('value')
-                    .then(snapshot => {
-                        const firebaseData = snapshot.val();
-                        
-                        // Create merged game state - local data with Firebase username
-                        const mergedGameState = {
-                            ...localData,
-                            username: firebaseData?.username || localData.username || 'Player'
-                        };
-                        
-                        // Save merged state to Firebase
-                        return database.ref('users/' + userCredential.user.uid + '/gameState').set(mergedGameState);
-                    })
-                    .then(() => {
-                        // Clear localStorage after successful migration
-                        localStorage.removeItem('brickerGameState');
-                        console.log('Guest progress migrated successfully!');
-                        showToast('Progress loaded successfully!');
-                        loadGameState(userCredential.user.uid);
-                        setTimeout(() => location.reload(), 800);
-                    })
-                    .catch(error => {
-                        console.error('Error migrating guest progress:', error);
-                        // If migration fails, just load from Firebase
-                        loadGameState(userCredential.user.uid);
-                        setTimeout(() => location.reload(), 800);
-                    });
-            } else {
-                // No local data, just load from Firebase
-                loadGameState(userCredential.user.uid);
-                setTimeout(() => location.reload(), 800);
-            }
+            loadGameState(userCredential.user.uid);
+            setTimeout(() => location.reload(), 800);
         })
         .catch(error => {
             // Provide more user-friendly error messages
@@ -2055,42 +1933,8 @@ function loginWithGoogle() {
                 }).catch(() => { });
             }
 
-            // Check for local guest progress and migrate if exists
-            const localData = JSON.parse(localStorage.getItem('brickerGameState'));
-            
-            if (localData) {
-                // Merge local guest progress with Firebase data
-                database.ref('users/' + result.user.uid + '/gameState').once('value')
-                    .then(snapshot => {
-                        const firebaseData = snapshot.val();
-                        
-                        // Create merged game state - local data with Firebase username
-                        const mergedGameState = {
-                            ...localData,
-                            username: firebaseData?.username || localData.username || result.additionalUserInfo?.isNewUser ? generateAnonymousUsername() : 'Player'
-                        };
-                        
-                        // Save merged state to Firebase
-                        return database.ref('users/' + result.user.uid + '/gameState').set(mergedGameState);
-                    })
-                    .then(() => {
-                        // Clear localStorage after successful migration
-                        localStorage.removeItem('brickerGameState');
-                        console.log('Guest progress migrated successfully via Google!');
-                        showToast('Progress loaded successfully!');
-                        loadGameState(result.user.uid);
-                        setTimeout(() => location.reload(), 800);
-                    })
-                    .catch(error => {
-                        console.error('Error migrating guest progress:', error);
-                        loadGameState(result.user.uid);
-                        setTimeout(() => location.reload(), 800);
-                    });
-            } else {
-                // No local data, just load from Firebase
-                loadGameState(result.user.uid);
-                setTimeout(() => location.reload(), 800);
-            }
+            loadGameState(result.user.uid);
+            setTimeout(() => location.reload(), 800);
         })
         .catch(error => {
             showToast('Google sign-in failed: ' + error.message);
@@ -2252,28 +2096,28 @@ function playAsGuest() {
         autoRebirthOwned = localData.autoRebirthOwned || false;
         autoRebirthEnabled = !!localData.autoRebirthEnabled;
         
-        // Restore ball counts - ensure ALL ball types are included
-        ballCounts = {
-            basic: localData.ballCounts?.basic ?? 0,
-            sniper: localData.ballCounts?.sniper ?? 0,
-            big: localData.ballCounts?.big ?? 0,
-            explosion: localData.ballCounts?.explosion ?? 0,
-            multiplying: localData.ballCounts?.multiplying ?? 0,
-            child: localData.ballCounts?.child ?? 0,
-            cannonball: localData.ballCounts?.cannonball ?? 0,
-            poison: localData.ballCounts?.poison ?? 0,
-            snowball: localData.ballCounts?.snowball ?? 0
+        // Restore ball counts
+        ballCounts = localData.ballCounts || {
+            basic: 0,
+            sniper: 0,
+            big: 0,
+            explosion: 0,
+            multiplying: 0,
+            child: 0,
+            cannonball: 0,
+            poison: 0,
+            snowball: 0
         };
         
         // Restore ball prices
-        ballPrices.basic = localData.ballPrices?.basic ?? 25;
-        ballPrices.sniper = localData.ballPrices?.sniper ?? 100;
-        ballPrices.big = localData.ballPrices?.big ?? 250;
-        ballPrices.explosion = localData.ballPrices?.explosion ?? 500;
-        ballPrices.multiplying = localData.ballPrices?.multiplying ?? 1000;
-        ballPrices.cannonball = localData.ballPrices?.cannonball ?? 2000;
-        ballPrices.poison = localData.ballPrices?.poison ?? 4000;
-        ballPrices.snowball = localData.ballPrices?.snowball ?? 8000;
+        ballPrices.basic = localData.ballPrices?.basic || 25;
+        ballPrices.sniper = localData.ballPrices?.sniper || 100;
+        ballPrices.big = localData.ballPrices?.big || 250;
+        ballPrices.explosion = localData.ballPrices?.explosion || 500;
+        ballPrices.multiplying = localData.ballPrices?.multiplying || 1000;
+        ballPrices.cannonball = localData.ballPrices?.cannonball || 2000;
+        ballPrices.poison = localData.ballPrices?.poison || 4000;
+        ballPrices.snowball = localData.ballPrices?.snowball || 8000;
         
         autoBallPrice = localData.autoBallPrice || 200;
         
@@ -2285,7 +2129,7 @@ function playAsGuest() {
         
         // Restore cosmetics and mascots
         cosmetics = localData.cosmetics || cosmetics;
-        mascotsOwned = Array.isArray(localData.mascotsOwned) ? localData.mascotsOwned : (localData.mascotsOwned || {});
+        mascotsOwned = Array.isArray(localData.mascotsOwned) ? localData.mascotsOwned : [];
         selectedMascotId = localData.selectedMascotId || null;
         
         // Restore milestones and rewards
@@ -2296,17 +2140,6 @@ function playAsGuest() {
         if (localData.globalUpgrades) {
             globalUpgrades = localData.globalUpgrades;
         }
-        
-        // Restore ball unlock tracking (with fallback for existing guests)
-        if (localData.ballsUnlocked) {
-            ballsUnlocked = { ...ballsUnlocked, ...localData.ballsUnlocked };
-        }
-        // Ensure basic ball is always unlocked
-        ballsUnlocked.basic = true;
-
-        // CRITICAL: Update ball options UI immediately to show unlocked balls
-        // This must be called BEFORE startGame() to ensure correct display on reload
-        updateBallOptionsUI();
     }
 
     startGame();
@@ -2325,8 +2158,7 @@ function saveGameState() {
     saveBtn.disabled = true;
     const user = auth.currentUser;
     if (user) {
-        // Build ballCounts from the balls array - includes ALL ball types
-        const ballCountsToSave = {
+        const ballCounts = {
             basic: balls.filter(b => b.type === 'basic').length,
             sniper: balls.filter(b => b.type === 'sniper').length,
             big: balls.filter(b => b.type === 'big').length,
@@ -2337,11 +2169,10 @@ function saveGameState() {
             poison: balls.filter(b => b.type === 'poison').length,
             snowball: balls.filter(b => b.type === 'snowball').length
         };
-        
         const gameState = {
             gold,
             level,
-            ballCounts: ballCountsToSave,
+            ballCounts,
             autoBalls: autoBalls.length,
             ballPrices,
             autoBallPrice,
@@ -2349,16 +2180,15 @@ function saveGameState() {
             ballUpgrades,
             stats: {
                 ...stats,
-                totalBricksBroken: stats.totalBricksBroken || 0
+                totalBricksBroken: stats.totalBricksBroken || 0  // <-- add this
             },
             username,
             rebirthCount,
             cosmetics,
             autoRebirthOwned,
             autoRebirthEnabled,
-            mascotsOwned,
-            selectedMascotId,
-            ballsUnlocked,  // Save ball unlock tracking
+            mascotsOwned,          // array of owned mascot entries
+            selectedMascotId,      // equipped mascot (optional)
             settings: {
                 backgroundMusic: settings.backgroundMusic,
                 backgroundMusicVolume: settings.backgroundMusicVolume
@@ -2373,8 +2203,7 @@ function saveGameState() {
                     activationTime: globalUpgrades.goldBoost.active ? Date.now() : null
                 }
             },
-            completedMilestones: completedMilestones,
-            unclaimedMilestoneRewards: unclaimedMilestoneRewards
+            completedMilestones: completedMilestones  // Track completed milestone IDs
         };
         database.ref('users/' + user.uid + '/gameState').update(gameState)
             .then(() => {
@@ -3750,23 +3579,16 @@ function showLoginPopupForSave() {
 }
 
 function saveToLocalStorage() {
-    // Build ballCounts from the balls array - includes ALL ball types
-    const ballCountsToSave = {
-        basic: balls.filter(b => b.type === 'basic').length,
-        sniper: balls.filter(b => b.type === 'sniper').length,
-        big: balls.filter(b => b.type === 'big').length,
-        explosion: balls.filter(b => b.type === 'explosion').length,
-        multiplying: balls.filter(b => b.type === 'multiplying').length,
-        child: balls.filter(b => b.type === 'child').length,
-        cannonball: balls.filter(b => b.type === 'cannonball').length,
-        poison: balls.filter(b => b.type === 'poison').length,
-        snowball: balls.filter(b => b.type === 'snowball').length
-    };
-
     const gameState = {
         gold,
         level,
-        ballCounts: ballCountsToSave,
+        ballCounts: {
+            sniper: balls.filter(b => b.type === 'sniper').length,
+            big: balls.filter(b => b.type === 'big').length,
+            explosion: balls.filter(b => b.type === 'explosion').length,
+            multiplying: balls.filter(b => b.type === 'multiplying').length,
+            child: balls.filter(b => b.type === 'child').length
+        },
         autoBalls: autoBalls.length,
         ballPrices,
         autoBallPrice,
@@ -3776,17 +3598,13 @@ function saveToLocalStorage() {
         username,
         rebirthCount,
         cosmetics,
-        mascotsOwned,
-        selectedMascotId,
-        ballsUnlocked,  // Save ball unlock tracking
         settings: {
             backgroundMusic: settings.backgroundMusic,
             backgroundMusicVolume: settings.backgroundMusicVolume
         },
-        completedMilestones: completedMilestones,
-        unclaimedMilestoneRewards: unclaimedMilestoneRewards,
-        autoRebirthOwned,
-        autoRebirthEnabled,
+        completedMilestones: completedMilestones,  // Track completed milestone IDs
+        unclaimedMilestoneRewards: unclaimedMilestoneRewards,  // Track unclaimed rewards
+
         globalUpgrades: {
             speedBoost: {
                 active: globalUpgrades.speedBoost.active,
@@ -3904,13 +3722,6 @@ function loadGameState(uid) {
                 // Load completed milestones and unclaimed rewards
                 completedMilestones = Array.isArray(data.completedMilestones) ? data.completedMilestones : [];
                 unclaimedMilestoneRewards = data.unclaimedMilestoneRewards || {};
-
-                // Load ball unlock tracking (with fallback for existing players)
-                if (data.ballsUnlocked) {
-                    ballsUnlocked = { ...ballsUnlocked, ...data.ballsUnlocked };
-                }
-                // Ensure basic ball is always unlocked
-                ballsUnlocked.basic = true;
 
                 syncBallsWithCounts();
                 autoBalls = [];
@@ -9665,3 +9476,4 @@ function startGameLoop() {
 
 // Call startGameLoop when the page loads
 window.addEventListener('load', startGameLoop);
+

@@ -118,108 +118,142 @@
             </div>
             <div class="together">
                 <div class="ui">
-                    <div class="ball-options">
-                        <div class="ball-option" id="basic-option" onclick="buyBall('basic')">
-                            <p>Basic</p>
-                            <div class="ball-preview">
-                                <canvas id="basic-preview" width="60" height="60"></canvas>
+                    <div class="ball-options-container">
+                        <div class="ball-options-scroll">
+                            <div class="ball-option" id="basic-option" onclick="buyBall('basic')">
+                                <p>Basic</p>
+                                <div class="ball-preview">
+                                    <canvas id="basic-preview" width="60" height="60"></canvas>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span id="basicPrice">25</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="ball-price">
-                                <span id="basicPrice">25</span>
+                            <div class="ball-option" id="sniper-option" onclick="buyBall('sniper')">
+                                <p>Sniper</p>
+                                <div class="ball-preview">
+                                    <canvas id="sniper-preview" width="60" height="60"></canvas>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span id="sniperPrice">50</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="ball-option" id="sniper-option" onclick="buyBall('sniper')">
-                            <p>Sniper</p>
-                            <div class="ball-preview">
-                                <canvas id="sniper-preview" width="60" height="60"></canvas>
+                            <div class="ball-option" id="big-option" onclick="buyBall('big')">
+                                <p>Big</p>
+                                <div class="ball-preview">
+                                    <canvas id="big-preview" width="60" height="60"></canvas>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span id="bigPrice">75</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="ball-price">
-                                <span id="sniperPrice">20</span>
+                            <div class="ball-option" id="explosion-option" onclick="buyBall('explosion')">
+                                <p>Bomb</p>
+                                <div class="ball-preview">
+                                    <canvas id="explosion-preview" width="60" height="60"></canvas>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span id="explosionPrice">100</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="ball-option" id="big-option" onclick="buyBall('big')">
-                            <p>Big</p>
-                            <div class="ball-preview">
-                                <canvas id="big-preview" width="60" height="60"></canvas>
+                            <div class="ball-option" id="multiplying-option" onclick="buyBall('multiplying')">
+                                <p>Clones</p>
+                                <div class="ball-preview">
+                                    <canvas id="multiplying-preview" width="60" height="60"></canvas>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span id="multiplyingPrice">125</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="ball-price">
-                                <span id="bigPrice">30</span>
+                            <div class="ball-option" id="auto-option" onclick="buyAutoBall()">
+                                <p>Auto</p>
+                                <div class="ball-preview">
+                                    <canvas id="auto-preview" width="60" height="60"></canvas>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span id="autoPrice">200</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="ball-option" id="explosion-option" onclick="buyBall('explosion')">
-                            <p>Bomb</p>
-                            <div class="ball-preview">
-                                <canvas id="explosion-preview" width="60" height="60"></canvas>
+                            <div class="ball-option" id="cannonball-option" onclick="buyBall('cannonball')">
+                                <p>Cannon</p>
+                                <div class="ball-preview">
+                                    <canvas id="cannonball-preview" width="60" height="60"></canvas>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span id="cannonballPrice">150</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="ball-price">
-                                <span id="explosionPrice">40</span>
+                            <div class="ball-option" id="poison-option" onclick="buyBall('poison')">
+                                <p>Poison</p>
+                                <div class="ball-preview">
+                                    <canvas id="poison-preview" width="60" height="60"></canvas>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span id="poisonPrice">175</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="ball-option" id="multiplying-option" onclick="buyBall('multiplying')">
-                            <p>Clones</p>
-                            <div class="ball-preview">
-                                <canvas id="multiplying-preview" width="60" height="60"></canvas>
+                            <div class="ball-option" id="snowball-option" onclick="buyBall('snowball')">
+                                <p>Snowball</p>
+                                <div class="ball-preview">
+                                    <canvas id="snowball-preview" width="60" height="60"></canvas>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span id="snowballPrice">200</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="ball-price">
-                                <span id="multiplyingPrice">50</span>
-                            </div>
-                        </div>
-                        <div class="ball-option" id="auto-option" onclick="buyAutoBall()">
-                            <p>Auto</p>
-                            <div class="ball-preview">
-                                <canvas id="auto-preview" width="60" height="60"></canvas>
-                            </div>
-                            <div class="ball-price">
-                                <span id="autoPrice">100</span>
-                            </div>
-                        </div>
-                        <div class="ball-option" id="cannonball-option" onclick="buyBall('cannonball')">
-                            <p>Cannon</p>
-                            <div class="ball-preview">
-                                <canvas id="cannonball-preview" width="60" height="60"></canvas>
-                            </div>
-                            <div class="ball-price">
-                                <span id="cannonballPrice">150</span>
-                            </div>
-                        </div>
-                        <div class="ball-option" id="poison-option" onclick="buyBall('poison')">
-                            <p>Poison</p>
-                            <div class="ball-preview">
-                                <canvas id="poison-preview" width="60" height="60"></canvas>
-                            </div>
-                            <div class="ball-price">
-                                <span id="poisonPrice">175</span>
-                            </div>
-                        </div>
-                        <div class="ball-option" id="snowball-option" onclick="buyBall('snowball')">
-                            <p>Snowball</p>
-                            <div class="ball-preview">
-                                <canvas id="snowball-preview" width="60" height="60"></canvas>
-                            </div>
-                            <div class="ball-price">
-                                <span id="snowballPrice">200</span>
-                            </div>
-                        </div>
-                        <div class="ball-option" id="custom-option" onclick="openCustomBallModal()">
-                            <p></p>
-                            <div class="ball-preview">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="#000" class="size-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
-                                </svg>
+                            <div class="ball-option" id="custom-option" onclick="openCustomBallModal()">
+                                <p></p>
+                                <div class="ball-preview">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="#000" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                                    </svg>
 
-                            </div>
-                            <div class="ball-price">
-                                <span>Sets</span>
+                                </div>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span>Sets</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="button-group">
-                            <div class="ball-option" id="weapons-btn">
+                        <div class="ball-options-buttons">
+                            <div  id="weapons-btn">
                                 <p>Mass Destruction</p>
-                                <div class="ball-price">
-                                    <span>1000</span>
+                                <div class="price-container">
+                                    <div class="price-progress"></div>
+                                    <div class="price-text">
+                                        <span>1000</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="inside-button-group">
